@@ -1,22 +1,19 @@
 <div align="center">
 
-# Nanggroe IoT
+# 🧠 Memorix
 
-### Modular IoT & Robotics Platform
+### Personal AI Memory Infrastructure
 
-**Nanggroe IoT — Modular IoT & Robotics Platform**
+**Own Your AI Memory**
 
-*Sistem Operasi Robotika Otonom Modular — Dari Aceh Untuk Dunia*
-
-[![Version](https://img.shields.io/badge/version-2.0.0-teal.svg)](https://github.com/mulkymalikuldhrs/nanggroe-iot)
+[![Version](https://img.shields.io/badge/version-1.0.0-purple.svg)](https://github.com/mulkymalikuldhrs/memorix)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org)
-[![Tauri](https://img.shields.io/badge/Tauri-v2-orange.svg)](https://tauri.app)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://typescriptlang.org)
-[![Capacitor](https://img.shields.io/badge/Capacitor-6-purple.svg)](https://capacitorjs.com)
-[![Tests](https://img.shields.io/badge/E2E%20Tests-183-teal.svg)](./e2e)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-orange.svg)](https://modelcontextprotocol.io)
+[![Docker](https://img.shields.io/badge/Docker-Ready-cyan.svg)](https://docker.com)
 
-[Report Bug](https://github.com/mulkymalikuldhrs/nanggroe-iot/issues) · [Request Feature](https://github.com/mulkymalikuldhrs/nanggroe-iot/issues) · [Security](SECURITY.md)
+[Report Bug](https://github.com/mulkymalikuldhrs/memorix/issues) · [Request Feature](https://github.com/mulkymalikuldhrs/memorix/issues) · [API Docs](#api-documentation)
 
 </div>
 
@@ -24,122 +21,65 @@
 
 ## Overview
 
-Nanggroe IoT is a modular autonomous robotics operating system designed to build, control, and manage many types of robots — drones, rovers, boats, amphibious vehicles, robotic arms, and custom Arduino projects — with integrated AI. Built with modern web technologies, runs on Raspberry Pi, supports full offline operation, and packages as native desktop (Linux/Windows) and mobile (Android) apps.
+Memorix is a personal AI memory infrastructure that transforms how you capture, connect, and recall knowledge. Think of it as your **second brain** — powered by semantic search, AI-driven insights, and a universal MCP server that connects your memory to any AI assistant.
 
-### Key Highlights
+### Key Features
 
-- **6 AI Agents** — Hermes, PicoClaw, Sentinel, Navigator, CommsGuard, DataSteward with Agent Orchestrator
-- **Multi-Robot Support** — 9 built-in templates for drones, rovers, boats, arms, blimps, and custom projects
-- **183 Playwright E2E Tests** — 8 spec files covering dashboard, API, agents, hardware, missions, navigation, flash, and power
-- **API Key Authentication** — Secure access to critical routes via `NANGGROE_API_KEY`
-- **Hardware Auto-Detect** — Serial, I2C, SPI, GPIO scanning with automatic driver loading
-- **Offline-First** — Local LLM, SQLite database, memory sync queue for disconnected operation
-- **Cross-Platform** — Web dashboard, Linux desktop (DEB/AppImage), Windows (MSI/NSIS), Android (APK)
-- **Real-Time** — Server-Sent Events telemetry streaming, WebSocket extension bridge
-- **Production-Ready** — 22 Prisma models, 42+ API routes, 20 dashboard tabs, database indexes, error boundaries
+| Feature | Description |
+|---------|-------------|
+| 🧠 **Semantic Memory** | Store notes as vector-embedded chunks with automatic chunking and indexing for intelligent retrieval |
+| 🔍 **AI Recall** | Search your memories with natural language — semantic search finds relevant notes even without exact keyword matches |
+| 🔗 **Related Notes** | Automatically discover connections between your notes through tag overlap, shared concepts, and relation scoring |
+| 📊 **Decision Intelligence** | Track decisions with context, reasoning, and outcomes — learn from your past choices over time |
+| 🧬 **Memory Evolution** | Detect emerging topics, fading interests, knowledge clusters, and temporal patterns in your memory graph |
+| 💬 **AI Chat with Memory** | RAG-powered chat that injects your memories into conversations for contextually aware AI responses |
+| 🔌 **MCP Server** | Connect your memory to Claude, Cursor, GPT, and any MCP-compatible AI assistant via JSON-RPC 2.0 |
 
 ---
 
-## Features
+## Architecture
 
-### Multi-Agent System
-
-| Agent | Type | Role |
-|-------|------|------|
-| **Hermes** | LLM | Strategic planning, mission design, natural language chat |
-| **PicoClaw** | Rule | Tactical safety monitoring, failsafe execution |
-| **Sentinel** | Rule | Continuous telemetry monitoring, emergency action trigger |
-| **Navigator** | Hybrid | Route planning, obstacle avoidance, dynamic rerouting |
-| **CommsGuard** | Rule | Communication link monitoring, failover management |
-| **DataSteward** | Rule | Data pipeline health, anomaly detection, cleanup |
-
-**Agent Orchestrator** — Singleton coordinator that manages task queue, inter-agent messaging, auto-recovery, and DB-backed task persistence.
-
-### Robot Platform
-
-| Feature | Description |
-|---------|-------------|
-| Robot Builder | Step-by-step project creation from templates with assembly guides |
-| 9 Templates | Tricopter, Quadcopter, Rover, Boat, Amphibious, Arm, Blimp, Hexacopter, Custom |
-| Hardware Auto-Detect | USB VID/PID scanning, serial port enumeration, I2C/SPI bus probing |
-| Firmware Flasher | Upload firmware to Arduino/Pixhawk with verification |
-| Calibration | Compass, accelerometer, gyro, ESC, radio calibration flows |
-| Assembly Guide | Step-by-step instructions with progress tracking |
-
-### AI & Intelligence
-
-| Feature | Description |
-|---------|-------------|
-| LLM Engine | Cloud + local models (TinyLlama, Phi-2, Llama-3.2, Gemma-2, Qwen2.5) |
-| 6-Agent System | Hermes + PicoClaw + Sentinel + Navigator + CommsGuard + DataSteward |
-| Agent Orchestrator | Task queue, priority scheduling, inter-agent communication, auto-recovery |
-| Self-Learning | Pattern detection, auto-tuning, knowledge transfer between projects |
-| AI Memory | Persistent memory with confidence scores and sync queue |
-| AI Testing | Automated test generation and coverage analysis |
-| Face Tracking | Detection, recognition database, servo tracking control |
-
-### Navigation & Mission
-
-| Feature | Description |
-|---------|-------------|
-| Mission Planner | Waypoint creation, area polygons, overlap/speed/altitude config |
-| GPS Tracking | Real-time position tracking via serial GPS |
-| Autopilot | Autonomous waypoint navigation with geofence |
-| RTH | Return-To-Home with configurable failsafe |
-| Field Mapping | Automated area survey with photo capture planning |
-| Delivery Routes | Point-to-point delivery with obstacle avoidance |
-
-### Communications
-
-| Feature | Description |
-|---------|-------------|
-| Telegram Bot | Hermes agent integration for remote control |
-| Voice/TTS | Speech input and text-to-speech output |
-| Beep Alerts | Configurable alert patterns via buzzer |
-| GSM Module | Cellular connectivity for remote areas |
-| Extension Bridge | WebSocket for VSCode, Cursor, Neovim, JetBrains |
-
-### Power & Infrastructure
-
-| Feature | Description |
-|---------|-------------|
-| Battery Monitor | Voltage, current, temperature tracking with alerts |
-| Solar Panel | Charge monitoring and power optimization |
-| System Doctor | Health checks, diagnostics, and auto-repair |
-| MCP Protocol | JSON-RPC 2.0 for external tool integration |
-| Boot Flow | Startup sequence manager with dependency ordering |
-| Sync Queue | Offline-first data sync with retry logic |
-
-### Security & Quality
-
-| Feature | Description |
-|---------|-------------|
-| API Key Auth | `NANGGROE_API_KEY` for critical route protection |
-| Command Injection Protection | Input sanitization on shell-execution routes |
-| CSP Headers | Content Security Policy in Tauri desktop builds |
-| Input Validation | Zod schema validation on critical API routes |
-| Error Boundaries | React error boundaries with graceful fallback UI |
-| Loading States | Skeleton loading patterns across all dashboard tabs |
-| Database Indexes | Performance indexes on key query fields |
-| N+1 Query Fix | Optimized Prisma queries with proper includes |
-
----
-
-## Tech Stack
-
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Framework | Next.js (App Router) | 16 |
-| Desktop | Tauri | v2 |
-| Mobile | Capacitor | 6 |
-| Language | TypeScript | 5 (strict) |
-| Backend | Rust | 2021 edition |
-| Styling | Tailwind CSS + shadcn/ui | 4 |
-| Database | Prisma ORM (SQLite) | 6 |
-| State | Zustand + TanStack Query | 5 / 5 |
-| AI SDK | z-ai-web-dev-sdk | latest |
-| E2E Testing | Playwright | 1.60 |
-| Serial | serialport | 13 |
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Memorix Architecture                    │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐   │
+│  │   Web UI     │    │  MCP Server  │    │  AI Assist   │   │
+│  │  (Next.js)   │    │  (Stdio/SSE) │    │  (Claude etc)│   │
+│  └──────┬───────┘    └──────┬───────┘    └──────┬───────┘   │
+│         │                   │                   │            │
+│         ▼                   ▼                   ▼            │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                    REST API Layer                     │    │
+│  │  ┌─────┐ ┌──────┐ ┌──────┐ ┌────────┐ ┌─────────┐  │    │
+│  │  │Notes│ │ Chat │ │Search│ │Decisions│ │Settings │  │    │
+│  │  └──┬──┘ └──┬───┘ └──┬───┘ └───┬────┘ └────┬────┘  │    │
+│  └─────┼───────┼────────┼────────┼───────────┼────────┘    │
+│         │       │        │        │           │              │
+│         ▼       ▼        ▼        ▼           ▼              │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                 AI Memory Engine                      │    │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────┐ │    │
+│  │  │ Chunker  │ │ Embedder │ │  Memory  │ │  LLM   │ │    │
+│  │  │ (Split)  │ │ (Vector) │ │ (Search) │ │ (RAG)  │ │    │
+│  │  └──────────┘ └──────────┘ └──────────┘ └────────┘ │    │
+│  └──────────────────────┬──────────────────────────────┘    │
+│                          │                                   │
+│                          ▼                                   │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │              SQLite + Prisma ORM                      │    │
+│  │  ┌──────┐ ┌───────┐ ┌──────────┐ ┌──────────────┐  │    │
+│  │  │ Notes│ │ Chunks│ │MemLinks  │ │Conversations │  │    │
+│  │  │      │ │(Vecs) │ │(Graph)   │ │(Messages)    │  │    │
+│  │  └──────┘ └───────┘ └──────────┘ └──────────────┘  │    │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐            │    │
+│  │  │Decisions │ │ ApiKeys  │ │Sessions  │            │    │
+│  │  └──────────┘ └──────────┘ └──────────┘            │    │
+│  └─────────────────────────────────────────────────────┘    │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -148,518 +88,422 @@ Nanggroe IoT is a modular autonomous robotics operating system designed to build
 ### Prerequisites
 
 - **Bun** >= 1.0 ([install](https://bun.sh))
-- **Node.js** >= 18 (for compatibility)
+- **Node.js** >= 20 (for Next.js 16)
 - **Git** for version control
 
-### Installation
+### 3-Step Setup
 
 ```bash
-# Clone the repository
-git clone https://github.com/mulkymalikuldhrs/nanggroe-iot.git
-cd nanggroe-iot
+# 1. Clone the repository
+git clone https://github.com/mulkymalikuldhrs/memorix.git
+cd memorix
 
-# Install dependencies
+# 2. Install dependencies and set up environment
 bun install
-
-# Set up environment
 cp .env.example .env
-# Edit .env with your configuration (add NANGGROE_API_KEY for production)
+# Edit .env with your configuration
 
-# Initialize database
+# 3. Initialize database and start
 bun run db:push
 bun run db:generate
-
-# Start development server
 bun run dev
-
-# Open in browser at http://localhost:3000
 ```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser. Log in with the demo account:
+
+- **Email:** `demo@memorix.ai`
+- **Password:** `demo123`
 
 ### Available Scripts
 
 | Command | Description |
 |---------|-------------|
-| `bun run dev` | Start Next.js development server on port 3000 |
-| `bun run build` | Build for production |
+| `bun run dev` | Start development server on port 3000 |
+| `bun run build` | Build for production (standalone output) |
 | `bun run start` | Start production server |
 | `bun run lint` | Run ESLint checks |
+| `bun run typecheck` | Run TypeScript type checking |
+| `bun run test` | Run Vitest unit tests |
+| `bun run test:watch` | Run tests in watch mode |
 | `bun run db:push` | Push Prisma schema to database |
 | `bun run db:generate` | Generate Prisma client |
 | `bun run db:migrate` | Run database migrations |
-| `bun run db:reset` | Reset database with seed data |
-| `bun run test:e2e` | Run Playwright E2E tests |
-| `bun run test:e2e:ui` | Run E2E tests with Playwright UI |
-| `bun run tauri:dev` | Start Tauri desktop dev mode |
-| `bun run tauri:build` | Build desktop app for current platform |
-| `bun run tauri:build:linux` | Build Linux DEB + AppImage |
-| `bun run tauri:build:windows` | Build Windows MSI + NSIS |
-| `bun run android:sync` | Sync web assets to Android project |
-| `bun run android:open` | Open Android project in Android Studio |
-| `bun run android:build` | Build web + sync to Android |
+| `bun run db:seed` | Seed database with demo data |
+| `bun run mcp` | Start MCP server |
+| `bun run mcp:dev` | Start MCP server with hot reload |
 
 ---
 
-## Desktop App (Tauri v2)
+## MCP Server Setup
 
-Build Nanggroe IoT as a native desktop application for **Linux** and **Windows**.
+The Memorix MCP (Model Context Protocol) server allows AI assistants to interact with your memory via JSON-RPC 2.0 over stdio transport.
 
-### Linux Prerequisites (Debian/Ubuntu)
+### Claude Desktop
 
-```bash
-sudo apt update
-sudo apt install -y libwebkit2gtk-4.1-dev \
-  libgtk-3-dev libayatana-appindicator3-dev \
-  librsvg2-dev libssl-dev libclang-dev \
-  build-essential pkg-config
+Add to your `claude_desktop_config.json`:
 
-# Install Rust
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source $HOME/.cargo/env
+```json
+{
+  "mcpServers": {
+    "memorix": {
+      "command": "bun",
+      "args": ["run", "/path/to/memorix/mcp-server/index.ts"],
+      "env": {
+        "DATABASE_URL": "file:/path/to/memorix/prisma/db/memorix.db",
+        "MEMORIX_API_KEY": "mx_your_api_key_here"
+      }
+    }
+  }
+}
 ```
 
-### Windows Prerequisites
+### Cursor
 
-```bash
-# Install Visual Studio Build Tools (C++ workload)
-# Download: https://visualstudio.microsoft.com/visual-cpp-build-tools/
+Add to your `.cursor/mcp.json`:
 
-# Install Rust
-winget install Rustlang.Rustup
+```json
+{
+  "mcpServers": {
+    "memorix": {
+      "command": "bun",
+      "args": ["run", "/path/to/memorix/mcp-server/index.ts"],
+      "env": {
+        "DATABASE_URL": "file:/path/to/memorix/prisma/db/memorix.db",
+        "MEMORIX_API_KEY": "mx_your_api_key_here"
+      }
+    }
+  }
+}
 ```
 
-### Build Commands
+### MCP Tools
 
-```bash
-# Development (hot-reload)
-bun run tauri:dev
-
-# Linux packages (DEB + AppImage)
-bun run tauri:build:linux
-
-# Windows installers (MSI + NSIS)
-bun run tauri:build:windows
-```
-
-### Build Output
-
-| Platform | Output Path |
-|----------|------------|
-| Linux DEB | `src-tauri/target/release/bundle/deb/nanggroe-iot_2.0.0_amd64.deb` |
-| Linux AppImage | `src-tauri/target/release/bundle/appimage/nanggroe-iot_2.0.0_amd64.AppImage` |
-| Windows MSI | `src-tauri/target/release/bundle/msi/Nanggroe IoT_2.0.0_x64_en-US.msi` |
-| Windows EXE | `src-tauri/target/release/bundle/nsis/Nanggroe IoT_2.0.0_x64-setup.exe` |
-
-### Tauri Configuration
-
-| Setting | Value |
-|---------|-------|
-| Product Name | Nanggroe IoT |
-| Identifier | com.nanggroe.iot |
-| Window Size | 1440×900 (min: 1024×700) |
-| Window Title | Nanggroe IoT — IoT & Robotics Platform |
+| Tool | Description |
+|------|-------------|
+| `memorix_search` | Search your memory with keyword + tag + content scoring |
+| `memorix_add_note` | Add a note to your memory (auto-creates relations) |
+| `memorix_get_note` | Get a specific note with full content and metadata |
+| `memorix_list_notes` | List all notes with pagination |
+| `memorix_chat` | Chat with your memory (multi-turn conversations) |
+| `memorix_get_related` | Get related notes with relation scores |
+| `memorix_detect_patterns` | Detect patterns: tag frequency, keyword trends, clusters |
+| `memorix_add_decision` | Record a decision with context and reasoning |
 
 ---
 
-## Android App (Capacitor)
+## API Documentation
 
-Build Nanggroe IoT as an Android application.
+All API endpoints require authentication via NextAuth.js session, except where noted.
 
-### Prerequisites
+### Authentication
 
-- **Android Studio** with SDK 33+
-- **Java Development Kit** (JDK 17)
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET/POST | `/api/auth/[...nextauth]` | No | NextAuth.js handler |
+| POST | `/api/auth/register` | No | Register new account (email, password, name) |
 
-### Setup & Build
+### Notes
 
-```bash
-# Sync web assets to Android project
-bun run android:sync
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/notes` | List notes (paginated, searchable, filterable by tags/archived) |
+| POST | `/api/notes` | Create note + trigger background memory storage |
+| GET | `/api/notes/[id]` | Get note with chunks and related notes |
+| PUT | `/api/notes/[id]` | Update note + re-index memory |
+| DELETE | `/api/notes/[id]` | Delete note + cleanup memory |
 
-# Open in Android Studio for build/run
-bun run android:open
+### Chat
 
-# Or build and run on connected device
-bun run android:run
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/chat` | List conversations |
+| POST | `/api/chat` | Send message + get AI response with memory context |
+| GET | `/api/chat/[conversationId]` | Get conversation messages |
+| DELETE | `/api/chat/[conversationId]` | Delete conversation |
+
+### Search & Memory
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/search` | Semantic search across all notes |
+| GET | `/api/memory` | Get memory context for a query |
+| POST | `/api/memory` | Force re-index all notes |
+| GET | `/api/memory/related/[noteId]` | Get related notes for a specific note |
+| GET | `/api/memory/patterns` | Detect and return patterns in user's memory |
+
+### Decisions
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/decisions` | List decisions (paginated) |
+| POST | `/api/decisions` | Create a new decision |
+
+### Settings & API Keys
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/settings` | Get user settings (plan, API key status) |
+| PUT | `/api/settings` | Update settings (openrouterApiKey, supabaseProjectUrl) |
+| GET | `/api/api-keys` | List API keys (masked) |
+| POST | `/api/api-keys` | Generate new API key (`mx_` prefix) |
+
+### Health
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/health` | No | Health check (status, timestamp, version) |
+
+### Common Query Parameters
+
+| Parameter | Endpoints | Description |
+|-----------|-----------|-------------|
+| `page` | List endpoints | Page number (default: 1) |
+| `limit` | List endpoints | Items per page (default: 20) |
+| `q` | Notes, Search | Search query string |
+| `tags` | Notes | Filter by comma-separated tags |
+| `archived` | Notes | Include archived notes (boolean) |
+
+### Response Format
+
+All API responses follow a consistent format:
+
+```json
+{
+  "success": true,
+  "data": { },
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 42,
+    "totalPages": 3
+  }
+}
 ```
 
-### Capacitor Configuration
+Error responses:
 
-| Setting | Value |
-|---------|-------|
-| App ID | com.nanggroe.iot |
-| App Name | Nanggroe IoT |
-| Web Dir | out |
-| Splash Duration | 2000ms |
-| Status Bar | Dark |
+```json
+{
+  "success": false,
+  "error": "Description of what went wrong"
+}
+```
 
 ---
 
-## Project Architecture
+## Tech Stack
+
+| Component | Technology | Version |
+|-----------|-----------|---------|
+| Framework | Next.js (App Router) | 16 |
+| Language | TypeScript | 5 (strict) |
+| Styling | Tailwind CSS + shadcn/ui | 4 |
+| Database | Prisma ORM (SQLite) | 6 |
+| State | Zustand + TanStack Query | 5 / 5 |
+| Auth | NextAuth.js | 4 |
+| AI SDK | z-ai-web-dev-sdk | latest |
+| Animations | Framer Motion | 12 |
+| MCP | JSON-RPC 2.0 over Stdio | — |
+| Testing | Vitest | 4 |
+| Container | Docker + Docker Compose | — |
+| CI/CD | GitHub Actions | — |
+
+---
+
+## Project Structure
 
 ```
-nanggroe-iot/
+memorix/
 ├── src/
-│   ├── app/                        # Next.js App Router
-│   │   ├── api/                    # 42+ API endpoints
-│   │   │   ├── agents/             # AI agent chat, management & orchestration
-│   │   │   ├── ai-memory/          # AI memory CRUD
-│   │   │   ├── alerts/             # Alert system
-│   │   │   ├── assembly/           # Robot assembly steps
-│   │   │   ├── auto-detect/        # Hardware auto-detection
-│   │   │   ├── bootflow/           # Boot sequence manager
-│   │   │   ├── calibration/        # Sensor calibration
-│   │   │   ├── comms/              # Communications (Telegram, voice, beep, GSM)
-│   │   │   ├── doctor/             # System health diagnostics
-│   │   │   ├── drivers/            # Hardware driver management
-│   │   │   ├── extension/          # IDE extension bridge
-│   │   │   ├── face-tracking/      # Face detection & tracking
-│   │   │   ├── flash/              # Firmware flashing
-│   │   │   ├── hardware/           # Hardware device CRUD
-│   │   │   ├── hardware-bridge/    # Hardware bus abstraction
-│   │   │   ├── llm/                # LLM chat completions
-│   │   │   ├── mcp/                # MCP protocol transport
-│   │   │   ├── missions/           # Mission planning & execution
-│   │   │   ├── navigation/         # GPS & autopilot routes
-│   │   │   ├── power/              # Power source management
-│   │   │   ├── projects/           # Robot project CRUD
-│   │   │   ├── robot-templates/    # Template library
-│   │   │   ├── self-learn/         # Self-learning engine
-│   │   │   ├── stream/             # SSE telemetry & alerts
-│   │   │   ├── system/             # System configuration
-│   │   │   ├── telemetry/          # Telemetry readings
-│   │   │   └── testing/            # AI-powered testing
-│   │   ├── error.tsx               # Error boundary
-│   │   ├── loading.tsx             # Loading state
-│   │   ├── layout.tsx              # Root layout
-│   │   ├── page.tsx                # Main dashboard page
-│   │   └── globals.css             # Global styles
-│   ├── components/                 # 23 React components
-│   │   ├── ui/                     # 40+ shadcn/ui components
-│   │   ├── Dashboard.tsx           # Main dashboard with 20 tab navigation
-│   │   ├── OverviewTab.tsx         # System overview
-│   │   ├── RobotBuilderTab.tsx     # Robot project builder
-│   │   ├── AgentsTab.tsx           # AI agent management
-│   │   ├── MissionsTab.tsx         # Mission planning
-│   │   ├── NavigationTab.tsx       # GPS & autopilot
-│   │   ├── HardwareTab.tsx         # Hardware devices
-│   │   ├── DriversTab.tsx          # Driver management
-│   │   ├── FlashTab.tsx            # Firmware flasher
-│   │   ├── CalibrationTab.tsx      # Sensor calibration
-│   │   ├── TelemetryTab.tsx        # Real-time data
-│   │   ├── CommsTab.tsx            # Communications
-│   │   ├── PowerTab.tsx            # Power management
-│   │   ├── McpTab.tsx              # MCP protocol
-│   │   ├── ExtensionTab.tsx        # IDE extension
-│   │   ├── DoctorTab.tsx           # System diagnostics
-│   │   ├── AssemblyTab.tsx         # Assembly guide
-│   │   ├── SelfLearnTab.tsx        # Self-learning
-│   │   ├── FaceTrackingTab.tsx     # Face tracking
-│   │   ├── TestingTab.tsx          # AI testing
-│   │   ├── LogsTab.tsx             # System logs
-│   │   ├── BootFlowPanel.tsx       # Boot flow
-│   │   └── MobileLayout.tsx        # Mobile responsive layout
-│   ├── lib/                        # 28 service modules
-│   │   ├── agents.ts               # Hermes + PicoClaw agent logic
-│   │   ├── agent-orchestrator.ts   # Multi-agent coordination
-│   │   ├── agents-sentinel.ts      # Safety monitoring agent
-│   │   ├── agents-navigator.ts     # Route planning agent
-│   │   ├── agents-comms.ts         # Communication guard agent
-│   │   ├── agents-data.ts          # Data steward agent
-│   │   ├── auth.ts                 # API key authentication
-│   │   ├── ai-memory.ts            # AI memory with sync
-│   │   ├── beep-alerts.ts          # Buzzer alert patterns
-│   │   ├── communication.ts        # Telegram, voice, GSM
-│   │   ├── constants.ts            # Platform constants
-│   │   ├── db.ts                   # Prisma client singleton
-│   │   ├── drivers.ts              # Hardware driver registry
-│   │   ├── extension.ts            # IDE extension bridge
-│   │   ├── face-tracking.ts        # Face detection engine
-│   │   ├── flash.ts                # Firmware flasher
-│   │   ├── gsm-module.ts           # GSM connectivity
-│   │   ├── hardware-bridge.ts      # Serial/I2C/SPI/GPIO bridge
-│   │   ├── llm.ts                  # LLM engine (multi-model)
-│   │   ├── mcp.ts                  # MCP JSON-RPC protocol
-│   │   ├── navigation.ts           # GPS, autopilot, RTH
-│   │   ├── power.ts                # Battery, solar, power mgmt
-│   │   ├── robot-templates.ts      # 9 robot templates
-│   │   ├── self-learn.ts           # Self-learning engine
-│   │   ├── sensor-config.ts        # Sensor configuration
-│   │   ├── simulator.ts            # Hardware simulation
-│   │   ├── telemetry.ts            # Telemetry aggregation
-│   │   ├── testing.ts              # AI-powered testing
-│   │   ├── types.ts                # TypeScript type definitions
-│   │   └── utils.ts                # Utility functions
-│   └── hooks/                      # Custom React hooks
-│       ├── use-toast.ts            # Toast notifications
-│       ├── use-mobile.ts           # Mobile detection
-│       ├── usePlatform.ts          # Platform detection (web/Tauri/Capacitor)
-│       └── use-sse.ts              # Server-Sent Events hook
+│   ├── ai/                          # AI Memory Engine
+│   │   ├── chunker.ts               # Text chunking (paragraph → sentence → word)
+│   │   ├── embedder.ts              # Vector embedding with API + pseudo-embedding fallback
+│   │   ├── memory.ts                # Core Memory Engine (store, search, relate, patterns)
+│   │   └── llm.ts                   # RAG chat with memory injection
+│   ├── app/                         # Next.js App Router
+│   │   ├── api/                     # REST API endpoints
+│   │   │   ├── auth/                # Authentication (NextAuth + register)
+│   │   │   ├── notes/               # Notes CRUD + memory storage
+│   │   │   ├── chat/                # AI chat with memory context
+│   │   │   ├── search/              # Semantic search
+│   │   │   ├── memory/              # Memory context, related, patterns
+│   │   │   ├── decisions/           # Decision tracking
+│   │   │   ├── settings/            # User settings
+│   │   │   ├── api-keys/            # API key management
+│   │   │   └── health/              # Health check
+│   │   ├── layout.tsx               # Root layout
+│   │   ├── page.tsx                 # Main dashboard (7 views)
+│   │   └── globals.css              # Custom theme (oklch color system)
+│   ├── components/                  # React components
+│   │   ├── ui/                      # shadcn/ui components (20+)
+│   │   ├── layout/                  # Sidebar, Header, AppLayout
+│   │   ├── notes/                   # NoteEditor, NoteCard, NotesList
+│   │   ├── chat/                    # ChatPanel, MessageBubble
+│   │   ├── memory/                  # MemoryInsights, RelatedNotesPanel
+│   │   ├── search/                  # SemanticSearch
+│   │   └── providers.tsx            # QueryClient + Theme + Tooltip providers
+│   ├── lib/                         # Shared utilities
+│   │   ├── auth.ts                  # NextAuth configuration
+│   │   ├── db.ts                    # Prisma client singleton
+│   │   ├── env.ts                   # Zod environment validation
+│   │   ├── store.ts                 # Zustand stores (UI, Notes, Chat, Memory, Decisions)
+│   │   ├── api-utils.ts             # Shared API response helpers
+│   │   ├── rate-limit.ts            # In-memory rate limiter
+│   │   ├── error-reporter.ts        # Structured error reporting
+│   │   ├── query-client.ts          # TanStack Query client
+│   │   └── utils.ts                 # cn() utility
+│   └── middleware.ts                # Security headers, rate limiting, CORS
+├── mcp-server/                      # Standalone MCP server
+│   ├── index.ts                     # JSON-RPC 2.0 server (8 tools)
+│   ├── package.json                 # Independent Bun project
+│   ├── tsconfig.json                # TypeScript config
+│   ├── prisma/
+│   │   └── schema.prisma            # MCP-specific database schema
+│   └── README.md                    # MCP server documentation
 ├── prisma/
-│   ├── schema.prisma               # 22 database models
-│   └── seed.ts                     # Sample data seeder
-├── e2e/                            # Playwright E2E tests
-│   ├── fixtures.ts                 # Test fixtures and mock data
-│   ├── helpers.ts                  # Test helper utilities
-│   ├── dashboard.spec.ts           # Dashboard & navigation tests
-│   ├── api-health.spec.ts          # API endpoint health checks
-│   ├── agents.spec.ts              # AI agent tab tests
-│   ├── hardware.spec.ts            # Hardware tab tests
-│   ├── missions.spec.ts            # Mission planning tests
-│   ├── navigation.spec.ts          # Navigation tab tests
-│   ├── flash.spec.ts               # Firmware flash tests
-│   └── power.spec.ts               # Power management tests
-├── src-tauri/                      # Tauri v2 desktop app
-│   ├── src/
-│   │   ├── main.rs                 # Rust entry point
-│   │   └── lib.rs                  # Tauri app builder
-│   ├── Cargo.toml                  # Rust dependencies
-│   ├── tauri.conf.json             # Tauri configuration
-│   ├── capabilities/default.json   # Permission grants
-│   └── icons/                      # Platform icons (Linux/Windows/macOS)
-├── android/                        # Capacitor Android project
-├── mini-services/                  # Mini service processes
-│   └── extension-ws/               # WebSocket extension bridge
-├── examples/
-│   └── websocket/                  # WebSocket examples
-├── .github/                        # GitHub templates & CI
-│   ├── ISSUE_TEMPLATE/             # Bug, feature, hardware templates
-│   ├── workflows/ci.yml            # CI pipeline (lint + E2E)
-│   ├── dependabot.yml              # Dependency updates
-│   ├── FUNDING.yml                 # Sponsorship
-│   └── PULL_REQUEST_TEMPLATE.md    # PR template
-├── .env.example                    # Environment template
-├── .gitignore                      # Comprehensive ignore rules
-├── ARCHITECTURE.md                 # Architecture documentation
-├── API.md                          # API reference documentation
-├── AGENTS.md                       # Agent system documentation
-├── TESTING.md                      # Testing documentation
-├── DEPLOYMENT.md                   # Deployment guide
-├── AUTHORS.md                      # Contributor credits
-├── CHANGELOG.md                    # Version history
-├── CONTRIBUTING.md                 # Contribution guidelines
-├── LICENSE                         # MIT License
-├── SECURITY.md                     # Security policy
-├── capacitor.config.ts             # Capacitor configuration
-├── next.config.ts                  # Next.js configuration
-├── package.json                    # Project manifest
-├── playwright.config.ts            # Playwright test configuration
-├── tailwind.config.ts              # Tailwind configuration
-└── tsconfig.json                   # TypeScript configuration
+│   ├── schema.prisma                # Main database schema (9 models)
+│   └── seed.ts                      # Demo data seeder
+├── .github/
+│   └── workflows/
+│       └── ci.yml                   # CI pipeline (lint, typecheck, test, build)
+├── Dockerfile                       # Multi-stage Docker build
+├── Dockerfile.mcp                   # MCP server Docker build
+├── docker-compose.yml               # App + MCP services
+├── .env.example                     # Environment template
+├── .gitignore                       # Git ignore rules
+├── LICENSE                          # MIT License
+├── README.md                        # This file
+├── next.config.ts                   # Next.js config (standalone output)
+├── package.json                     # Project manifest
+├── tsconfig.json                    # TypeScript config
+├── vitest.config.ts                 # Vitest test config
+└── tailwind.config.ts               # Tailwind CSS config
 ```
 
 ---
 
-## Database Schema
+## Deployment
 
-22 Prisma models covering the full robotics platform:
+### Docker (Recommended)
 
-| Model | Purpose |
-|-------|---------|
-| SystemConfig | Key-value system settings |
-| HardwareDevice | Connected hardware with status tracking |
-| HardwareProfile | HAL adapter configurations per device |
-| TelemetryReading | Time-series sensor/metric data |
-| Mission | Mission plans with waypoints and parameters |
-| MissionLog | Mission execution logs |
-| AgentMessage | Multi-agent communication (Hermes, PicoClaw, Sentinel, etc.) |
-| Session | User sessions with mode tracking |
-| Calibration | Calibration records and results |
-| SyncQueue | Offline-first data sync queue |
-| Alert | Notifications and safety alerts |
-| RobotTemplate | 9 built-in robot project templates |
-| RobotProject | User-created robot projects |
-| CommunicationChannel | Telegram, voice, GSM channels |
-| NavigationPlan | GPS tracks and autopilot routes |
-| PowerSource | Battery, solar, power monitoring |
-| AiMemory | Persistent AI memory with confidence |
-| VoiceLog | Speech transcription logs |
-| FaceProfile | Face recognition database |
-| HardwareBusState | Hardware bus status monitoring |
-| ExtensionConnection | IDE extension connections |
-| AgentTaskRecord | Orchestrated task queue (persistent) |
-| LearningRecord | Self-learning pattern records |
+The easiest way to deploy Memorix is with Docker Compose:
 
-### Performance Indexes
+```bash
+# Clone the repository
+git clone https://github.com/mulkymalikuldhrs/memorix.git
+cd memorix
 
-Key database indexes for query performance:
+# Set environment variables
+cp .env.example .env
+# Edit .env with production values (especially NEXTAUTH_SECRET)
 
-| Model | Indexed Fields |
-|-------|---------------|
-| HardwareDevice | `deviceType`, `status` |
-| TelemetryReading | `deviceId`, `metric`, `timestamp` |
-| Mission | `status`, `type` |
-| AgentMessage | `agent`, `timestamp` |
-| Alert | `isRead`, `level`, `timestamp` |
-| AgentTaskRecord | `agent`, `status`, `priority` |
+# Build and start services
+docker compose up -d
 
----
+# View logs
+docker compose logs -f
+```
 
-## Robot Templates
+This starts two services:
+- **app** — Next.js web application on port 3000
+- **mcp** — MCP server on port 4000
 
-| Template | Category | Description |
+Data is persisted in a Docker volume (`memorix-data`).
+
+### Manual Deployment
+
+```bash
+# Build the application
+bun install
+bun run db:generate
+bun run db:push
+bun run build
+
+# Start production server
+DATABASE_URL=file:./data/memorix.db \
+NEXTAUTH_SECRET=your-secret \
+NEXTAUTH_URL=https://your-domain.com \
+NODE_ENV=production \
+bun run start
+```
+
+### Vercel
+
+Memorix can be deployed to Vercel with some adjustments:
+
+1. Fork the repository
+2. Connect to Vercel
+3. Set environment variables in Vercel dashboard
+4. Switch from SQLite to a PostgreSQL database (update `prisma/schema.prisma` datasource)
+5. Deploy
+
+> **Note:** SQLite is not supported on Vercel. You'll need to migrate to PostgreSQL or use a managed SQLite service like Turso.
+
+### Environment Variables for Production
+
+| Variable | Required | Description |
 |----------|----------|-------------|
-| Tricopter Drone | drone | 3-motor UAV for aerial mapping |
-| Quadcopter | drone | 4-motor UAV for photography & survey |
-| Hexacopter | drone | 6-motor heavy-lift UAV |
-| Rover | rover | 4-wheel ground vehicle |
-| Boat / USV | boat | Unmanned surface vessel |
-| Amphibious | amphibious | Land + water hybrid vehicle |
-| Robotic Arm | arm | Multi-DOF manipulator |
-| Blimp / Airship | drone | Lighter-than-air vehicle |
-| Custom | custom | Blank template for any Arduino project |
-
----
-
-## API Reference
-
-All endpoints are under `/api/`. See [API.md](API.md) for comprehensive documentation with request/response formats, authentication, and error codes.
-
-### Quick Reference
-
-#### Core System
-- `GET /api` — Health check
-- `GET/POST /api/system` — System configuration
-- `GET /api/doctor` — System diagnostics
-- `GET/POST /api/bootflow` — Boot sequence management
-
-#### Robots & Projects
-- `GET/POST /api/robot-templates` — List/create templates
-- `GET/PUT/DELETE /api/robot-templates/[id]` — Template CRUD
-- `GET/POST /api/projects` — List/create robot projects
-- `GET/PUT/DELETE /api/projects/[id]` — Project CRUD
-
-#### Hardware
-- `GET/POST /api/hardware` — List/register devices
-- `GET/POST /api/hardware-bridge` — Hardware bus operations
-- `GET/POST /api/drivers` — Driver management
-- `GET/POST /api/auto-detect` — Hardware auto-detection
-- `GET/POST /api/flash` — Firmware flashing
-
-#### AI & Agents
-- `GET/POST /api/agents` — Agent management
-- `POST /api/agents/chat` — Agent chat
-- `GET/POST /api/agents/orchestrate` — Agent orchestrator control
-- `GET/POST /api/agents/sentinel` — Sentinel safety monitoring
-- `POST /api/llm/chat` — LLM completions
-- `GET/POST /api/ai-memory` — AI memory CRUD
-- `GET/POST /api/self-learn` — Self-learning engine
-- `GET/POST /api/face-tracking` — Face tracking operations
-- `GET/POST /api/testing` — AI-powered testing
-
-#### Missions & Navigation
-- `GET/POST /api/missions` — Mission planning
-- `GET/PUT/DELETE /api/missions/[id]` — Mission CRUD
-- `GET/POST /api/navigation` — Navigation plans
-- `GET/PUT/DELETE /api/navigation/[id]` — Navigation CRUD
-
-#### Communications
-- `GET/POST /api/comms` — Communication channels
-- `GET/PUT/DELETE /api/comms/[id]` — Channel CRUD
-- `POST /api/comms/telegram` — Telegram bot
-- `POST /api/comms/voice` — Voice/TTS
-- `POST /api/comms/beep` — Beep alerts
-
-#### Telemetry & Monitoring
-- `GET/POST /api/telemetry` — Telemetry readings
-- `GET/POST /api/power` — Power source monitoring
-- `GET/POST /api/alerts` — Alert management
-- `GET/POST /api/calibration` — Calibration records
-
-#### Streaming (SSE)
-- `GET /api/stream/telemetry` — Real-time telemetry stream
-- `GET /api/stream/alerts` — Real-time alert stream
-- `GET /api/stream/testing` — Testing progress stream
-
-#### Integrations
-- `GET/POST /api/mcp` — MCP protocol
-- `POST /api/mcp/transport` — MCP JSON-RPC transport
-- `GET/POST /api/extension` — IDE extension bridge
-- `GET/POST /api/assembly` — Assembly step management
+| `DATABASE_URL` | Yes | SQLite path or PostgreSQL connection string |
+| `NEXTAUTH_SECRET` | Yes | Secret for JWT signing (generate with `openssl rand -base64 32`) |
+| `NEXTAUTH_URL` | Yes | Your public URL (e.g., `https://memorix.example.com`) |
+| `OPENROUTER_API_KEY` | No | OpenRouter API key for LLM chat |
+| `EMBEDDING_API_URL` | No | External embedding API URL |
+| `MEMORIX_API_KEY` | No | API key for MCP server authentication |
 
 ---
 
 ## Environment Variables
 
-See [.env.example](.env.example) for a complete list with descriptions.
-
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `DATABASE_URL` | Yes | `file:./db/nanggroe-iot.db` | SQLite database path |
-| `NANGGROE_API_KEY` | No (prod: Yes) | — | API key for authenticating critical routes |
-| `ZAI_API_KEY` | No | — | Z-AI SDK key for cloud LLM |
-| `TELEGRAM_BOT_TOKEN` | No | — | Telegram bot token for Hermes |
-| `SERIAL_PORT` | No | `/dev/ttyUSB0` | Default serial port |
-| `SERIAL_BAUD_RATE` | No | `115200` | Serial baud rate |
-| `PORT` | No | `3000` | Server port |
-| `MCP_PORT` | No | `8080` | MCP protocol port |
-| `EXTENSION_WS_PORT` | No | `8081` | Extension WebSocket port |
-
----
-
-## CI/CD
-
-### GitHub Actions
-
-The project includes a CI pipeline (`.github/workflows/ci.yml`) that runs on every push and pull request:
-
-1. **Lint** — ESLint checks (`bun run lint`)
-2. **Type Check** — TypeScript compilation verification
-3. **E2E Tests** — Playwright test suite (`bun run test:e2e`)
-4. **Build** — Production build verification
-
-### Branch Protection
-
-- `main` branch requires passing CI checks
-- Pull requests require at least 1 review
-- Conventional commit messages enforced
+| `DATABASE_URL` | Yes | `file:./dev.db` | SQLite database path |
+| `NEXTAUTH_SECRET` | Yes | `change-me-in-production` | JWT session secret |
+| `NEXTAUTH_URL` | Yes | `http://localhost:3000` | Public URL for auth callbacks |
+| `OPENROUTER_API_KEY` | No | — | OpenRouter API key for AI chat |
+| `UPSTASH_REDIS_URL` | No | — | Redis URL for production rate limiting |
+| `UPSTASH_REDIS_TOKEN` | No | — | Redis token for production rate limiting |
+| `MCP_SERVER_PORT` | No | `4000` | MCP server port |
+| `EMBEDDING_MODEL` | No | `nomic-embed-text` | Embedding model name |
+| `EMBEDDING_DIMENSION` | No | `768` | Embedding vector dimension |
+| `EMBEDDING_API_URL` | No | — | External embedding API URL |
 
 ---
 
 ## Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+We welcome contributions! Here's how to get started:
 
-### Quick Contribution Steps
+### Quick Steps
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Make your changes
-4. Run `bun run lint` and fix any issues
-5. Run `bun run test:e2e` to verify no regressions
-6. Commit with conventional commits: `feat(scope): description`
-7. Push and open a Pull Request
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/your-feature`
+3. **Make** your changes
+4. **Run** `bun run lint` and fix any issues
+5. **Run** `bun run typecheck` to verify types
+6. **Commit** with conventional commits: `feat(scope): description`
+7. **Push** and open a Pull Request
 
----
+### Commit Convention
 
-## Documentation
+| Type | Description |
+|------|-------------|
+| `feat` | New feature |
+| `fix` | Bug fix |
+| `docs` | Documentation only |
+| `style` | Formatting (no code change) |
+| `refactor` | Code refactoring |
+| `perf` | Performance improvement |
+| `test` | Adding tests |
+| `chore` | Build/tooling changes |
 
-| Document | Description |
-|----------|-------------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture, data flow, deployment |
-| [API.md](API.md) | Comprehensive API reference (42+ endpoints) |
-| [AGENTS.md](AGENTS.md) | Agent system documentation (6 agents + orchestrator) |
-| [TESTING.md](TESTING.md) | E2E testing guide (183 tests, 8 spec files) |
-| [DEPLOYMENT.md](DEPLOYMENT.md) | Deployment guide (Web, Desktop, Android, Raspberry Pi) |
-| [SECURITY.md](SECURITY.md) | Security policy and hardening |
-| [CHANGELOG.md](CHANGELOG.md) | Version history |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines |
+### Development Guidelines
 
----
-
-## Security
-
-For security vulnerabilities, please **do not** open public issues. See [SECURITY.md](SECURITY.md) for responsible disclosure instructions.
-
-**Contact**: mulkymalikuldhaher@email.com
-
----
-
-## Author
-
-**Mulky Malikul Dhaher**
-
-- Email: mulkymalikuldhaher@email.com
-- GitHub: [@mulkymalikuldhaher](https://github.com/mulkymalikuldhaher)
+- Use TypeScript strict mode throughout
+- Follow the existing code style (ESLint + Prettier)
+- Add proper error handling for all API routes
+- Write descriptive commit messages
+- Test your changes before pushing
+- Keep PRs focused on a single concern
 
 ---
 
@@ -670,7 +514,7 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 ```
 MIT License
 
-Copyright (c) 2025 Mulky Malikul Dhaher
+Copyright (c) 2026 Mulky Malikul Dhaher
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -693,10 +537,19 @@ SOFTWARE.
 
 ---
 
+## Author
+
+**Mulky Malikul Dhaher**
+
+- Email: mulkymalikuldhaher@email.com
+- GitHub: [@mulkymalikuldhrs](https://github.com/mulkymalikuldhrs)
+
+---
+
 <div align="center">
 
-**Built with ❤️ in Aceh, Indonesia**
+**Own Your AI Memory** 🧠
 
-*From Aceh For The World — Dari Aceh Untuk Dunia*
+*Built with ❤️ in Aceh, Indonesia*
 
 </div>

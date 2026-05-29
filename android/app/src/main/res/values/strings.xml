@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">Nanggroe IoT</string>
-    <string name="title_activity_main">Nanggroe IoT</string>
-    <string name="package_name">com.nanggroe.iot</string>
-    <string name="custom_url_scheme">com.nanggroe.iot</string>
-</resources>

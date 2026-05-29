@@ -1,39 +1,27 @@
 import { z } from 'zod'
 
 const envSchema = z.object({
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.coerce.number().default(3000),
-  NANGGROE_API_KEY: z.string().optional(),
-  ZAI_API_KEY: z.string().optional(),
-  TELEGRAM_BOT_TOKEN: z.string().optional(),
-  SERIAL_PORT: z.string().default('/dev/ttyUSB0'),
-  SERIAL_BAUD_RATE: z.coerce.number().default(115200),
-  MCP_PORT: z.coerce.number().default(8080),
-  EXTENSION_WS_PORT: z.coerce.number().default(8081),
-  HARDWARE_BRIDGE_MODE: z.enum(['simulation', 'real']).default('simulation'),
+  DATABASE_URL: z.string().default('file:./dev.db'),
+  NEXTAUTH_SECRET: z.string().default('dev-secret-change-in-production'),
+  NEXTAUTH_URL: z.string().default('http://localhost:3000'),
+  OPENROUTER_API_KEY: z.string().optional(),
+  UPSTASH_REDIS_URL: z.string().optional(),
+  UPSTASH_REDIS_TOKEN: z.string().optional(),
+  MCP_SERVER_PORT: z.string().default('4000'),
+  EMBEDDING_MODEL: z.string().default('nomic-embed-text'),
+  EMBEDDING_DIMENSION: z.string().default('768'),
+  EMBEDDING_API_URL: z.string().optional(),
 })
 
 export type Env = z.infer<typeof envSchema>
 
-let _env: Env | null = null
-
-export function getEnv(): Env {
-  if (!_env) {
-    const result = envSchema.safeParse(process.env)
-    if (!result.success) {
-      const errors = result.error.issues.map(i => `  - ${i.path.join('.')}: ${i.message}`).join('\n')
-      throw new Error(`Environment validation failed:\n${errors}`)
-    }
-    _env = result.data
+function validateEnv(): Env {
+  const parsed = envSchema.safeParse(process.env)
+  if (!parsed.success) {
+    console.error('❌ Invalid environment variables:', parsed.error.flatten().fieldErrors)
+    throw new Error('Invalid environment variables')
   }
-  return _env
+  return parsed.data
 }
 
-export function isProduction(): boolean {
-  return getEnv().NODE_ENV === 'production'
-}
-
-export function isDevelopment(): boolean {
-  return getEnv().NODE_ENV === 'development'
-}
+export const env = validateEnv()

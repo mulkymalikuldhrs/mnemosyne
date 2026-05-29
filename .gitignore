@@ -1,3 +1,7 @@
+# ============================================================
+# Memorix AI Memory SaaS — Git Ignore
+# ============================================================
+
 # Dependencies
 node_modules/
 /.pnp
@@ -17,6 +21,7 @@ node_modules/
 
 # Production
 /build
+/dist
 
 # Misc
 .DS_Store
@@ -60,10 +65,13 @@ prompt
 /skills/
 
 # Database files
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
 db/*.db
 db/*.db-journal
-db/*.db-shm
-db/*.db-wal
+prisma/db/*.db
 
 # Agent context (internal)
 /agent-ctx/
@@ -76,21 +84,6 @@ db/*.db-wal
 
 # Worklog (internal)
 worklog.md
-
-# Tauri build output
-src-tauri/target/
-src-tauri/Cargo.lock
-
-# Android build output
-android/app/build/
-android/.gradle/
-android/build/
-android/app/src/main/res/mipmap-*/
-!android/app/src/main/res/mipmap-anydpi-v26/
-android/local.properties
-
-# Capacitor
-android/app/src/main/assets/public/
 
 # IDE
 .vscode/
@@ -114,13 +107,17 @@ prisma/migrations/
 # Bun
 bun.lock
 
-# Binary/source images (large files)
-android-icon-source.png
-playwright-report/
-
 # Playwright
 test-results/
 playwright-report/
 
-# Prisma DB files
-prisma/db/*.db
+# Capacitor
+android/app/src/main/assets/public/
+
+# Android build output
+android/app/build/
+android/.gradle/
+android/build/
+android/app/src/main/res/mipmap-*/
+!android/app/src/main/res/mipmap-anydpi-v26/
+android/local.properties

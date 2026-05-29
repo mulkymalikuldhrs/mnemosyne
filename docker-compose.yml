@@ -1,17 +1,29 @@
-version: '3.8'
 services:
-  nanggroe-iot:
+  app:
     build: .
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=file:./db/nanggroe-iot.db
-      - NODE_ENV=production
+      - DATABASE_URL=file:/app/data/memorix.db
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-change-me}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
     volumes:
-      - iot-data:/app/db
-      - iot-uploads:/app/uploads
+      - memorix-data:/app/data
+    restart: unless-stopped
+
+  mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=file:/app/data/memorix.db
+      - MEMORIX_API_KEY=${MEMORIX_API_KEY:-}
+    volumes:
+      - memorix-data:/app/data:ro
     restart: unless-stopped
 
 volumes:
-  iot-data:
-  iot-uploads:
+  memorix-data:

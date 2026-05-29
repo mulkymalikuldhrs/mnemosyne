@@ -1,0 +1,28 @@
+# ============================================================
+# Memorix MCP Server — Dockerfile
+# Lightweight Bun-based container for the MCP server
+# ============================================================
+
+FROM bun:1-alpine AS runner
+WORKDIR /app
+
+# Copy MCP server source
+COPY mcp-server/ ./
+
+# Copy shared Prisma schema (MCP server has its own)
+COPY mcp-server/prisma ./prisma
+
+# Install dependencies
+RUN bun install --frozen-lockfile
+
+# Generate Prisma client
+RUN bun run db:generate
+
+# Create data directory for SQLite database
+RUN mkdir -p /app/data
+
+# Expose MCP server port
+EXPOSE 4000
+
+# Run the MCP server
+CMD ["bun", "run", "index.ts"]

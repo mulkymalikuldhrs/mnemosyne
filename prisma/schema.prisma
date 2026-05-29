@@ -7,379 +7,148 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// System Configuration
-model SystemConfig {
+// ─── Enums (modeled as String with constraints at app level) ───
+
+model User {
+  id                  String    @id @default(cuid())
+  email               String    @unique
+  name                String
+  password            String?   // Hashed with bcryptjs (null for OAuth users)
+  avatarUrl           String?
+  plan                String    @default("FREE") // FREE | PRO | ENTERPRISE
+  supabaseProjectUrl  String?
+  openrouterApiKey    String?   // User can supply their own OpenRouter API key
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  notes         Note[]
+  conversations Conversation[]
+  decisions     Decision[]
+  apiKeys       ApiKey[]
+  mcpSessions   McpSession[]
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  userId     String
+  title      String
+  content    String                         // Raw text content
+  markdown   String                         // Markdown-rendered content
+  tags       String   @default("")          // Comma-separated tags
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chunks       NoteChunk[]
+  sourceLinks  MemoryLink[]  @relation("SourceNote")
+  targetLinks  MemoryLink[]  @relation("TargetNote")
+
+  @@index([userId])
+  @@index([isArchived])
+}
+
+model NoteChunk {
+  id         String   @id @default(cuid())
+  noteId     String
+  content    String                         // Chunk text content
+  embedding  String                         // Stored as JSON array (SQLite doesn't support vector)
+  chunkIndex Int                             // Position of this chunk within the note
+  tokenCount Int                             // Number of tokens in this chunk
+  createdAt  DateTime @default(now())
+
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId])
+}
+
+model MemoryLink {
+  id            String   @id @default(cuid())
+  sourceNoteId  String
+  targetNoteId  String
+  relationScore Float                          // Confidence score 0..1
+  reason        String                         // Why these notes are linked
+  autoLinked    Boolean  @default(true)        // True if auto-linked by AI
+  createdAt     DateTime @default(now())
+
+  sourceNote Note @relation("SourceNote", fields: [sourceNoteId], references: [id], onDelete: Cascade)
+  targetNote Note @relation("TargetNote", fields: [targetNoteId], references: [id], onDelete: Cascade)
+
+  @@index([sourceNoteId])
+  @@index([targetNoteId])
+}
+
+model Conversation {
   id        String   @id @default(cuid())
-  key       String   @unique
-  value     String
-  category  String   @default("general") // general, hardware, agent, mission, network
+  userId    String
+  title     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@index([userId])
 }
 
-// Hardware Devices
-model HardwareDevice {
-  id           String   @id @default(cuid())
-  name         String
-  deviceType   String   // flight_controller, companion_computer, gps, camera, sensor, radio, battery, motor, servo, esc
-  protocol     String   // usb, i2c, spi, uart, gpio, can, adc
-  status       String   @default("unknown") // unknown, detected, initialized, active, error, offline
-  vendorId     String?  // USB VID
-  productId    String?  // USB PID
-  port         String?  // /dev/ttyUSB0, i2c-1, etc
-  address      String?  // I2C address like 0x68
-  capabilities String?  // JSON string of capabilities
-  firmware     String?
-  lastSeen     DateTime @default(now())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  profiles     HardwareProfile[]
-  telemetry    TelemetryReading[]
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  role           String                         // USER | ASSISTANT | SYSTEM
+  content        String
+  memoryRefs     String   @default("[]")        // JSON array of note IDs referenced
+  tokenCount     Int      @default(0)
+  createdAt      DateTime @default(now())
 
-  @@index([deviceType])
-  @@index([status])
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
 }
 
-// Hardware Profiles (HAL adapter configs)
-model HardwareProfile {
-  id          String   @id @default(cuid())
-  deviceId    String
-  device      HardwareDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
-  adapterName String   // pixhawk, raspberry_pi, bme280, mpu6050, etc
-  config      String   // JSON config for the adapter
-  isDefault   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model Decision {
+  id             String    @id @default(cuid())
+  userId         String
+  title          String
+  context        String                          // The situation / context
+  decision       String                          // What was decided
+  reasoning      String                          // Why this decision was made
+  outcome        String?                         // What actually happened
+  evaluation     String?                         // Retrospective evaluation
+  relatedNoteIds String    @default("[]")        // JSON array of related note IDs
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
-// Telemetry Readings
-model TelemetryReading {
-  id         String   @id @default(cuid())
-  deviceId   String?
-  device     HardwareDevice? @relation(fields: [deviceId], references: [id], onDelete: SetNull)
-  metric     String   // battery_voltage, gps_lat, gps_lng, altitude, signal_strength, temperature, humidity, pressure, heading, speed, roll, pitch, yaw
-  value      Float
-  unit       String?  // V, m, %, dBm, C, hPa, deg, m/s
-  source     String   @default("sensor") // sensor, manual
-  timestamp  DateTime @default(now())
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  key        String    @unique
+  name       String
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
 
-  @@index([deviceId])
-  @@index([metric])
-  @@index([timestamp])
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mcpSessions McpSession[]
+
+  @@index([userId])
+  @@index([key])
 }
 
-// Missions
-model Mission {
-  id            String   @id @default(cuid())
-  name          String
-  description   String?
-  type          String   @default("mapping") // mapping, survey, delivery, patrol, inspection, agriculture
-  status        String   @default("draft") // draft, planned, active, paused, completed, failed, aborted
-  prompt        String?  // Natural language prompt that generated this mission
-  waypoints     String   // JSON array of waypoints [{lat, lng, alt, action}]
-  parameters    String?  // JSON mission parameters
-  areaPolygon   String?  // JSON polygon coordinates for mapping area
-  altitude      Float    @default(50)
-  speed         Float    @default(5)
-  overlapFront  Float    @default(75)
-  overlapSide   Float    @default(65)
-  gsd           Float?   // Ground Sampling Distance in cm/pixel
-  startedAt     DateTime?
-  completedAt   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  logs          MissionLog[]
-  agentMessages AgentMessage[]
+model McpSession {
+  id             String    @id @default(cuid())
+  userId         String
+  apiKeyId       String
+  clientId       String
+  connectedAt    DateTime  @default(now())
+  disconnectedAt DateTime?
 
-  @@index([status])
-  @@index([type])
-}
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apiKey  ApiKey  @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
 
-// Mission Logs
-model MissionLog {
-  id        String   @id @default(cuid())
-  missionId String
-  mission   Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
-  level     String   @default("info") // debug, info, warning, error, critical
-  source    String   // system, hermes, picoclaw, autopilot, sensor, operator
-  message   String
-  data      String?  // JSON additional data
-  timestamp DateTime @default(now())
-}
-
-// Agent Messages (Hermes & PicoClaw communication)
-model AgentMessage {
-  id        String   @id @default(cuid())
-  missionId String?
-  mission   Mission? @relation(fields: [missionId], references: [id], onDelete: SetNull)
-  agent     String   // hermes, picoclaw, operator, system
-  role      String   // command, response, alert, recommendation, status
-  content   String
-  metadata  String?  // JSON metadata
-  timestamp DateTime @default(now())
-
-  @@index([agent])
-  @@index([timestamp])
-}
-
-// Sessions
-model Session {
-  id          String   @id @default(cuid())
-  name        String?
-  mode        String   @default("discovery") // discovery, planning, build, debug, optimize
-  status      String   @default("active") // active, closed, archived
-  config      String?  // JSON session config
-  startedAt   DateTime @default(now())
-  endedAt     DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-// Calibration Records
-model Calibration {
-  id           String   @id @default(cuid())
-  deviceType   String   // compass, accelerometer, gyro, esc, radio
-  deviceId     String?
-  status       String   @default("pending") // pending, in_progress, completed, failed
-  parameters   String?  // JSON calibration parameters
-  results      String?  // JSON calibration results
-  performedAt  DateTime @default(now())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-// Sync Queue (for cloud sync)
-model SyncQueue {
-  id         String   @id @default(cuid())
-  entityType String   // mission, telemetry, log, calibration, config
-  entityId   String
-  action     String   // create, update, delete
-  data       String   // JSON snapshot of the entity
-  status     String   @default("pending") // pending, synced, failed
-  attempts   Int      @default(0)
-  createdAt  DateTime @default(now())
-  syncedAt   DateTime?
-}
-
-// Alerts & Notifications
-model Alert {
-  id         String   @id @default(cuid())
-  level      String   @default("info") // info, warning, critical
-  source     String   // system, picoclaw, hermes, sensor, battery, gps
-  title      String
-  message    String
-  category   String   // safety, hardware, mission, system, communication
-  isRead     Boolean  @default(false)
-  isResolved Boolean  @default(false)
-  timestamp  DateTime @default(now())
-
-  @@index([isRead])
-  @@index([level])
-  @@index([timestamp])
-}
-
-// Robot Project Templates
-model RobotTemplate {
-  id          String   @id @default(cuid())
-  name        String
-  description String
-  category    String   // drone, rover, boat, amphibious, arm, custom
-  icon        String   @default("🤖")
-  requiredHardware String // JSON array of required device types and specs
-  requiredFirmware String // JSON array of required firmware
-  capabilities String  // JSON array of capabilities
-  autoConfig  String   // JSON auto-configuration template
-  assemblyGuide String // JSON step-by-step assembly instructions
-  wiringDiagram String // JSON wiring diagram data
-  codeTemplate String? // JSON starter code templates
-  difficulty  String   @default("intermediate") // beginner, intermediate, advanced
-  estimatedBuildHours Float @default(8)
-  tags        String?  // JSON array of tags
-  isOfficial  Boolean  @default(false)
-  version     String   @default("1.0.0")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  projects    RobotProject[]
-}
-
-// Robot Projects (user creates from templates)
-model RobotProject {
-  id           String   @id @default(cuid())
-  name         String
-  description  String?
-  templateId   String?
-  template     RobotTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
-  status       String   @default("draft") // draft, building, configured, ready, active, error
-  config       String   // JSON project configuration
-  hardwareList String   // JSON array of hardware in this project
-  firmwareList String   // JSON array of firmware needed
-  capabilities String   // JSON capabilities enabled
-  buildProgress Float  @default(0) // 0-100 percentage
-  currentStep  String?  // Current build step
-  steps        String   // JSON array of build steps with status
-  memoryData   String?  // JSON memory/local data for offline AI
-  isOffline    Boolean  @default(true)
-  lastSyncAt   DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-// Communication Channels
-model CommunicationChannel {
-  id          String   @id @default(cuid())
-  type        String   // telegram, voice, android, beep, gsm, radio
-  name        String
-  config      String   // JSON channel configuration
-  status      String   @default("disconnected") // disconnected, connecting, connected, error
-  lastMessage String?  // JSON last message data
-  credentials String?  // JSON encrypted credentials (bot token, etc)
-  isEnabled   Boolean  @default(false)
-  projectId   String?  // Optional link to robot project
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-// Navigation Plans
-model NavigationPlan {
-  id            String   @id @default(cuid())
-  name          String
-  type          String   // gps_track, autopilot, rth, field_mapping, survey, delivery
-  status        String   @default("idle") // idle, active, paused, completed, aborted
-  waypoints     String   // JSON array of navigation waypoints
-  homePosition  String?  // JSON {lat, lng, alt}
-  geofence      String?  // JSON polygon for geofence
-  areaPolygon   String?  // JSON polygon for mapping area
-  parameters    String?  // JSON navigation parameters
-  results       String?  // JSON navigation results (area measured, photos taken, etc)
-  projectId     String?  // Optional link to robot project
-  startedAt     DateTime?
-  completedAt   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-// Power Management
-model PowerSource {
-  id           String   @id @default(cuid())
-  type         String   // battery, solar, gsm, usb
-  name         String
-  status       String   @default("unknown") // unknown, charging, discharging, full, error, offline
-  capacity     Float    @default(0) // mAh or mW
-  currentLevel Float    @default(0) // percentage or voltage
-  voltage      Float    @default(0)
-  current      Float    @default(0) // amps
-  temperature  Float    @default(0)
-  config       String?  // JSON power source configuration
-  projectId    String?  // Optional link to robot project
-  lastReading  DateTime @default(now())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-// AI Memory & Sync
-model AiMemory {
-  id          String   @id @default(cuid())
-  category    String   // conversation, decision, learning, pattern, preference
-  key         String
-  value       String   // JSON value
-  context     String?  // JSON additional context
-  confidence  Float    @default(1.0) // 0-1 confidence score
-  accessCount Int      @default(0)
-  isSynced    Boolean  @default(false)
-  projectId   String?  // Optional link to robot project
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  accessedAt  DateTime @default(now())
-}
-
-// Voice Logs
-model VoiceLog {
-  id          String   @id @default(cuid())
-  direction   String   // input, output
-  transcript  String
-  audioPath   String?  // Path to audio file if stored
-  language    String   @default("id") // ISO 639-1
-  duration    Float    @default(0) // seconds
-  agentSource String?  // hermes, picoclaw, system
-  projectId   String?  // Optional link to robot project
-  createdAt   DateTime @default(now())
-}
-
-// Face Profiles for Face Tracking
-model FaceProfile {
-  id            String   @id @default(cuid())
-  name          String
-  label         String
-  encoding      String   // JSON array of face encoding vector
-  photoPath     String?  // Path to reference photo
-  metadata      String?  // JSON additional metadata
-  sightingCount Int      @default(0)
-  confidence    Float    @default(0.8)
-  lastSeen      DateTime @default(now())
-  projectId     String?  // Optional link to robot project
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-// Hardware Bus State for Hardware Bridge
-model HardwareBusState {
-  id          String   @id @default(cuid())
-  busType     String   // serial, i2c, spi, gpio, adc
-  busPath     String   // /dev/ttyUSB0, /dev/i2c-1, etc
-  status      String   @default("unknown") // unknown, available, busy, error
-  deviceId    String?  // Connected device ID if any
-  config      String?  // JSON bus configuration
-  lastScanned DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-// Extension Connections (persisted)
-model ExtensionConnection {
-  id              String   @id @default(cuid())
-  name            String
-  type            String   // vscode, cursor, neovim, jetbrains, custom
-  status          String   @default("disconnected") // connected, disconnected
-  apiKey          String   @unique
-  capabilities    String   // JSON array of capabilities
-  lastHeartbeat   DateTime @default(now())
-  connectedAt     DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-// Agent Tasks (orchestrated multi-agent task queue)
-model AgentTaskRecord {
-  id          String   @id @default(cuid())
-  type        String   // safety_check, navigation, communication, data_pipeline, mission_plan
-  agent       String   // sentinel, navigator, comms_guard, data_steward, hermes, picoclaw
-  priority    String   @default("normal") // critical, high, normal, low
-  status      String   @default("pending") // pending, running, completed, failed
-  payload     String   // JSON task data
-  result      String?  // JSON result data
-  error       String?  // Error message if failed
-  missionId   String?  // Optional link to mission
-  projectId   String?  // Optional link to robot project
-  createdAt   DateTime @default(now())
-  startedAt   DateTime?
-  completedAt DateTime?
-
-  @@index([agent])
-  @@index([status])
-  @@index([priority])
-}
-
-// Self-Learning Records
-model LearningRecord {
-  id            String   @id @default(cuid())
-  category      String   // pattern, decision, performance, suggestion, auto_tune
-  key           String
-  value         String   // JSON value
-  confidence    Float    @default(1.0)
-  source        String   // hermes, picoclaw, system, operator
-  projectId     String?  // Optional link to robot project
-  isApplied     Boolean  @default(false)
-  appliedAt     DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  @@index([userId])
+  @@index([apiKeyId])
 }
