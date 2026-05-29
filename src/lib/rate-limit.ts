@@ -1,9 +1,22 @@
+/**
+ * Rate limiter — reference module.
+ *
+ * The actual rate limiting enforcement happens in `src/middleware.ts` which
+ * runs on every API request via Next.js middleware.  This module exports the
+ * `RateLimiter` class so it can be used by other services (e.g. mini-services,
+ * MCP server) that are not covered by the Next.js middleware.
+ *
+ * The pre-configured instances (`apiRateLimit`, `chatRateLimit`,
+ * `memoryRateLimit`) are kept here for external use but are NOT used by the
+ * main Next.js app — the middleware has its own in-memory store.
+ */
+
 interface RateLimitEntry {
   count: number
   resetAt: number
 }
 
-class RateLimiter {
+export class RateLimiter {
   private limits: Map<string, RateLimitEntry>
   private maxRequests: number
   private windowMs: number
@@ -82,27 +95,8 @@ class RateLimiter {
   }
 }
 
-// Pre-configured rate limiters for different endpoint types
+// Pre-configured rate limiters for use by external services (MCP server, etc.)
+// The main Next.js app uses middleware.ts for rate limiting.
 export const apiRateLimit = new RateLimiter(60, 60000)    // 60 req/min default
 export const chatRateLimit = new RateLimiter(20, 60000)   // 20 req/min for AI chat
 export const memoryRateLimit = new RateLimiter(30, 60000)  // 30 req/min for memory ops
-
-// Periodic cleanup every 5 minutes to prevent memory leaks
-if (typeof globalThis !== 'undefined') {
-  const globalForCleanup = globalThis as unknown as { __rateLimitCleanupTimer?: ReturnType<typeof setInterval> }
-
-  if (!globalForCleanup.__rateLimitCleanupTimer) {
-    globalForCleanup.__rateLimitCleanupTimer = setInterval(() => {
-      apiRateLimit.cleanup()
-      chatRateLimit.cleanup()
-      memoryRateLimit.cleanup()
-    }, 5 * 60 * 1000)
-
-    // Don't prevent Node.js process from exiting
-    if (globalForCleanup.__rateLimitCleanupTimer.unref) {
-      globalForCleanup.__rateLimitCleanupTimer.unref()
-    }
-  }
-}
-
-export { RateLimiter }

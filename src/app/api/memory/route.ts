@@ -3,6 +3,11 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { getMemoryContext, storeMemory } from '@/ai/memory'
+import { z } from 'zod'
+
+const memoryQuerySchema = z.object({
+  q: z.string().min(1).max(2000),
+})
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,14 +21,18 @@ export async function GET(request: NextRequest) {
 
     const userId = session.user.id
     const { searchParams } = new URL(request.url)
-    const q = searchParams.get('q')
+    const parsed = memoryQuerySchema.safeParse({
+      q: searchParams.get('q'),
+    })
 
-    if (!q) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: 'Query parameter "q" is required' },
+        { success: false, error: 'Invalid input', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
+
+    const { q } = parsed.data
 
     const context = await getMemoryContext(q, userId)
 

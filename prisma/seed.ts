@@ -66,7 +66,7 @@ async function main() {
     },
   ]
 
-  const notes = []
+  const notes: Awaited<ReturnType<typeof prisma.note.create>>[] = []
   for (const noteData of notesData) {
     const note = await prisma.note.create({
       data: {

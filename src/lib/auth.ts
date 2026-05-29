@@ -24,17 +24,15 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        // If user has a hashed password, verify with bcrypt
-        if (user.password) {
-          const isValid = await bcrypt.compare(credentials.password, user.password)
-          if (!isValid) {
-            return null
-          }
-        } else {
-          // Legacy demo user without hashed password — allow known demo credentials
-          if (credentials.email !== 'demo@memorix.ai' || credentials.password !== 'demo123') {
-            return null
-          }
+        // User must have a password to authenticate with credentials
+        if (!user.password) {
+          // OAuth-only user cannot log in via credentials
+          return null
+        }
+
+        const isValid = await bcrypt.compare(credentials.password, user.password)
+        if (!isValid) {
+          return null
         }
 
         return {

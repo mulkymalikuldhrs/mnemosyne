@@ -3,6 +3,11 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { v4 as uuidv4 } from 'uuid'
+import { z } from 'zod'
+
+const apiKeyCreateSchema = z.object({
+  name: z.string().min(1).max(100),
+})
 
 export async function GET() {
   try {
@@ -65,14 +70,16 @@ export async function POST(request: NextRequest) {
 
     const userId = session.user.id
     const body = await request.json()
-    const { name } = body
+    const parsed = apiKeyCreateSchema.safeParse(body)
 
-    if (!name || typeof name !== 'string') {
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: 'Name is required for the API key' },
+        { success: false, error: 'Invalid input', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
+
+    const { name } = parsed.data
 
     // Generate a unique API key with mx_ prefix
     const key = `mx_${uuidv4().replace(/-/g, '')}`

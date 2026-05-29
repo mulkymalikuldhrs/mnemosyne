@@ -1,6 +1,7 @@
 'use client'
 
 import { Brain, Search, Moon, Sun, LogOut, User, Settings } from 'lucide-react'
+import { useSession, signOut } from 'next-auth/react'
 import { useTheme } from 'next-themes'
 import { useUIStore } from '@/lib/store'
 import { Input } from '@/components/ui/input'
@@ -17,6 +18,11 @@ import {
 export function Header() {
   const { theme, setTheme } = useTheme()
   const { setActiveSection } = useUIStore()
+  const { data: session } = useSession()
+
+  const userName = session?.user?.name || 'User'
+  const userEmail = session?.user?.email || ''
+  const userInitial = userName.charAt(0).toUpperCase()
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -25,6 +31,10 @@ export function Header() {
     if (q?.trim()) {
       setActiveSection('search')
     }
+  }
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/login' })
   }
 
   return (
@@ -77,15 +87,15 @@ export function Header() {
           <Button variant="ghost" className="relative h-9 w-9 rounded-full">
             <Avatar className="h-8 w-8">
               <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                M
+                {userInitial}
               </AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
           <div className="px-2 py-1.5">
-            <p className="text-sm font-medium">Demo User</p>
-            <p className="text-xs text-muted-foreground">demo@memorix.ai</p>
+            <p className="text-sm font-medium">{userName}</p>
+            <p className="text-xs text-muted-foreground">{userEmail}</p>
           </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
@@ -97,7 +107,7 @@ export function Header() {
             Settings
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-destructive focus:text-destructive">
+          <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             Logout
           </DropdownMenuItem>

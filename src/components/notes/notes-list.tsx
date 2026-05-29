@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { Plus, Grid3X3, List, Search, SlidersHorizontal, FileText } from 'lucide-react'
+import { useState, useMemo, useEffect } from 'react'
+import { Plus, Grid3X3, List, Search, SlidersHorizontal, FileText, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -16,6 +15,7 @@ import {
 import { NoteCard } from './note-card'
 import { NoteEditor } from './note-editor'
 import { useNotesStore } from '@/lib/store'
+import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
 export function NotesList() {
@@ -30,10 +30,40 @@ export function NotesList() {
     setSelectedNoteId,
     isEditing,
     setIsEditing,
+    isLoading,
+    setIsLoading,
+    setNotes,
     getFilteredNotes,
   } = useNotesStore()
 
   const [showEditor, setShowEditor] = useState(false)
+
+  // Fetch notes from API on mount
+  useEffect(() => {
+    const fetchNotes = async () => {
+      setIsLoading(true)
+      try {
+        const res = await api.getNotes('limit=100')
+        if (res.success && res.data?.notes) {
+          const mapped = res.data.notes.map((n: any) => ({
+            id: n.id,
+            title: n.title,
+            content: n.content,
+            tags: n.tags ? n.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
+            createdAt: n.createdAt,
+            updatedAt: n.updatedAt,
+            isArchived: n.isArchived,
+          }))
+          setNotes(mapped)
+        }
+      } catch (err) {
+        console.error('Failed to fetch notes:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchNotes()
+  }, [setNotes, setIsLoading])
 
   const filteredNotes = useMemo(() => getFilteredNotes(), [getFilteredNotes, searchQuery, sortBy])
 
@@ -59,6 +89,14 @@ export function NotesList() {
           setSelectedNoteId(null)
         }}
       />
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
     )
   }
 

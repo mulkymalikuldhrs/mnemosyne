@@ -12,18 +12,23 @@ services:
       - memorix-data:/app/data
     restart: unless-stopped
 
+  # MCP server uses stdio (stdin/stdout), not HTTP.
+  # Run with: docker compose run --rm -i mcp
+  # Or standalone: docker run -i --rm memorix-mcp
   mcp:
     build:
       context: .
       dockerfile: Dockerfile.mcp
-    ports:
-      - "4000:4000"
+    # No port mapping — MCP uses stdio transport only
+    stdin_open: true  # Keep stdin open for JSON-RPC communication
     environment:
       - DATABASE_URL=file:/app/data/memorix.db
       - MEMORIX_API_KEY=${MEMORIX_API_KEY:-}
     volumes:
       - memorix-data:/app/data:ro
-    restart: unless-stopped
+    # No restart policy — MCP server runs on-demand, not as a daemon
+    profiles:
+      - mcp
 
 volumes:
   memorix-data:

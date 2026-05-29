@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select'
 import { MessageBubble } from './message-bubble'
 import { useChatStore, useNotesStore } from '@/lib/store'
+import { api } from '@/lib/api'
 
 export function ChatPanel() {
   const {
@@ -23,9 +24,12 @@ export function ChatPanel() {
     setCurrentConversationId,
     messages,
     addMessage,
+    setMessages,
     isLoading,
     setIsLoading,
     addConversation,
+    setConversations,
+    resetChat,
   } = useChatStore()
 
   const { notes } = useNotesStore()
@@ -36,6 +40,27 @@ export function ChatPanel() {
 
   const currentConversation = conversations.find((c) => c.id === currentConversationId)
 
+  // Fetch conversations on mount
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        const res = await api.getConversations()
+        if (res.success && res.data?.conversations) {
+          const mapped = res.data.conversations.map((c: any) => ({
+            id: c.id,
+            title: c.title,
+            lastMessageAt: c.updatedAt,
+            messageCount: c._count?.messages ?? 0,
+          }))
+          setConversations(mapped)
+        }
+      } catch (err) {
+        console.error('Failed to fetch conversations:', err)
+      }
+    }
+    fetchConversations()
+  }, [setConversations])
+
   // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
@@ -43,7 +68,7 @@ export function ChatPanel() {
     }
   }, [messages])
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim() || isLoading) return
 
     const userMessage = {
@@ -54,27 +79,62 @@ export function ChatPanel() {
     }
 
     addMessage(userMessage)
+    const messageText = input.trim()
     setInput('')
     setIsLoading(true)
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessage = {
+    try {
+      const res = await api.sendMessage(messageText, currentConversationId || undefined)
+
+      if (res.success && res.data) {
+        // Store conversation ID from API response
+        const convId = res.data.conversationId
+        if (convId && !currentConversationId) {
+          setCurrentConversationId(convId)
+          // Add the new conversation to the list
+          addConversation({
+            id: convId,
+            title: messageText.slice(0, 40) + (messageText.length > 40 ? '...' : ''),
+            lastMessageAt: new Date().toISOString(),
+            messageCount: 1,
+          })
+        }
+
+        // Map memory references from API response
+        const memoryRefs = res.data.memoryRefs?.map((ref: any) => ({
+          noteId: ref.noteId || ref.id,
+          noteTitle: ref.noteTitle || ref.title || 'Related Note',
+          relevance: ref.relevance || ref.score || 0.5,
+        })) || []
+
+        const aiMessage = {
+          id: `msg-${Date.now() + 1}`,
+          role: 'assistant' as const,
+          content: res.data.response || 'I couldn\'t generate a response.',
+          timestamp: new Date().toISOString(),
+          memoryReferences: memoryRefs,
+        }
+        addMessage(aiMessage)
+      } else {
+        const errorMessage = {
+          id: `msg-${Date.now() + 1}`,
+          role: 'assistant' as const,
+          content: `Sorry, I encountered an error: ${res.error || 'Unknown error'}. Please try again.`,
+          timestamp: new Date().toISOString(),
+        }
+        addMessage(errorMessage)
+      }
+    } catch {
+      const errorMessage = {
         id: `msg-${Date.now() + 1}`,
         role: 'assistant' as const,
-        content: generateMockResponse(input.trim()),
+        content: 'Sorry, I couldn\'t connect to the memory service. Please try again.',
         timestamp: new Date().toISOString(),
-        memoryReferences: [
-          {
-            noteId: notes[Math.floor(Math.random() * notes.length)]?.id ?? '1',
-            noteTitle: notes[Math.floor(Math.random() * notes.length)]?.title ?? 'Related Note',
-            relevance: 0.7 + Math.random() * 0.25,
-          },
-        ],
       }
-      addMessage(aiMessage)
+      addMessage(errorMessage)
+    } finally {
       setIsLoading(false)
-    }, 1200)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -85,14 +145,7 @@ export function ChatPanel() {
   }
 
   const handleNewConversation = () => {
-    const conv = {
-      id: `conv-${Date.now()}`,
-      title: 'New Conversation',
-      lastMessageAt: new Date().toISOString(),
-      messageCount: 0,
-    }
-    addConversation(conv)
-    setCurrentConversationId(conv.id)
+    resetChat()
   }
 
   const handleMemoryRefClick = (noteId: string) => {
@@ -100,6 +153,27 @@ export function ChatPanel() {
     const { setSelectedNoteId, setIsEditing } = useNotesStore.getState()
     setSelectedNoteId(noteId)
     setIsEditing(true)
+  }
+
+  const handleSelectConversation = async (convId: string) => {
+    setCurrentConversationId(convId)
+    setShowConvSelector(false)
+    // Load messages for this conversation
+    try {
+      const res = await api.getConversation(convId)
+      if (res.success && res.data?.messages) {
+        const mapped = res.data.messages.map((m: any) => ({
+          id: m.id,
+          role: m.role.toLowerCase() as 'user' | 'assistant' | 'system',
+          content: m.content,
+          timestamp: m.createdAt,
+          memoryReferences: [], // TODO: parse memoryRefs from JSON
+        }))
+        setMessages(mapped)
+      }
+    } catch (err) {
+      console.error('Failed to load conversation messages:', err)
+    }
   }
 
   return (
@@ -121,24 +195,25 @@ export function ChatPanel() {
               onClick={() => setShowConvSelector(!showConvSelector)}
             >
               <span className="truncate text-xs">
-                {currentConversation?.title ?? 'Select conversation'}
+                {currentConversation?.title ?? 'New conversation'}
               </span>
               <ChevronDown className="w-3 h-3 shrink-0" />
             </Button>
             {showConvSelector && (
               <div className="absolute right-0 top-full mt-1 w-56 rounded-md border border-border bg-popover p-1 shadow-lg z-50">
-                {conversations.map((conv) => (
-                  <button
-                    key={conv.id}
-                    onClick={() => {
-                      setCurrentConversationId(conv.id)
-                      setShowConvSelector(false)
-                    }}
-                    className="w-full text-left px-3 py-2 text-sm rounded-sm hover:bg-accent transition-colors"
-                  >
-                    {conv.title}
-                  </button>
-                ))}
+                {conversations.length === 0 ? (
+                  <p className="text-xs text-muted-foreground px-3 py-2">No conversations yet</p>
+                ) : (
+                  conversations.map((conv) => (
+                    <button
+                      key={conv.id}
+                      onClick={() => handleSelectConversation(conv.id)}
+                      className="w-full text-left px-3 py-2 text-sm rounded-sm hover:bg-accent transition-colors"
+                    >
+                      {conv.title}
+                    </button>
+                  ))
+                )}
               </div>
             )}
           </div>
@@ -208,23 +283,4 @@ export function ChatPanel() {
       </div>
     </div>
   )
-}
-
-// Simple mock response generator
-function generateMockResponse(query: string): string {
-  const lower = query.toLowerCase()
-
-  if (lower.includes('embed') || lower.includes('vector')) {
-    return 'Based on your notes about embedding strategies, Memorix uses a hybrid approach. When online, it leverages external API embeddings for best quality. When offline, it falls back to n-gram-based pseudo-embeddings that still provide meaningful similarity search. The key insight is that shared substrings between texts produce higher cosine similarity in the n-gram vector space, making the fallback genuinely useful for retrieval.'
-  }
-
-  if (lower.includes('pattern') || lower.includes('insight')) {
-    return 'Your memory patterns show some interesting trends. There\'s a growing cluster of architecture-related notes that are highly interconnected. I also notice temporal shifts — your recent notes focus more on integration patterns compared to earlier foundational concepts. The knowledge graph connectivity ratio is improving, which means your notes are forming better connections over time.'
-  }
-
-  if (lower.includes('mcp') || lower.includes('server')) {
-    return 'The MCP Server allows AI assistants like Claude and Cursor to directly access your Memorix memory. It runs as a standalone process communicating via stdio with JSON-RPC 2.0. Eight tools are available including search, add_note, get_note, list_notes, chat, get_related, detect_patterns, and add_decision. This means your AI assistant can seamlessly query and update your memory without leaving their workflow.'
-  }
-
-  return `That's a great question about "${query.slice(0, 50)}". Based on your stored memories, I can see connections to several of your notes. The memory system is designed to surface relevant context automatically — when you ask questions, it searches your notes using semantic similarity and injects the most relevant ones into my response context. This ensures I always have access to your knowledge when helping you.`
 }

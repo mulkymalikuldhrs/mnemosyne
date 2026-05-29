@@ -87,26 +87,44 @@ async function loadUserEmbeddings(
     },
   })
 
-  return chunks.map((chunk) => {
+  const results: {
+    id: string
+    noteId: string
+    content: string
+    embedding: number[]
+    noteTitle: string
+  }[] = []
+
+  for (const chunk of chunks) {
     let embedding: number[] | null = getCachedEmbedding(chunk.id)
 
     if (!embedding) {
       try {
-        embedding = JSON.parse(chunk.embedding)
-        setCachedEmbedding(chunk.id, embedding)
+        const parsed = JSON.parse(chunk.embedding)
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed.every((v: unknown) => typeof v === 'number')) {
+          embedding = parsed
+          setCachedEmbedding(chunk.id, embedding)
+        }
       } catch {
-        embedding = []
+        // Skip chunks with malformed embeddings
+        continue
       }
     }
 
-    return {
+    if (!embedding || embedding.length === 0) {
+      continue
+    }
+
+    results.push({
       id: chunk.id,
       noteId: chunk.noteId,
       content: chunk.content,
       embedding,
       noteTitle: chunk.note.title,
-    }
-  })
+    })
+  }
+
+  return results
 }
 
 /**

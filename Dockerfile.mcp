@@ -1,28 +1,63 @@
 # ============================================================
 # Memorix MCP Server — Dockerfile
-# Lightweight Bun-based container for the MCP server
+# Lightweight container for the MCP server (stdio transport)
+# ============================================================
+#
+# Usage:
+#   docker build -f Dockerfile.mcp -t memorix-mcp .
+#   docker run -i --rm \
+#     -e DATABASE_URL="file:/app/data/memorix.db" \
+#     -e MEMORIX_API_KEY="mx_your_api_key" \
+#     -v /path/to/memorix.db:/app/data/memorix.db \
+#     memorix-mcp
+#
+# The MCP server communicates via stdin/stdout (stdio transport).
+# No port is exposed. Use `docker run -i` for interactive stdin.
 # ============================================================
 
-FROM bun:1-alpine AS runner
+FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Copy MCP server source
-COPY mcp-server/ ./
-
-# Copy shared Prisma schema (MCP server has its own)
-COPY mcp-server/prisma ./prisma
+# Copy package files
+COPY package.json package-lock.json* ./
+COPY mcp-server/ ./mcp-server/
+COPY prisma/ ./prisma/
 
 # Install dependencies
-RUN bun install --frozen-lockfile
+RUN npm install --ignore-scripts
 
-# Generate Prisma client
-RUN bun run db:generate
+# Generate Prisma client from the shared schema
+RUN npx prisma generate
+
+# Build the MCP server TypeScript
+RUN npm run mcp:build
+
+# ---- Runtime stage ----
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+# Copy package files and install production dependencies only
+COPY package.json package-lock.json* ./
+RUN npm install --omit=dev --ignore-scripts
+
+# Copy Prisma schema and generated client
+COPY prisma/ ./prisma/
+COPY --from=builder /app/node_modules/.prisma/ ./node_modules/.prisma/
+COPY --from=builder /app/node_modules/@prisma/ ./node_modules/@prisma/
+
+# Copy compiled MCP server
+COPY mcp-server/cli.js ./mcp-server/cli.js
+COPY --from=builder /app/mcp-server/dist/ ./mcp-server/dist/
 
 # Create data directory for SQLite database
 RUN mkdir -p /app/data
 
-# Expose MCP server port
-EXPOSE 4000
+# MCP server uses stdio — NO port exposure needed
+# Communicates via stdin/stdout only
 
-# Run the MCP server
-CMD ["bun", "run", "index.ts"]
+# Set environment defaults
+ENV NODE_ENV=production
+ENV DATABASE_URL="file:/app/data/memorix.db"
+
+# Run the MCP server via the cli.js wrapper
+ENTRYPOINT ["node", "mcp-server/cli.js"]

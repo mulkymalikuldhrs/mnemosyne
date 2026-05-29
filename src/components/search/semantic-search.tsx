@@ -1,75 +1,120 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
-import { Search, Sparkles, Tag, FileText } from 'lucide-react'
+import { Search, Sparkles, Tag, FileText, Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { useNotesStore, type Note } from '@/lib/store'
+import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
+
+interface SearchResult {
+  id: string
+  title: string
+  content: string
+  tags: string[]
+  score: number
+  updatedAt: string
+  createdAt: string
+  isArchived: boolean
+}
 
 export function SemanticSearch() {
   const { notes, setSelectedNoteId, setIsEditing } = useNotesStore()
   const [query, setQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
 
-  // Get all unique tags
+  // Get all unique tags from notes
   const allTags = useMemo(() => {
     const tagSet = new Set<string>()
     notes.forEach((n) => n.tags.forEach((t) => tagSet.add(t)))
     return Array.from(tagSet).sort()
   }, [notes])
 
-  // Search results
-  const searchResults = useMemo(() => {
-    if (!query && selectedTags.length === 0) return []
+  // Perform semantic search via API when query changes
+  const performSearch = useCallback(async (searchQuery: string, tags: string[]) => {
+    if (!searchQuery.trim() && tags.length === 0) {
+      setSearchResults([])
+      setHasSearched(false)
+      return
+    }
 
-    const q = query.toLowerCase()
-    return notes
-      .filter((n) => !n.isArchived)
-      .map((note) => {
-        let score = 0
+    setIsSearching(true)
+    setHasSearched(true)
 
-        // Title match (highest weight)
-        if (note.title.toLowerCase().includes(q)) score += 0.4
-
-        // Content match
-        if (note.content.toLowerCase().includes(q)) score += 0.3
-
-        // Tag match
-        const tagMatch = note.tags.some((t) => t.toLowerCase().includes(q))
-        if (tagMatch) score += 0.2
-
-        // Selected tag filter bonus
-        if (selectedTags.length > 0) {
-          const hasSelectedTag = selectedTags.some((st) =>
-            note.tags.map((t) => t.toLowerCase()).includes(st.toLowerCase())
-          )
-          if (!hasSelectedTag) return null
-          score += 0.3
+    try {
+      if (searchQuery.trim()) {
+        const res = await api.semanticSearch(searchQuery.trim(), 20)
+        if (res.success && res.data?.results) {
+          const mapped: SearchResult[] = res.data.results.map((r: any) => ({
+            id: r.id || r.noteId,
+            title: r.title || '',
+            content: r.content || r.chunk || '',
+            tags: r.tags ? r.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
+            score: r.score || r.similarity || 0,
+            updatedAt: r.updatedAt || new Date().toISOString(),
+            createdAt: r.createdAt || new Date().toISOString(),
+            isArchived: r.isArchived || false,
+          }))
+          // Filter by selected tags if any
+          const filtered = tags.length > 0
+            ? mapped.filter((r) => tags.some((st) => r.tags.map((t) => t.toLowerCase()).includes(st.toLowerCase())))
+            : mapped
+          setSearchResults(filtered)
+        } else {
+          setSearchResults([])
         }
+      } else if (tags.length > 0) {
+        // Tag-only filter — use local notes
+        const filtered = notes
+          .filter((n) => !n.isArchived)
+          .filter((n) => tags.some((st) => n.tags.map((t) => t.toLowerCase()).includes(st.toLowerCase())))
+          .map((n) => ({
+            id: n.id,
+            title: n.title,
+            content: n.content,
+            tags: n.tags,
+            score: 1,
+            updatedAt: n.updatedAt,
+            createdAt: n.createdAt,
+            isArchived: n.isArchived,
+          }))
+        setSearchResults(filtered)
+      }
+    } catch (err) {
+      console.error('Search failed:', err)
+      setSearchResults([])
+    } finally {
+      setIsSearching(false)
+    }
+  }, [notes])
 
-        // Word-level overlap
-        if (q) {
-          const queryWords = q.split(/\s+/).filter(Boolean)
-          const noteWords = (note.title + ' ' + note.content).toLowerCase().split(/\s+/)
-          const overlap = queryWords.filter((qw) => noteWords.some((nw) => nw.includes(qw)))
-          score += (overlap.length / Math.max(queryWords.length, 1)) * 0.2
-        }
+  // Debounced search trigger
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null)
 
-        return { ...note, relationScore: Math.min(score, 1) }
-      })
-      .filter((n): n is Note & { relationScore: number } => n !== null && n.relationScore > 0)
-      .sort((a, b) => b.relationScore - a.relationScore)
-  }, [query, selectedTags, notes])
+  const handleQueryChange = (value: string) => {
+    setQuery(value)
+    if (searchTimeout) clearTimeout(searchTimeout)
+    const timeout = setTimeout(() => {
+      performSearch(value, selectedTags)
+    }, 400)
+    setSearchTimeout(timeout)
+  }
 
   const toggleTag = useCallback((tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    )
-  }, [])
+    setSelectedTags((prev) => {
+      const newTags = prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+      // Re-search with new tags
+      setTimeout(() => performSearch(query, newTags), 0)
+      return newTags
+    })
+  }, [query, performSearch])
 
   const handleNoteClick = (noteId: string) => {
     setSelectedNoteId(noteId)
@@ -84,13 +129,17 @@ export function SemanticSearch() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleQueryChange(e.target.value)}
             placeholder="Search your memories semantically..."
             className="pl-9 h-10 bg-muted/50 border-0 text-base"
             autoFocus
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
-            <Sparkles className="w-4 h-4 text-primary/50" />
+            {isSearching ? (
+              <Loader2 className="w-4 h-4 text-primary/50 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4 text-primary/50" />
+            )}
           </div>
         </div>
 
@@ -117,7 +166,7 @@ export function SemanticSearch() {
 
       {/* Results */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
-        {!query && selectedTags.length === 0 ? (
+        {!hasSearched ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -131,6 +180,10 @@ export function SemanticSearch() {
               Type a query to search across all your notes, or use tag filters to narrow results
             </p>
           </motion.div>
+        ) : isSearching ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
         ) : searchResults.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
@@ -185,7 +238,7 @@ export function SemanticSearch() {
                         </div>
                         <div className="shrink-0 text-right">
                           <div className="text-xs font-medium text-primary">
-                            {Math.round(note.relationScore * 100)}%
+                            {Math.round(note.score * 100)}%
                           </div>
                           <div className="text-[10px] text-muted-foreground">relevance</div>
                         </div>

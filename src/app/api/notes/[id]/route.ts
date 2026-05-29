@@ -3,6 +3,15 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { storeMemory, deleteMemory } from '@/ai/memory'
+import { z } from 'zod'
+
+const noteUpdateSchema = z.object({
+  title: z.string().min(1).max(500).optional(),
+  content: z.string().min(1).max(100000).optional(),
+  markdown: z.string().max(100000).optional(),
+  tags: z.string().max(1000).optional(),
+  isArchived: z.boolean().optional(),
+})
 
 export async function GET(
   request: NextRequest,
@@ -100,7 +109,14 @@ export async function PUT(
     const userId = session.user.id
     const { id } = await params
     const body = await request.json()
-    const { title, content, markdown, tags, isArchived } = body
+    const parsed = noteUpdateSchema.safeParse(body)
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid input', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
 
     // Verify ownership
     const existing = await db.note.findFirst({
@@ -116,6 +132,7 @@ export async function PUT(
 
     // Build update data
     const updateData: Record<string, unknown> = {}
+    const { title, content, markdown, tags, isArchived } = parsed.data
     if (title !== undefined) updateData.title = title
     if (content !== undefined) updateData.content = content
     if (markdown !== undefined) updateData.markdown = markdown

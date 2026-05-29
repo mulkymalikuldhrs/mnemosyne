@@ -3,6 +3,14 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { storeMemory } from '@/ai/memory'
+import { z } from 'zod'
+
+const noteCreateSchema = z.object({
+  title: z.string().min(1).max(500),
+  content: z.string().min(1).max(100000),
+  markdown: z.string().max(100000).optional(),
+  tags: z.string().max(1000).optional(),
+})
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,9 +25,9 @@ export async function GET(request: NextRequest) {
     const userId = session.user.id
     const { searchParams } = new URL(request.url)
 
-    // Pagination
-    const page = parseInt(searchParams.get('page') ?? '1', 10)
-    const limit = parseInt(searchParams.get('limit') ?? '20', 10)
+    // Pagination with cap
+    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10))
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') ?? '20', 10)), 100)
     const skip = (page - 1) * limit
 
     // Build where clause
@@ -104,14 +112,16 @@ export async function POST(request: NextRequest) {
 
     const userId = session.user.id
     const body = await request.json()
-    const { title, content, markdown, tags } = body
+    const parsed = noteCreateSchema.safeParse(body)
 
-    if (!title || !content) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: 'Title and content are required' },
+        { success: false, error: 'Invalid input', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
+
+    const { title, content, markdown, tags } = parsed.data
 
     // Create the note
     const note = await db.note.create({

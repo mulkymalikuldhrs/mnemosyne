@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { z } from 'zod'
+
+const settingsUpdateSchema = z.object({
+  openrouterApiKey: z.string().max(500).optional(),
+  supabaseProjectUrl: z.string().url().max(500).optional(),
+})
 
 export async function GET() {
   try {
@@ -45,7 +51,6 @@ export async function GET() {
         name: user.name,
         plan: user.plan,
         hasOpenrouterApiKey: !!user.openrouterApiKey,
-        openrouterApiKeySet: !!user.openrouterApiKey,
         supabaseProjectUrl: user.supabaseProjectUrl,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
@@ -72,7 +77,16 @@ export async function PUT(request: NextRequest) {
 
     const userId = session.user.id
     const body = await request.json()
-    const { openrouterApiKey, supabaseProjectUrl } = body
+    const parsed = settingsUpdateSchema.safeParse(body)
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid input', details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+
+    const { openrouterApiKey, supabaseProjectUrl } = parsed.data
 
     const updateData: Record<string, unknown> = {}
     if (openrouterApiKey !== undefined) {

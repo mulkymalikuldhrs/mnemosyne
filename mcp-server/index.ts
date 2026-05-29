@@ -1,5 +1,3 @@
-#!/usr/bin/env bun
-
 /**
  * Memorix MCP Server
  *
@@ -8,7 +6,10 @@
  * with the Memorix AI memory system.
  *
  * Protocol: JSON-RPC 2.0 over stdio (stdin/stdout)
- * Authentication: API key via MEMORIX_API_KEY environment variable
+ * Authentication: API key validated against the ApiKey table in the database
+ *
+ * Uses the SAME Prisma schema as the main app — no separate schema.
+ * Models: User, Note, NoteChunk, MemoryLink, Conversation, Message, Decision, ApiKey, McpSession
  */
 
 import { PrismaClient } from "@prisma/client";
@@ -44,6 +45,8 @@ const RPC_ERROR = {
   INTERNAL_ERROR: -32603,
   SERVER_ERROR_START: -32000,
   SERVER_ERROR_END: -32099,
+  AUTH_REQUIRED: -32001,
+  AUTH_FAILED: -32002,
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -140,7 +143,7 @@ const TOOLS: ToolDefinition[] = [
   {
     name: "memorix_chat",
     description:
-      "Chat with the memory system. Ask questions and get AI-powered responses grounded in your stored memories.",
+      "Chat with the memory system. Ask questions and get AI-powered responses grounded in your stored memories. Uses LLM with RAG pipeline for intelligent responses.",
     inputSchema: {
       type: "object",
       properties: {
@@ -160,7 +163,7 @@ const TOOLS: ToolDefinition[] = [
   {
     name: "memorix_get_related",
     description:
-      "Get notes related to a specific note, based on shared tags, content similarity, and explicit relations.",
+      "Get notes related to a specific note, based on shared tags, content similarity, and explicit memory links.",
     inputSchema: {
       type: "object",
       properties: {
@@ -215,7 +218,7 @@ const TOOLS: ToolDefinition[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Database Client
+// Database Client — uses the SAME Prisma schema as the main app
 // ---------------------------------------------------------------------------
 
 const prisma = new PrismaClient({
@@ -223,26 +226,114 @@ const prisma = new PrismaClient({
 });
 
 // ---------------------------------------------------------------------------
+// Authentication — validates API key against the ApiKey table
+// ---------------------------------------------------------------------------
+
+let authenticatedUserId: string | null = null;
+let authenticatedApiKeyId: string | null = null;
+
+/**
+ * Validate the API key from the MEMORIX_API_KEY environment variable
+ * against the ApiKey table in the database.
+ *
+ * - Looks up the key in the database
+ * - Sets the authenticated user ID for all subsequent operations
+ * - Updates the lastUsedAt timestamp
+ * - Creates an McpSession record
+ */
+async function validateAndAuthenticate(): Promise<boolean> {
+  const apiKey = process.env.MEMORIX_API_KEY;
+
+  // If no API key is configured, check for open mode (development)
+  if (!apiKey) {
+    // In open mode, try to use the first user as default
+    const firstUser = await prisma.user.findFirst({
+      orderBy: { createdAt: "asc" },
+    });
+    if (firstUser) {
+      authenticatedUserId = firstUser.id;
+      log("Running in open mode (no MEMORIX_API_KEY set) — using first user");
+      return true;
+    }
+    log("ERROR: No users in database and no MEMORIX_API_KEY set");
+    return false;
+  }
+
+  // Look up the API key in the database
+  const keyRecord = await prisma.apiKey.findUnique({
+    where: { key: apiKey },
+    include: { user: true },
+  });
+
+  if (!keyRecord) {
+    log("ERROR: Invalid MEMORIX_API_KEY — not found in database");
+    return false;
+  }
+
+  // Set the authenticated user
+  authenticatedUserId = keyRecord.userId;
+  authenticatedApiKeyId = keyRecord.id;
+
+  // Update lastUsedAt
+  await prisma.apiKey.update({
+    where: { id: keyRecord.id },
+    data: { lastUsedAt: new Date() },
+  });
+
+  // Create an MCP session record
+  await prisma.mcpSession.create({
+    data: {
+      userId: keyRecord.userId,
+      apiKeyId: keyRecord.id,
+      clientId: "mcp-stdio",
+    },
+  });
+
+  log(`Authenticated as user: ${keyRecord.user.email}`);
+  return true;
+}
+
+/**
+ * Get the authenticated user ID, throwing an error if not authenticated.
+ */
+function requireUserId(): string {
+  if (!authenticatedUserId) {
+    throw {
+      code: RPC_ERROR.AUTH_REQUIRED,
+      message: "Authentication required. Set MEMORIX_API_KEY environment variable.",
+    };
+  }
+  return authenticatedUserId;
+}
+
+// ---------------------------------------------------------------------------
 // Utility Functions
 // ---------------------------------------------------------------------------
 
-function parseTags(tagsJson: string): string[] {
-  try {
-    const parsed = JSON.parse(tagsJson);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+/**
+ * Parse tags from the comma-separated format used in the main app's schema.
+ * The main app stores tags as a comma-separated string (e.g., "ai,memory,rag").
+ */
+function parseTags(tagsStr: string): string[] {
+  if (!tagsStr) return [];
+  // The main app uses comma-separated tags, not JSON
+  return tagsStr
+    .split(",")
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0);
 }
 
+/**
+ * Serialize tags back to comma-separated format matching the main app.
+ */
 function serializeTags(tags: string[]): string {
-  return JSON.stringify(tags);
+  return tags.join(",");
 }
 
 /**
  * Simple text-based similarity scoring using keyword overlap and
- * substring matching. In a production system, this would use
- * vector embeddings for semantic search.
+ * substring matching. Used as a fallback alongside the main app's
+ * vector-based search in the memory engine.
  */
 function computeRelevanceScore(
   query: string,
@@ -389,39 +480,123 @@ function analyzePatterns(
 }
 
 // ---------------------------------------------------------------------------
-// Authentication
+// LLM Integration — uses z-ai-web-dev-sdk for real AI chat
 // ---------------------------------------------------------------------------
 
-function validateApiKey(): boolean {
-  const apiKey = process.env.MEMORIX_API_KEY;
+let zaiModule: typeof import("z-ai-web-dev-sdk").default | null = null;
 
-  // If no API key is configured, allow all requests (development mode)
-  if (!apiKey) {
-    return true;
+/**
+ * Lazily load the z-ai-web-dev-sdk module.
+ * Returns null if the SDK is not available.
+ */
+async function getLLMClient() {
+  if (zaiModule === null) {
+    try {
+      const mod = await import("z-ai-web-dev-sdk");
+      zaiModule = mod.default;
+    } catch {
+      zaiModule = null;
+      log("z-ai-web-dev-sdk not available — chat will use keyword-based responses");
+    }
   }
+  if (!zaiModule) return null;
 
-  // In production, validate against stored API keys
-  // For standalone mode, we check the environment variable is set
-  return apiKey.length > 0;
+  try {
+    const client = await zaiModule.create();
+    return client;
+  } catch (err) {
+    log(`Failed to create LLM client: ${err instanceof Error ? err.message : String(err)}`);
+    return null;
+  }
+}
+
+/**
+ * Call the LLM to generate a chat response grounded in memory context.
+ */
+async function callLLM(
+  message: string,
+  memoryContext: string,
+  conversationHistory: Array<{ role: string; content: string }> = []
+): Promise<string | null> {
+  const client = await getLLMClient();
+  if (!client) return null;
+
+  const systemPrompt = `You are Memorix, a personal AI memory assistant. You help users recall, connect, and reason about their stored knowledge.
+
+You have access to the following memories from the user's knowledge base:
+${memoryContext}
+
+Guidelines:
+- Reference specific memories when answering questions
+- Connect ideas across different notes and time periods
+- Help the user think through decisions using their past reasoning
+- Suggest connections the user might not have noticed
+- Be concise but insightful
+- If the memories don't contain relevant information, say so honestly`;
+
+  const messages = [
+    { role: "system" as const, content: systemPrompt },
+    ...conversationHistory
+      .filter((m) => m.role === "user" || m.role === "assistant")
+      .slice(-10) // Keep last 10 messages for context window
+      .map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      })),
+    { role: "user" as const, content: message },
+  ];
+
+  try {
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages,
+      max_tokens: 1024,
+      temperature: 0.7,
+    });
+
+    if (
+      response &&
+      typeof response === "object" &&
+      "choices" in response
+    ) {
+      const choices = response.choices as Array<{
+        message?: { content?: string };
+      }>;
+      if (choices.length > 0 && choices[0].message?.content) {
+        return choices[0].message.content;
+      }
+    }
+
+    return null;
+  } catch (err) {
+    log(`LLM call failed: ${err instanceof Error ? err.message : String(err)}`);
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Tool Implementations
+// Tool Implementations — all use authenticatedUserId for multi-tenancy
 // ---------------------------------------------------------------------------
 
 async function toolSearch(
   params: Record<string, unknown>
 ): Promise<unknown> {
+  const userId = requireUserId();
   const query = String(params.query || "");
-  const limit = Number(params.limit) || 10;
+  const limit = Math.min(Number(params.limit) || 10, 100);
 
   if (!query.trim()) {
     throw { code: RPC_ERROR.INVALID_PARAMS, message: "Query cannot be empty" };
   }
 
-  // Fetch all notes for scoring (SQLite FTS is limited, so we do in-memory scoring)
+  // Fetch user's notes for scoring (scoped to authenticated user)
   const allNotes = await prisma.note.findMany({
+    where: {
+      userId,
+      isArchived: false,
+    },
     orderBy: { createdAt: "desc" },
+    take: 500, // Cap to avoid memory issues
   });
 
   const scored = allNotes.map((note) => {
@@ -448,6 +623,7 @@ async function toolSearch(
 async function toolAddNote(
   params: Record<string, unknown>
 ): Promise<unknown> {
+  const userId = requireUserId();
   const title = String(params.title || "");
   const content = String(params.content || "");
   const tags = Array.isArray(params.tags)
@@ -464,23 +640,33 @@ async function toolAddNote(
     };
   }
 
+  const tagsStr = serializeTags(tags);
+
   const note = await prisma.note.create({
     data: {
+      userId,
       title: title.trim(),
       content: content.trim(),
-      tags: serializeTags(tags),
+      markdown: content.trim(), // Store as markdown too
+      tags: tagsStr,
     },
   });
 
-  // Auto-detect and create relations to existing notes with similar tags
+  // Auto-detect and create memory links to existing notes with similar tags
   if (tags.length > 0) {
     const existingNotes = await prisma.note.findMany({
-      where: { id: { not: note.id } },
+      where: {
+        userId,
+        id: { not: note.id },
+        isArchived: false,
+      },
     });
 
     for (const existing of existingNotes) {
       const existingTags = parseTags(existing.tags);
-      const sharedTags = tags.filter((t) => existingTags.includes(t));
+      const sharedTags = tags.filter((t) =>
+        existingTags.some((et) => et.toLowerCase() === t.toLowerCase())
+      );
 
       if (sharedTags.length > 0) {
         const relationScore = Math.min(
@@ -488,23 +674,25 @@ async function toolAddNote(
           1.0
         );
 
-        // Check if relation already exists
-        const existingRelation = await prisma.noteRelation.findFirst({
+        // Check if link already exists (in either direction)
+        const existingLink = await prisma.memoryLink.findFirst({
           where: {
             OR: [
-              { noteAId: note.id, noteBId: existing.id },
-              { noteAId: existing.id, noteBId: note.id },
+              { sourceNoteId: note.id, targetNoteId: existing.id },
+              { sourceNoteId: existing.id, targetNoteId: note.id },
             ],
           },
         });
 
-        if (!existingRelation) {
-          await prisma.noteRelation.create({
+        if (!existingLink) {
+          // Create forward link (sourceNote → targetNote)
+          await prisma.memoryLink.create({
             data: {
-              noteAId: note.id,
-              noteBId: existing.id,
+              sourceNoteId: note.id,
+              targetNoteId: existing.id,
               relationScore,
               reason: `Shared tags: ${sharedTags.join(", ")}`,
+              autoLinked: true,
             },
           });
         }
@@ -521,6 +709,7 @@ async function toolAddNote(
 async function toolGetNote(
   params: Record<string, unknown>
 ): Promise<unknown> {
+  const userId = requireUserId();
   const noteId = String(params.noteId || "");
 
   if (!noteId.trim()) {
@@ -530,8 +719,11 @@ async function toolGetNote(
     };
   }
 
-  const note = await prisma.note.findUnique({
-    where: { id: noteId },
+  const note = await prisma.note.findFirst({
+    where: {
+      id: noteId,
+      userId, // Ensure user owns this note
+    },
   });
 
   if (!note) {
@@ -545,35 +737,47 @@ async function toolGetNote(
     noteId: note.id,
     title: note.title,
     content: note.content,
+    markdown: note.markdown,
     tags: parseTags(note.tags),
+    isArchived: note.isArchived,
     createdAt: note.createdAt.toISOString(),
+    updatedAt: note.updatedAt.toISOString(),
   };
 }
 
 async function toolListNotes(
   params: Record<string, unknown>
 ): Promise<unknown> {
-  const limit = Number(params.limit) || 20;
+  const userId = requireUserId();
+  const limit = Math.min(Number(params.limit) || 20, 100);
   const offset = Number(params.offset) || 0;
 
   const [notes, total] = await Promise.all([
     prisma.note.findMany({
+      where: {
+        userId,
+        isArchived: false,
+      },
       orderBy: { createdAt: "desc" },
       take: limit,
       skip: offset,
       select: {
         id: true,
         title: true,
+        tags: true,
         createdAt: true,
       },
     }),
-    prisma.note.count(),
+    prisma.note.count({
+      where: { userId, isArchived: false },
+    }),
   ]);
 
   return {
     notes: notes.map((n) => ({
       noteId: n.id,
       title: n.title,
+      tags: parseTags(n.tags),
       createdAt: n.createdAt.toISOString(),
     })),
     total,
@@ -583,6 +787,7 @@ async function toolListNotes(
 async function toolChat(
   params: Record<string, unknown>
 ): Promise<unknown> {
+  const userId = requireUserId();
   const message = String(params.message || "");
   const conversationId = params.conversationId
     ? String(params.conversationId)
@@ -595,13 +800,14 @@ async function toolChat(
     };
   }
 
-  // Search for relevant memories
-  const allNotes = await prisma.note.findMany({
+  // Step 1: Search for relevant memories
+  const userNotes = await prisma.note.findMany({
+    where: { userId, isArchived: false },
     orderBy: { createdAt: "desc" },
     take: 50,
   });
 
-  const scored = allNotes.map((note) => {
+  const scored = userNotes.map((note) => {
     const tags = parseTags(note.tags);
     const score = computeRelevanceScore(message, note.title, note.content, tags);
     return { note, score };
@@ -614,16 +820,57 @@ async function toolChat(
 
   const memoryRefs = relevantNotes.map((r) => r.note.id);
 
-  // Build response grounded in memory
+  // Step 2: Build memory context for LLM
+  const memoryContext =
+    relevantNotes.length > 0
+      ? relevantNotes
+          .map(
+            (r) =>
+              `- "${r.note.title}" (relevance: ${Math.round(r.score * 100)}%): ${r.note.content.slice(0, 300)}${r.note.content.length > 300 ? "..." : ""}`
+          )
+          .join("\n")
+      : "No relevant memories found.";
+
+  // Step 3: Load conversation history if continuing a conversation
+  let conversationHistory: Array<{ role: string; content: string }> = [];
+  let convId = conversationId;
+
+  if (convId) {
+    const existingConv = await prisma.conversation.findFirst({
+      where: { id: convId, userId },
+      include: {
+        messages: {
+          orderBy: { createdAt: "asc" },
+          select: { role: true, content: true },
+        },
+      },
+    });
+
+    if (existingConv) {
+      conversationHistory = existingConv.messages.map((m) => ({
+        role: m.role.toLowerCase() === "user" ? "user" : "assistant",
+        content: m.content,
+      }));
+    } else {
+      convId = undefined; // Reset if not found
+    }
+  }
+
+  // Step 4: Try to get an AI-powered response via LLM
   let response: string;
 
-  if (relevantNotes.length === 0) {
+  const llmResponse = await callLLM(message, memoryContext, conversationHistory);
+
+  if (llmResponse) {
+    response = llmResponse;
+  } else if (relevantNotes.length === 0) {
     response =
       "I couldn't find any relevant memories for your question. " +
       "You can add notes to your memory using the memorix_add_note tool, " +
       "and I'll be able to reference them in future conversations.";
   } else {
-    const memoryContext = relevantNotes
+    // Fallback: keyword-based response when LLM is unavailable
+    const memorySummary = relevantNotes
       .map(
         (r) =>
           `- "${r.note.title}" (relevance: ${Math.round(r.score * 100)}%): ${r.note.content.slice(0, 200)}${r.note.content.length > 200 ? "..." : ""}`
@@ -631,57 +878,42 @@ async function toolChat(
       .join("\n");
 
     response =
-      `Based on your memory, here's what I found:\n\n${memoryContext}\n\n` +
+      `Based on your memory, here's what I found:\n\n${memorySummary}\n\n` +
       `I referenced ${relevantNotes.length} memory item(s) to answer your question. ` +
       `For more details on any specific item, use memorix_get_note with the note ID.`;
   }
 
-  // Handle conversation persistence
-  let convId = conversationId;
-
-  if (convId) {
-    // Append to existing conversation
-    const existing = await prisma.conversation.findUnique({
-      where: { id: convId },
-    });
-
-    if (existing) {
-      let parsedMessages: Array<{ role: string; content: string }> = [];
-      try {
-        parsedMessages = JSON.parse(existing.messages) as Array<{
-          role: string;
-          content: string;
-        }>;
-      } catch {
-        parsedMessages = [];
-      }
-
-      parsedMessages.push(
-        { role: "user", content: message },
-        { role: "assistant", content: response }
-      );
-
-      await prisma.conversation.update({
-        where: { id: convId },
-        data: { messages: JSON.stringify(parsedMessages) },
-      });
-    } else {
-      convId = undefined; // Reset if not found
-    }
-  }
-
+  // Step 5: Handle conversation persistence using separate Message model
   if (!convId) {
     // Create new conversation
     const conv = await prisma.conversation.create({
       data: {
-        messages: JSON.stringify([
-          { role: "user", content: message },
-          { role: "assistant", content: response },
-        ]),
+        userId,
+        title: message.slice(0, 100),
       },
     });
     convId = conv.id;
   }
+
+  // Store user message
+  await prisma.message.create({
+    data: {
+      conversationId: convId,
+      role: "USER",
+      content: message,
+      memoryRefs: JSON.stringify(memoryRefs),
+    },
+  });
+
+  // Store assistant message
+  await prisma.message.create({
+    data: {
+      conversationId: convId,
+      role: "ASSISTANT",
+      content: response,
+      memoryRefs: JSON.stringify(memoryRefs),
+    },
+  });
 
   return {
     response,
@@ -693,8 +925,9 @@ async function toolChat(
 async function toolGetRelated(
   params: Record<string, unknown>
 ): Promise<unknown> {
+  const userId = requireUserId();
   const noteId = String(params.noteId || "");
-  const limit = Number(params.limit) || 5;
+  const limit = Math.min(Number(params.limit) || 5, 20);
 
   if (!noteId.trim()) {
     throw {
@@ -703,8 +936,9 @@ async function toolGetRelated(
     };
   }
 
-  const note = await prisma.note.findUnique({
-    where: { id: noteId },
+  // Verify the note belongs to the user
+  const note = await prisma.note.findFirst({
+    where: { id: noteId, userId },
   });
 
   if (!note) {
@@ -714,45 +948,82 @@ async function toolGetRelated(
     };
   }
 
-  // Get explicit relations
-  const relations = await prisma.noteRelation.findMany({
-    where: {
-      OR: [{ noteAId: noteId }, { noteBId: noteId }],
-    },
+  // Get explicit memory links using the main app's MemoryLink model
+  const sourceLinks = await prisma.memoryLink.findMany({
+    where: { sourceNoteId: noteId },
     include: {
-      noteA: true,
-      noteB: true,
+      targetNote: { select: { id: true, title: true, userId: true } },
     },
     orderBy: { relationScore: "desc" },
     take: limit,
   });
 
-  const related = relations.map((rel) => {
-    const relatedNote = rel.noteAId === noteId ? rel.noteB : rel.noteA;
-    return {
-      noteId: relatedNote.id,
-      title: relatedNote.title,
-      relationScore: Math.round(rel.relationScore * 1000) / 1000,
-      reason: rel.reason,
-    };
+  const targetLinks = await prisma.memoryLink.findMany({
+    where: { targetNoteId: noteId },
+    include: {
+      sourceNote: { select: { id: true, title: true, userId: true } },
+    },
+    orderBy: { relationScore: "desc" },
+    take: limit,
   });
 
-  // If not enough explicit relations, supplement with tag-based matching
+  const related: Array<{
+    noteId: string;
+    title: string;
+    relationScore: number;
+    reason: string;
+  }> = [];
+
+  const seenIds = new Set<string>();
+
+  // Process source links (noteId is source)
+  for (const link of sourceLinks) {
+    // Only include notes belonging to the same user
+    if (link.targetNote.userId !== userId) continue;
+    if (seenIds.has(link.targetNote.id)) continue;
+    seenIds.add(link.targetNote.id);
+    related.push({
+      noteId: link.targetNote.id,
+      title: link.targetNote.title,
+      relationScore: Math.round(link.relationScore * 1000) / 1000,
+      reason: link.reason,
+    });
+  }
+
+  // Process target links (noteId is target)
+  for (const link of targetLinks) {
+    if (link.sourceNote.userId !== userId) continue;
+    if (seenIds.has(link.sourceNote.id)) continue;
+    seenIds.add(link.sourceNote.id);
+    related.push({
+      noteId: link.sourceNote.id,
+      title: link.sourceNote.title,
+      relationScore: Math.round(link.relationScore * 1000) / 1000,
+      reason: link.reason,
+    });
+  }
+
+  // If not enough explicit links, supplement with tag-based matching
   if (related.length < limit) {
     const noteTags = parseTags(note.tags);
 
     if (noteTags.length > 0) {
-      const allNotes = await prisma.note.findMany({
-        where: { id: { not: noteId } },
+      const userNotes = await prisma.note.findMany({
+        where: {
+          userId,
+          id: { not: noteId },
+          isArchived: false,
+        },
+        take: 200,
       });
 
-      const existingRelatedIds = new Set(related.map((r) => r.noteId));
-
-      const tagBased = allNotes
-        .filter((n) => !existingRelatedIds.has(n.id))
+      const tagBased = userNotes
+        .filter((n) => !seenIds.has(n.id))
         .map((n) => {
           const nTags = parseTags(n.tags);
-          const sharedTags = noteTags.filter((t) => nTags.includes(t));
+          const sharedTags = noteTags.filter((t) =>
+            nTags.some((nt) => nt.toLowerCase() === t.toLowerCase())
+          );
           return {
             noteId: n.id,
             title: n.title,
@@ -778,7 +1049,10 @@ async function toolGetRelated(
 async function toolDetectPatterns(
   _params: Record<string, unknown>
 ): Promise<unknown> {
+  const userId = requireUserId();
+
   const notes = await prisma.note.findMany({
+    where: { userId },
     orderBy: { createdAt: "desc" },
   });
 
@@ -792,6 +1066,7 @@ async function toolDetectPatterns(
 
   // Also check decisions for patterns
   const decisions = await prisma.decision.findMany({
+    where: { userId },
     orderBy: { createdAt: "desc" },
   });
 
@@ -801,23 +1076,8 @@ async function toolDetectPatterns(
     );
   }
 
-  // Store detected patterns for future reference
-  if (patterns.length > 0) {
-    await prisma.pattern.upsert({
-      where: { id: `patterns-latest` },
-      create: {
-        id: `patterns-latest`,
-        pattern: JSON.stringify(patterns),
-        description: "Latest detected patterns",
-        confidence: 0.8,
-      },
-      update: {
-        pattern: JSON.stringify(patterns),
-        description: "Latest detected patterns",
-        confidence: 0.8,
-      },
-    });
-  }
+  // Note: We do NOT store patterns in a Pattern model — that model doesn't exist
+  // in the main app's schema. Patterns are computed on-the-fly.
 
   return { patterns };
 }
@@ -825,6 +1085,7 @@ async function toolDetectPatterns(
 async function toolAddDecision(
   params: Record<string, unknown>
 ): Promise<unknown> {
+  const userId = requireUserId();
   const title = String(params.title || "");
   const context = String(params.context || "");
   const decision = String(params.decision || "");
@@ -857,6 +1118,7 @@ async function toolAddDecision(
 
   const decisionRecord = await prisma.decision.create({
     data: {
+      userId,
       title: title.trim(),
       context: context.trim(),
       decision: decision.trim(),
@@ -898,8 +1160,7 @@ function handleInitialize(
 ): JsonRpcResponse {
   const protocolVersion = "2024-11-05";
 
-  // Parse client capabilities if provided
-  const clientInfo = (params?.clientInfo as { name?: string; version?: string }) || {};
+  const _clientInfo = (params?.clientInfo as { name?: string; version?: string }) || {};
 
   return {
     jsonrpc: "2.0",
@@ -1191,12 +1452,6 @@ async function processLine(line: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 async function main(): Promise<void> {
-  // Validate authentication
-  if (!validateApiKey()) {
-    log("ERROR: Invalid MEMORIX_API_KEY. Server cannot start.");
-    process.exit(1);
-  }
-
   // Ensure database is accessible
   try {
     await prisma.$connect();
@@ -1208,12 +1463,19 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // Validate and authenticate using the API key
+  const authSuccess = await validateAndAuthenticate();
+  if (!authSuccess) {
+    log("ERROR: Authentication failed. Set MEMORIX_API_KEY to a valid API key from the Memorix app.");
+    process.exit(1);
+  }
+
   const apiKeyStatus = process.env.MEMORIX_API_KEY
-    ? "configured"
-    : "not set (open mode)";
+    ? "configured (authenticated)"
+    : "not set (open mode — using first user)";
   log(`Memorix MCP Server starting...`);
   log(`API Key: ${apiKeyStatus}`);
-  log(`Database: ${process.env.DATABASE_URL || "file:../db/memorix.db"}`);
+  log(`Database: ${process.env.DATABASE_URL || "file:./dev.db"}`);
   log(`Tools available: ${TOOLS.length}`);
   log(`Listening on stdin (JSON-RPC 2.0 over stdio)`);
 
@@ -1274,19 +1536,32 @@ async function main(): Promise<void> {
 
 let cleanupCalled = false;
 
-function cleanup(): void {
+async function cleanup(): Promise<void> {
   if (cleanupCalled) return;
   cleanupCalled = true;
 
-  prisma
-    .$disconnect()
-    .then(() => {
-      log("Database disconnected");
-      process.exit(0);
-    })
-    .catch(() => {
-      process.exit(1);
-    });
+  // Mark MCP session as disconnected
+  if (authenticatedApiKeyId) {
+    try {
+      await prisma.mcpSession.updateMany({
+        where: {
+          apiKeyId: authenticatedApiKeyId,
+          disconnectedAt: null,
+        },
+        data: { disconnectedAt: new Date() },
+      });
+    } catch {
+      // Ignore errors during cleanup
+    }
+  }
+
+  try {
+    await prisma.$disconnect();
+    log("Database disconnected");
+  } catch {
+    // Ignore
+  }
+  process.exit(0);
 }
 
 // Start the server

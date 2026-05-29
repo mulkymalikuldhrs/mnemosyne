@@ -2,14 +2,16 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Save, Archive, FileText, X, Sparkles } from 'lucide-react'
+import { Save, Archive, FileText, X, Sparkles, Loader2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { useNotesStore } from '@/lib/store'
+import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 interface NoteEditorProps {
   noteId?: string | null
@@ -17,44 +19,110 @@ interface NoteEditorProps {
 }
 
 export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
-  const { notes, addNote, updateNote, setSelectedNoteId, setIsEditing } = useNotesStore()
+  const { notes, addNote, updateNote, deleteNote, setSelectedNoteId, setIsEditing } = useNotesStore()
   const existingNote = noteId ? notes.find((n) => n.id === noteId) : null
 
   const [title, setTitle] = useState(existingNote?.title ?? '')
   const [content, setContent] = useState(existingNote?.content ?? '')
   const [tagsInput, setTagsInput] = useState(existingNote?.tags.join(', ') ?? '')
+  const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const tags = tagsInput
       .split(',')
       .map((t) => t.trim())
       .filter(Boolean)
 
-    if (existingNote) {
-      updateNote(existingNote.id, { title, content, tags })
-    } else {
-      const newNote = {
-        id: `note-${Date.now()}`,
-        title: title || 'Untitled Note',
-        content,
-        tags,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        isArchived: false,
+    setIsSaving(true)
+    try {
+      if (existingNote) {
+        // Update existing note via API
+        const res = await api.updateNote(existingNote.id, {
+          title,
+          content,
+          tags: tags.join(', '),
+        })
+        if (res.success && res.data) {
+          updateNote(existingNote.id, {
+            title: res.data.title,
+            content: res.data.content,
+            tags: res.data.tags ? res.data.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
+            updatedAt: res.data.updatedAt,
+          })
+          toast.success('Note updated')
+        } else {
+          toast.error(res.error || 'Failed to update note')
+        }
+      } else {
+        // Create new note via API
+        const res = await api.createNote({
+          title: title || 'Untitled Note',
+          content,
+          tags: tags.join(', '),
+        })
+        if (res.success && res.data) {
+          const newNote = {
+            id: res.data.id,
+            title: res.data.title,
+            content: res.data.content,
+            tags: res.data.tags ? res.data.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
+            createdAt: res.data.createdAt,
+            updatedAt: res.data.updatedAt,
+            isArchived: res.data.isArchived,
+          }
+          addNote(newNote)
+          setSelectedNoteId(newNote.id)
+          toast.success('Note created')
+        } else {
+          toast.error(res.error || 'Failed to create note')
+        }
       }
-      addNote(newNote)
-      setSelectedNoteId(newNote.id)
-    }
-    setIsEditing(false)
-    onClose?.()
-  }
-
-  const handleArchive = () => {
-    if (existingNote) {
-      updateNote(existingNote.id, { isArchived: true })
-      setSelectedNoteId(null)
       setIsEditing(false)
       onClose?.()
+    } catch {
+      toast.error('Failed to save note')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleArchive = async () => {
+    if (!existingNote) return
+    try {
+      const res = await api.updateNote(existingNote.id, { isArchived: true })
+      if (res.success) {
+        updateNote(existingNote.id, { isArchived: true })
+        setSelectedNoteId(null)
+        setIsEditing(false)
+        onClose?.()
+        toast.success('Note archived')
+      } else {
+        toast.error(res.error || 'Failed to archive note')
+      }
+    } catch {
+      toast.error('Failed to archive note')
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!existingNote) return
+    setIsDeleting(true)
+    try {
+      const res = await api.deleteNote(existingNote.id)
+      if (res.success) {
+        deleteNote(existingNote.id)
+        setSelectedNoteId(null)
+        setIsEditing(false)
+        onClose?.()
+        toast.success('Note deleted')
+      } else {
+        toast.error(res.error || 'Failed to delete note')
+      }
+    } catch {
+      toast.error('Failed to delete note')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -82,13 +150,19 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
         </div>
         <div className="flex items-center gap-2">
           {existingNote && (
-            <Button variant="ghost" size="sm" onClick={handleArchive} className="text-muted-foreground">
-              <Archive className="w-4 h-4 mr-1.5" />
-              Archive
-            </Button>
+            <>
+              <Button variant="ghost" size="sm" onClick={handleArchive} className="text-muted-foreground">
+                <Archive className="w-4 h-4 mr-1.5" />
+                Archive
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleDelete} className="text-destructive hover:text-destructive" disabled={isDeleting}>
+                <Trash2 className="w-4 h-4 mr-1.5" />
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </Button>
+            </>
           )}
-          <Button size="sm" onClick={handleSave} disabled={!title.trim() && !content.trim()}>
-            <Save className="w-4 h-4 mr-1.5" />
+          <Button size="sm" onClick={handleSave} disabled={(!title.trim() && !content.trim()) || isSaving}>
+            {isSaving ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Save className="w-4 h-4 mr-1.5" />}
             Save
           </Button>
           {onClose && (

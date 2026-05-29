@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { z } from 'zod'
+
+const decisionCreateSchema = z.object({
+  title: z.string().min(1).max(500),
+  context: z.string().max(10000).optional(),
+  decision: z.string().min(1).max(10000),
+  reasoning: z.string().max(10000).optional(),
+  outcome: z.string().max(10000).optional(),
+  evaluation: z.string().max(10000).optional(),
+  relatedNoteIds: z.array(z.string()).optional(),
+})
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,8 +26,8 @@ export async function GET(request: NextRequest) {
 
     const userId = session.user.id
     const { searchParams } = new URL(request.url)
-    const page = parseInt(searchParams.get('page') ?? '1', 10)
-    const limit = parseInt(searchParams.get('limit') ?? '20', 10)
+    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10))
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') ?? '20', 10)), 100)
     const skip = (page - 1) * limit
 
     const [decisions, total] = await Promise.all([
@@ -62,14 +73,16 @@ export async function POST(request: NextRequest) {
 
     const userId = session.user.id
     const body = await request.json()
-    const { title, context, decision, reasoning, outcome, evaluation, relatedNoteIds } = body
+    const parsed = decisionCreateSchema.safeParse(body)
 
-    if (!title || !decision) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { success: false, error: 'Title and decision are required' },
+        { success: false, error: 'Invalid input', details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
+
+    const { title, context, decision, reasoning, outcome, evaluation, relatedNoteIds } = parsed.data
 
     const newDecision = await db.decision.create({
       data: {

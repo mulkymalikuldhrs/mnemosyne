@@ -4,8 +4,8 @@ export interface EmbeddingResult {
   model: string
 }
 
-// Default embedding dimension
-const DEFAULT_DIMENSIONS = 768
+// Embedding dimension — sourced from env to ensure consistency across the app
+const DEFAULT_DIMENSIONS = parseInt(process.env.EMBEDDING_DIMENSION || '768')
 
 // LRU Cache for embeddings to avoid redundant API calls
 const embeddingCache = new Map<string, { embedding: number[]; tokenCount: number; model: string }>()
@@ -141,7 +141,7 @@ async function generateEmbeddingViaExternalAPI(
       headers,
       body: JSON.stringify({
         input: text,
-        model: process.env.EMBEDDING_MODEL ?? 'text-embedding-3-small',
+        model: process.env.EMBEDDING_MODEL ?? 'nomic-embed-text',
         dimensions: DEFAULT_DIMENSIONS,
       }),
     })
@@ -153,10 +153,15 @@ async function generateEmbeddingViaExternalAPI(
     const result = await response.json()
 
     if (result?.data?.[0]?.embedding && Array.isArray(result.data[0].embedding)) {
+      // Validate dimension matches our expected dimension
+      if (result.data[0].embedding.length !== DEFAULT_DIMENSIONS) {
+        console.warn(`Embedding dimension mismatch: got ${result.data[0].embedding.length}, expected ${DEFAULT_DIMENSIONS}. Skipping.`)
+        return null
+      }
       return {
         embedding: result.data[0].embedding,
         tokenCount: result.usage?.total_tokens ?? estimateTokens(text),
-        model: result.model ?? 'text-embedding-3-small',
+        model: result.model ?? 'nomic-embed-text',
       }
     }
 

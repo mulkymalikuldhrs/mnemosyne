@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard,
@@ -25,6 +26,7 @@ import {
   ExternalLink,
   Sparkles,
   FileCode2,
+  Loader2,
 } from 'lucide-react'
 import { AppLayout } from '@/components/layout/app-layout'
 import { NotesList } from '@/components/notes/notes-list'
@@ -32,7 +34,6 @@ import { NoteCard } from '@/components/notes/note-card'
 import { ChatPanel } from '@/components/chat/chat-panel'
 import { SemanticSearch } from '@/components/search/semantic-search'
 import { MemoryInsights } from '@/components/memory/memory-insights'
-import { RelatedNotesPanel } from '@/components/memory/related-notes-panel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -42,16 +43,100 @@ import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { useUIStore, useNotesStore, useDecisionsStore } from '@/lib/store'
+import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
 import { useTheme } from 'next-themes'
+import { toast } from 'sonner'
+
+// ─── Auth Guard ──────────────────────────────────────────────────────────────
+
+function AuthGuard({ children }: { children: React.ReactNode }) {
+  const { status } = useSession()
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-primary text-primary-foreground flex items-center justify-center">
+            <Brain className="w-6 h-6" />
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm">Loading...</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (status === 'unauthenticated') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-muted-foreground text-sm">Redirecting to login...</p>
+          <meta httpEquiv="refresh" content="0;url=/login" />
+        </div>
+      </div>
+    )
+  }
+
+  return <>{children}</>
+}
 
 // ─── Dashboard View ──────────────────────────────────────────────────────────
 
 function DashboardView() {
-  const { notes } = useNotesStore()
+  const { notes, setNotes, setIsLoading: setNotesLoading } = useNotesStore()
   const { setActiveSection } = useUIStore()
-  const { decisions } = useDecisionsStore()
+  const { decisions, setDecisions, setIsLoading: setDecisionsLoading } = useDecisionsStore()
+
+  // Fetch notes and decisions on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      setNotesLoading(true)
+      setDecisionsLoading(true)
+      try {
+        const [notesRes, decisionsRes] = await Promise.all([
+          api.getNotes('limit=50'),
+          api.getDecisions('limit=50'),
+        ])
+
+        if (notesRes.success && notesRes.data?.notes) {
+          const mapped = notesRes.data.notes.map((n: any) => ({
+            id: n.id,
+            title: n.title,
+            content: n.content,
+            tags: n.tags ? n.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
+            createdAt: n.createdAt,
+            updatedAt: n.updatedAt,
+            isArchived: n.isArchived,
+          }))
+          setNotes(mapped)
+        }
+
+        if (decisionsRes.success && decisionsRes.data?.decisions) {
+          const mapped = decisionsRes.data.decisions.map((d: any) => ({
+            id: d.id,
+            title: d.title,
+            context: d.context || '',
+            reasoning: d.reasoning || '',
+            alternatives: '',
+            outcome: d.outcome || '',
+            status: 'pending' as const,
+            createdAt: d.createdAt,
+          }))
+          setDecisions(mapped)
+        }
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err)
+      } finally {
+        setNotesLoading(false)
+        setDecisionsLoading(false)
+      }
+    }
+    fetchData()
+  }, [setNotes, setDecisions, setNotesLoading, setDecisionsLoading])
 
   const recentNotes = useMemo(
     () => [...notes].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 4),
@@ -188,30 +273,80 @@ function SearchView() {
 // ─── Decisions View ──────────────────────────────────────────────────────────
 
 function DecisionsView() {
-  const { decisions, addDecision, updateDecision } = useDecisionsStore()
+  const { decisions, setDecisions, addDecision, updateDecision, isLoading, setIsLoading } = useDecisionsStore()
   const [showForm, setShowForm] = useState(false)
   const [title, setTitle] = useState('')
   const [context, setContext] = useState('')
   const [reasoning, setReasoning] = useState('')
   const [alternatives, setAlternatives] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleAdd = () => {
+  // Fetch decisions on mount
+  useEffect(() => {
+    const fetchDecisions = async () => {
+      setIsLoading(true)
+      try {
+        const res = await api.getDecisions('limit=100')
+        if (res.success && res.data?.decisions) {
+          const mapped = res.data.decisions.map((d: any) => ({
+            id: d.id,
+            title: d.title,
+            context: d.context || '',
+            reasoning: d.reasoning || '',
+            alternatives: '',
+            outcome: d.outcome || '',
+            status: 'pending' as const,
+            createdAt: d.createdAt,
+          }))
+          setDecisions(mapped)
+        }
+      } catch (err) {
+        console.error('Failed to fetch decisions:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchDecisions()
+  }, [setDecisions, setIsLoading])
+
+  const handleAdd = async () => {
     if (!title.trim()) return
-    addDecision({
-      id: `dec-${Date.now()}`,
-      title,
-      context,
-      reasoning,
-      alternatives,
-      outcome: '',
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    })
-    setTitle('')
-    setContext('')
-    setReasoning('')
-    setAlternatives('')
-    setShowForm(false)
+    setIsSubmitting(true)
+    try {
+      const res = await api.createDecision({
+        title,
+        context,
+        reasoning,
+        decision: title, // Use title as decision since it's required by API
+        alternatives,
+      })
+
+      if (res.success && res.data) {
+        const newDecision = {
+          id: res.data.id,
+          title: res.data.title,
+          context: res.data.context || '',
+          reasoning: res.data.reasoning || '',
+          alternatives: '',
+          outcome: res.data.outcome || '',
+          status: 'pending' as const,
+          createdAt: res.data.createdAt,
+        }
+        addDecision(newDecision)
+        toast.success('Decision recorded')
+        setTitle('')
+        setContext('')
+        setReasoning('')
+        setAlternatives('')
+        setShowForm(false)
+      } else {
+        toast.error(res.error || 'Failed to create decision')
+      }
+    } catch {
+      toast.error('Failed to create decision')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const statusIcon = (status: string) => {
@@ -223,6 +358,14 @@ function DecisionsView() {
       default:
         return <Circle className="w-4 h-4 text-muted-foreground" />
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    )
   }
 
   return (
@@ -259,7 +402,10 @@ function DecisionsView() {
                 <Textarea placeholder="Reasoning — why this approach?" value={reasoning} onChange={(e) => setReasoning(e.target.value)} rows={2} />
                 <Textarea placeholder="Alternatives considered..." value={alternatives} onChange={(e) => setAlternatives(e.target.value)} rows={2} />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={handleAdd} disabled={!title.trim()}>Save Decision</Button>
+                  <Button size="sm" onClick={handleAdd} disabled={!title.trim() || isSubmitting}>
+                    {isSubmitting ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : null}
+                    Save Decision
+                  </Button>
                   <Button size="sm" variant="ghost" onClick={() => setShowForm(false)}>Cancel</Button>
                 </div>
               </CardContent>
@@ -346,6 +492,72 @@ function DecisionsView() {
 // ─── Settings View ───────────────────────────────────────────────────────────
 
 function SettingsView() {
+  const { data: session } = useSession()
+  const [settings, setSettings] = useState<any>(null)
+  const [apiKeys, setApiKeys] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [newKeyName, setNewKeyName] = useState('')
+  const [showNewKey, setShowNewKey] = useState<string | null>(null)
+
+  // Fetch settings and API keys on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        const [settingsRes, keysRes] = await Promise.all([
+          api.getSettings(),
+          api.getApiKeys(),
+        ])
+
+        if (settingsRes.success) {
+          setSettings(settingsRes.data)
+        }
+        if (keysRes.success && keysRes.data?.apiKeys) {
+          setApiKeys(keysRes.data.apiKeys)
+        }
+      } catch (err) {
+        console.error('Failed to fetch settings:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  const handleCreateApiKey = async () => {
+    if (!newKeyName.trim()) return
+    try {
+      const res = await api.createApiKey(newKeyName.trim())
+      if (res.success && res.data) {
+        setApiKeys((prev) => [
+          {
+            id: res.data.id,
+            name: res.data.name,
+            keyMasked: `mx_...${res.data.key.slice(-4)}`,
+            createdAt: res.data.createdAt,
+          },
+          ...prev,
+        ])
+        setShowNewKey(res.data.key)
+        setNewKeyName('')
+        toast.success('API key created — copy it now, you won\'t see it again!')
+      } else {
+        toast.error(res.error || 'Failed to create API key')
+      }
+    } catch {
+      toast.error('Failed to create API key')
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
   return (
     <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-3xl mx-auto">
       <div>
@@ -368,11 +580,11 @@ function SettingsView() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-xs">Name</Label>
-              <Input defaultValue="Demo User" className="h-9" />
+              <Input defaultValue={settings?.name || session?.user?.name || ''} className="h-9" />
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Email</Label>
-              <Input defaultValue="demo@memorix.ai" className="h-9" disabled />
+              <Input defaultValue={settings?.email || session?.user?.email || ''} className="h-9" disabled />
             </div>
           </div>
           <div className="flex items-center justify-between">
@@ -380,7 +592,7 @@ function SettingsView() {
               <p className="text-sm font-medium">Plan</p>
               <p className="text-xs text-muted-foreground">Free tier — upgrade for advanced features</p>
             </div>
-            <Badge variant="secondary">FREE</Badge>
+            <Badge variant="secondary">{settings?.plan || session?.user?.plan || 'FREE'}</Badge>
           </div>
         </CardContent>
       </Card>
@@ -421,24 +633,53 @@ function SettingsView() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-            <div>
-              <p className="text-sm font-medium font-mono">mk_live_••••••••4f2a</p>
-              <p className="text-[10px] text-muted-foreground">Created 7 days ago</p>
-            </div>
-            <div className="flex gap-1">
-              <Button variant="ghost" size="sm" className="h-7 text-xs">
-                Copy
+          {/* New key reveal */}
+          {showNewKey && (
+            <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 space-y-2">
+              <p className="text-xs font-medium text-emerald-500">API Key Created</p>
+              <code className="text-xs bg-background px-2 py-1 rounded font-mono block break-all">
+                {showNewKey}
+              </code>
+              <p className="text-[10px] text-muted-foreground">Copy this key now — you won&apos;t see it again.</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => {
+                  navigator.clipboard.writeText(showNewKey)
+                  toast.success('API key copied to clipboard')
+                }}
+              >
+                Copy Key
               </Button>
-              <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive hover:text-destructive">
-                <Trash2 className="w-3 h-3" />
-              </Button>
             </div>
+          )}
+
+          {apiKeys.length > 0 ? apiKeys.map((apiKey) => (
+            <div key={apiKey.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+              <div>
+                <p className="text-sm font-medium font-mono">{apiKey.keyMasked}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {apiKey.name} — Created {formatDistanceToNow(new Date(apiKey.createdAt), { addSuffix: true })}
+                </p>
+              </div>
+            </div>
+          )) : (
+            <p className="text-sm text-muted-foreground">No API keys yet. Create one below.</p>
+          )}
+
+          <div className="flex gap-2">
+            <Input
+              placeholder="Key name (e.g., 'My App')"
+              value={newKeyName}
+              onChange={(e) => setNewKeyName(e.target.value)}
+              className="h-9"
+            />
+            <Button variant="outline" size="sm" onClick={handleCreateApiKey} disabled={!newKeyName.trim()}>
+              <Plus className="w-3.5 h-3.5 mr-1.5" />
+              Generate
+            </Button>
           </div>
-          <Button variant="outline" size="sm">
-            <Plus className="w-3.5 h-3.5 mr-1.5" />
-            Generate New Key
-          </Button>
         </CardContent>
       </Card>
 
@@ -678,19 +919,21 @@ export default function HomePage() {
   }
 
   return (
-    <AppLayout>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeSection}
-          initial={{ opacity: 0, x: 8 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -8 }}
-          transition={{ duration: 0.15 }}
-          className="h-full"
-        >
-          {renderView()}
-        </motion.div>
-      </AnimatePresence>
-    </AppLayout>
+    <AuthGuard>
+      <AppLayout>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeSection}
+            initial={{ opacity: 0, x: 8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -8 }}
+            transition={{ duration: 0.15 }}
+            className="h-full"
+          >
+            {renderView()}
+          </motion.div>
+        </AnimatePresence>
+      </AppLayout>
+    </AuthGuard>
   )
 }
