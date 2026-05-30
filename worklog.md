@@ -899,3 +899,112 @@ Stage Summary:
 - MCP Server: Schema aligned, builds for npm ✅
 
 PRODUCTION READINESS: ✅ CERTIFIED
+
+---
+Task ID: 9
+Agent: Logic Verification Engineer
+Task: Full-stack logic verification & bug hunting
+
+Work Log:
+- Read all 60+ source files across 5 areas: database schema, API routes, AI/ML engine, auth flow, frontend-backend data flow
+- Cross-referenced findings against previous audit reports (Tasks 2-a, 2-b, 3-a)
+- Confirmed 6 previously identified bugs are now fixed (uuid dep, conversationId, auth bypass, health check, SessionProvider, API integration)
+- Identified 21 remaining logic bugs: 3 CRITICAL, 8 HIGH, 6 MEDIUM, 4 LOW
+- 8 bugs are NEW (not in prior audits), 13 are CARRIED OVER from prior audits
+- Saved detailed report to /home/z/my-project/download/logic-bugs-report.md
+
+Stage Summary:
+
+## Fixed Since Prior Audits (6 issues resolved)
+- BUG-01 (uuid missing): uuid@^14.0.0 now in package.json
+- BUG-03 (conversationId not returned): Route now creates conversation and returns ID
+- BUG-05 (demo auth bypass): Removed; passwordless users return null
+- BUG-15 (health no DB check): Now runs SELECT 1
+- BUG-07 (dimension mismatch): Dimension check added in generateEmbeddingViaExternalAPI
+- Frontend disconnected: Now uses api.ts client with full API calls; SessionProvider added
+
+## NEW CRITICAL Bugs Found (3)
+- C1: Pattern API-Frontend type mismatch — detectPatterns returns string[] but MemoryInsights treats as objects → all patterns display as "Pattern detected"
+- C2: Decision status updates local-only — "Mark Decided"/"Revisit" buttons only update Zustand store; no PUT /api/decisions/[id] endpoint exists; Decision model has no status field
+- C3: Search results missing note metadata — searchMemory returns {noteId, chunkId, content, score, title} but frontend expects {id, title, content, tags, score, updatedAt, createdAt, isArchived}; tags, dates, archive status always undefined
+
+## NEW HIGH Bugs Found (2)
+- H7: MemoryLink has no unique constraint on (sourceNoteId, targetNoteId) → concurrent storeMemory can create duplicate links
+- H8: Decision form sends wrong fields — "alternatives" silently discarded by API; "decision" field receives title text
+
+## NEW MEDIUM Bugs Found (4)
+- M1: No DELETE endpoint for API keys (can create but never revoke)
+- M2: Settings profile name editing non-functional (uncontrolled input, no save handler)
+- M3: Dashboard stats hardcoded (Conversations=3, Patterns=3 always)
+- M4: Related notes panel uses client-side tag overlap instead of semantic API
+- M5: MemoryInsights totalConversations always 0
+
+## CARRIED OVER Bugs Still Present (8 HIGH + 4 MEDIUM + 4 LOW)
+- H1: Embedding cache key collision (text.slice(0,200))
+- H2: Dual embedding caches (embedder.ts + memory.ts)
+- H3: getMemoryContext loads embeddings 5+ times per call
+- H4: System prompt .replace() vulnerability
+- H5: api-utils.ts dead code
+- H6: env.ts validation not enforced in most files
+- M6: register/route.ts uses Response.json not NextResponse.json
+- L1-L4: CSP, rate limit IP fallback, EMBEDDING_DIMENSION type, tags type mismatch
+
+---
+Task ID: 8
+Agent: Code Audit Agent (Comprehensive)
+Task: Full codebase audit — read every source file, run typecheck, produce bug report
+
+Work Log:
+- Read all 66 source files across AI engine, lib, API routes, components, pages, MCP server, and config
+- Ran TypeScript typecheck: PASS (0 errors) — previously 43 errors, all fixed
+- Ran Next.js production build: PASS (15/15 pages generated) — previously failing
+- Ran MCP server TypeScript build: PASS (dist/index.js produced) — previously no build step
+- Compared current codebase against all prior audit findings (Tasks 2-a, 2-b, 2-c, 3-a)
+- Confirmed 24 previously reported issues as FIXED
+- Identified 27 remaining issues (3 CRITICAL, 8 HIGH, 9 MEDIUM, 7 LOW)
+- Wrote comprehensive audit report to /home/z/my-project/download/audit-report.md
+
+Stage Summary:
+- **Build status: HEALTHY** — TypeScript 0 errors, Next.js build succeeds, MCP build succeeds
+- **Major improvements since last audits**: Frontend-backend integration complete, auth flow working, input validation added, MCP server properly built
+- **Remaining critical issues**: Settings API key exposure in SELECT clauses, storeMemory race condition, stale MCP Prisma schema file
+- **Remaining high issues**: Pervasive `any` types in API response mapping, env validation not imported, duplicate embedding caches, missing decisions PUT endpoint, no API key auth validation, memory performance issues
+- **New issues found**: Toaster not rendered (toast notifications fail silently), AuthGuard uses meta refresh instead of router, Decision status updates not persisted, Dashboard stats hardcoded
+- Full report at /home/z/my-project/download/audit-report.md with prioritized fix order
+
+---
+Task ID: 10
+Agent: Integration Testing Engineer
+Task: Frontend-Backend API integration testing
+
+Work Log:
+- Verified dev server running on port 3000
+- Pushed Prisma schema (already in sync)
+- Discovered and fixed CRITICAL bug: missing NEXTAUTH_SECRET in .env causing JWEDecryptionFailed in all authenticated API routes
+- Registered test user (testuser@memorix.ai) and obtained session cookie via NextAuth CSRF flow
+- Systematically tested all 23 API endpoints with proper authentication
+- Tested all 20 authenticated endpoints without cookies — all correctly return 401
+- Tested input validation on all POST/PUT endpoints — all Zod schemas working correctly
+- Found and fixed 5 bugs during testing:
+  1. NEXTAUTH_SECRET missing from .env (CRITICAL — caused all auth to fail)
+  2. GET /api/search returns 400 when limit param omitted (null vs undefined in Zod)
+  3. Malformed JSON body causes 500 instead of 400 (6 route files fixed)
+  4. Settings endpoint leaks openrouterApiKey in response object (now destructured out)
+  5. GET /api/memory returns confusing null error for missing q param
+- All 23 endpoints now pass with correct HTTP status codes
+- Rate limiting confirmed active (429 returned when exceeded)
+- Security headers confirmed on all responses
+- Pagination limit cap confirmed working (capped at 100)
+- Saved comprehensive test report to download/integration-test-report.md
+
+Stage Summary:
+- ALL 23 API ENDPOINTS PASSING integration tests
+- 5 bugs found and fixed in API routes
+- Auth protection verified on all 20 protected endpoints
+- Input validation verified on all POST/PUT endpoints
+- Previously identified BUG-03 (chat conversationId) confirmed FIXED by earlier agent
+- Previously identified BUG-04 (settings API key leak) FIXED in this session
+- Previously identified BUG-10 (input validation) confirmed FIXED by earlier agent (Zod schemas added)
+- Previously identified BUG-15 (health DB check) confirmed FIXED by earlier agent
+- Previously identified BUG-16 (pagination cap) confirmed FIXED by earlier agent
+- Remaining deferred issue: GET /api/notes/[id] returns full embedding JSON in chunks (performance concern)

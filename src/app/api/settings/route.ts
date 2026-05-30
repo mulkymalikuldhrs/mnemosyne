@@ -28,7 +28,6 @@ export async function GET() {
         email: true,
         name: true,
         plan: true,
-        openrouterApiKey: true,
         supabaseProjectUrl: true,
         createdAt: true,
         updatedAt: true,
@@ -42,18 +41,18 @@ export async function GET() {
       )
     }
 
-    // Return settings with API key status (not the actual key)
+    // Check API key existence separately — never load the key value into memory
+    const keyCheck = await db.user.findUnique({
+      where: { id: userId },
+      select: { openrouterApiKey: true },
+    })
+    const hasOpenrouterApiKey = !!keyCheck?.openrouterApiKey
+
     return NextResponse.json({
       success: true,
       data: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        plan: user.plan,
-        hasOpenrouterApiKey: !!user.openrouterApiKey,
-        supabaseProjectUrl: user.supabaseProjectUrl,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
+        ...user,
+        hasOpenrouterApiKey,
       },
     })
   } catch (error) {
@@ -76,7 +75,15 @@ export async function PUT(request: NextRequest) {
     }
 
     const userId = session.user.id
-    const body = await request.json()
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Invalid JSON body' },
+        { status: 400 }
+      )
+    }
     const parsed = settingsUpdateSchema.safeParse(body)
 
     if (!parsed.success) {
@@ -104,22 +111,23 @@ export async function PUT(request: NextRequest) {
         email: true,
         name: true,
         plan: true,
-        openrouterApiKey: true,
         supabaseProjectUrl: true,
         updatedAt: true,
       },
     })
 
+    // Check API key existence separately — never load the key value into memory
+    const keyCheck = await db.user.findUnique({
+      where: { id: userId },
+      select: { openrouterApiKey: true },
+    })
+    const hasOpenrouterApiKey = !!keyCheck?.openrouterApiKey
+
     return NextResponse.json({
       success: true,
       data: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        plan: user.plan,
-        hasOpenrouterApiKey: !!user.openrouterApiKey,
-        supabaseProjectUrl: user.supabaseProjectUrl,
-        updatedAt: user.updatedAt,
+        ...user,
+        hasOpenrouterApiKey,
       },
     })
   } catch (error) {

@@ -74,8 +74,14 @@ export const api = {
   // Decisions
   getDecisions: (params?: string) =>
     apiFetch<any>(`/decisions${params ? `?${params}` : ''}`),
+  getDecision: (id: string) =>
+    apiFetch<any>(`/decisions/${id}`),
   createDecision: (data: any) =>
     apiFetch<any>('/decisions', { method: 'POST', body: JSON.stringify(data) }),
+  updateDecision: (id: string, data: any) =>
+    apiFetch<any>(`/decisions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteDecision: (id: string) =>
+    apiFetch<any>(`/decisions/${id}`, { method: 'DELETE' }),
 
   // Settings
   getSettings: () =>

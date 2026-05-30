@@ -180,28 +180,41 @@ export async function storeMemory(
   content: string,
   userId: string
 ): Promise<void> {
-  // Step 1: Delete existing chunks for this note (in case of re-indexing)
-  await db.noteChunk.deleteMany({ where: { noteId } })
-  await db.memoryLink.deleteMany({
-    where: {
-      OR: [{ sourceNoteId: noteId }, { targetNoteId: noteId }],
-    },
-  })
-
-  // Step 2: Chunk the content
+  // Step 1: Chunk the content
   const chunks = chunkText(content)
 
-  if (chunks.length === 0) return
+  if (chunks.length === 0) {
+    // No chunks to store — just clean up existing data
+    await db.$transaction(async (tx) => {
+      await tx.noteChunk.deleteMany({ where: { noteId } })
+      await tx.memoryLink.deleteMany({
+        where: {
+          OR: [{ sourceNoteId: noteId }, { targetNoteId: noteId }],
+        },
+      })
+    })
+    return
+  }
 
-  // Step 3: Generate embeddings for all chunks
+  // Step 2: Generate embeddings for all chunks
   const chunkTexts = chunks.map((c) => c.content)
   const embeddingResults = await generateEmbeddings(chunkTexts, userId)
 
-  // Step 4: Store chunks with embeddings
-  const chunkRecords = await Promise.all(
-    chunks.map(async (chunk, i) => {
+  // Step 3: Use transaction for atomic delete+create to prevent race conditions
+  await db.$transaction(async (tx) => {
+    // Delete existing chunks and links for this note
+    await tx.noteChunk.deleteMany({ where: { noteId } })
+    await tx.memoryLink.deleteMany({
+      where: {
+        OR: [{ sourceNoteId: noteId }, { targetNoteId: noteId }],
+      },
+    })
+
+    // Create new chunks with embeddings
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i]
       const embeddingResult = embeddingResults[i]
-      return db.noteChunk.create({
+      await tx.noteChunk.create({
         data: {
           noteId,
           content: chunk.content,
@@ -210,49 +223,52 @@ export async function storeMemory(
           embedding: JSON.stringify(embeddingResult.embedding),
         },
       })
-    })
-  )
+    }
+  })
 
-  // Step 5: Find related notes using cosine similarity
+  // Step 4: Find related notes using cosine similarity (outside transaction — read-only)
   const relatedNotes = await findRelatedNotes(noteId, userId, 0.5)
 
-  // Step 6: Create MemoryLink entries
-  // Note: MemoryLink doesn't have a unique constraint, so we delete existing + create new
-  for (const relation of relatedNotes) {
-    // Delete existing links in both directions
-    await db.memoryLink.deleteMany({
-      where: {
-        sourceNoteId: noteId,
-        targetNoteId: relation.noteId,
-      },
-    })
-    await db.memoryLink.deleteMany({
-      where: {
-        sourceNoteId: relation.noteId,
-        targetNoteId: noteId,
-      },
-    })
+  // Step 5: Create MemoryLink entries in a transaction
+  if (relatedNotes.length > 0) {
+    await db.$transaction(async (tx) => {
+      for (const relation of relatedNotes) {
+        // Delete existing links in both directions to avoid duplicates
+        await tx.memoryLink.deleteMany({
+          where: {
+            sourceNoteId: noteId,
+            targetNoteId: relation.noteId,
+          },
+        })
+        await tx.memoryLink.deleteMany({
+          where: {
+            sourceNoteId: relation.noteId,
+            targetNoteId: noteId,
+          },
+        })
 
-    // Create forward link
-    await db.memoryLink.create({
-      data: {
-        sourceNoteId: noteId,
-        targetNoteId: relation.noteId,
-        relationScore: relation.relationScore,
-        reason: relation.reason,
-        autoLinked: true,
-      },
-    })
+        // Create forward link
+        await tx.memoryLink.create({
+          data: {
+            sourceNoteId: noteId,
+            targetNoteId: relation.noteId,
+            relationScore: relation.relationScore,
+            reason: relation.reason,
+            autoLinked: true,
+          },
+        })
 
-    // Create reverse link
-    await db.memoryLink.create({
-      data: {
-        sourceNoteId: relation.noteId,
-        targetNoteId: noteId,
-        relationScore: relation.relationScore,
-        reason: relation.reason,
-        autoLinked: true,
-      },
+        // Create reverse link
+        await tx.memoryLink.create({
+          data: {
+            sourceNoteId: relation.noteId,
+            targetNoteId: noteId,
+            relationScore: relation.relationScore,
+            reason: relation.reason,
+            autoLinked: true,
+          },
+        })
+      }
     })
   }
 }

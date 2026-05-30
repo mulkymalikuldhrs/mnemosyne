@@ -51,6 +51,8 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
             updatedAt: res.data.updatedAt,
           })
           toast.success('Note updated')
+          setIsEditing(false)
+          onClose?.()
         } else {
           toast.error(res.error || 'Failed to update note')
         }
@@ -74,12 +76,12 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
           addNote(newNote)
           setSelectedNoteId(newNote.id)
           toast.success('Note created')
+          setIsEditing(false)
+          onClose?.()
         } else {
           toast.error(res.error || 'Failed to create note')
         }
       }
-      setIsEditing(false)
-      onClose?.()
     } catch {
       toast.error('Failed to save note')
     } finally {

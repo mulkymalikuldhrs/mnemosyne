@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const userId = session.user.id
     const { searchParams } = new URL(request.url)
     const parsed = memoryQuerySchema.safeParse({
-      q: searchParams.get('q'),
+      q: searchParams.get('q') || undefined,
     })
 
     if (!parsed.success) {

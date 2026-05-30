@@ -37,6 +37,7 @@ export function NotesList() {
   } = useNotesStore()
 
   const [showEditor, setShowEditor] = useState(false)
+  const [hasFetched, setHasFetched] = useState(false)
 
   // Fetch notes from API on mount
   useEffect(() => {
@@ -60,6 +61,7 @@ export function NotesList() {
         console.error('Failed to fetch notes:', err)
       } finally {
         setIsLoading(false)
+        setHasFetched(true)
       }
     }
     fetchNotes()
@@ -92,7 +94,7 @@ export function NotesList() {
     )
   }
 
-  if (isLoading) {
+  if (isLoading || !hasFetched) {
     return (
       <div className="flex items-center justify-center h-full">
         <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />

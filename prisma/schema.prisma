@@ -114,6 +114,7 @@ model Decision {
   reasoning      String                          // Why this decision was made
   outcome        String?                         // What actually happened
   evaluation     String?                         // Retrospective evaluation
+  status         String    @default("pending")   // pending | decided | revisited
   relatedNoteIds String    @default("[]")        // JSON array of related note IDs
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt

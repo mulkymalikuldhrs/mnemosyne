@@ -62,21 +62,40 @@ export function MemoryInsights() {
             .slice(-7)
             .map(([week, count]) => ({ week, notes: count }))
 
-          // Map patterns from API
-          const recentPatterns = patterns.map((p: any) => ({
-            type: p.type || 'emerging_topic',
-            description: p.description || p.name || 'Pattern detected',
-            confidence: p.confidence || 0.5,
-          }))
+          // Map patterns from API — backend returns string[] not objects
+          const recentPatterns = patterns.map((p: string) => {
+            // Classify pattern type based on content
+            let type = 'keyword_frequency'
+            if (p.toLowerCase().includes('shift') || p.toLowerCase().includes('focus')) type = 'temporal_shift'
+            else if (p.toLowerCase().includes('connected') || p.toLowerCase().includes('cluster')) type = 'knowledge_cluster'
+            else if (p.toLowerCase().includes('active') || p.toLowerCase().includes('quiet') || p.toLowerCase().includes('volume')) type = 'note_volume'
+            else if (p.toLowerCase().includes('emerging') || p.toLowerCase().includes('new topic')) type = 'emerging_topic'
+            return {
+              type,
+              description: p,
+              confidence: 0.7,
+            }
+          })
 
           setInsights({
             totalMemories: notes.filter((n) => !n.isArchived).length,
-            totalConversations: 0,
+            totalConversations: 0, // Will be updated below
             totalDecisions: decisions.length,
             topTopics,
             recentPatterns,
             weeklyGrowth,
           })
+
+          // Fetch conversation count separately
+          try {
+            const chatRes = await api.getConversations()
+            if (chatRes.success && chatRes.data) {
+              const chatCount = chatRes.data.conversations?.length || chatRes.data.pagination?.total || 0
+              setInsights(prev => prev ? { ...prev, totalConversations: chatCount } : prev)
+            }
+          } catch {
+            // Ignore — keep 0 as fallback
+          }
         } else {
           // Fallback: build insights from local data
           const tagCounts: Record<string, number> = {}

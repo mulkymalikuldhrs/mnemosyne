@@ -94,10 +94,17 @@ function buildSystemPrompt(
       ? memoryContext.patterns.map((p) => `- ${p}`).join('\n')
       : 'No patterns detected yet.'
 
-  return SYSTEM_PROMPT_TEMPLATE
-    .replace('{memory_context}', memoryText)
-    .replace('{related_notes}', relatedNotesText)
-    .replace('{patterns}', patternsText)
+  // Use single-pass replacement to prevent template injection
+  // If memoryText contains {related_notes} or {patterns}, it won't be replaced
+  const replacements: Record<string, string> = {
+    '{memory_context}': memoryText,
+    '{related_notes}': relatedNotesText,
+    '{patterns}': patternsText,
+  }
+  return SYSTEM_PROMPT_TEMPLATE.replace(
+    /\{memory_context\}|\{related_notes\}|\{patterns\}/g,
+    (match) => replacements[match] || match
+  )
 }
 
 // ─── Core Chat Function ────────────────────────────────────────────────────

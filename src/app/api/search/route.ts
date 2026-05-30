@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { searchMemory } from '@/ai/memory'
+import { db } from '@/lib/db'
 import { z } from 'zod'
 
 const searchQuerySchema = z.object({
@@ -22,8 +23,8 @@ export async function GET(request: NextRequest) {
     const userId = session.user.id
     const { searchParams } = new URL(request.url)
     const parsed = searchQuerySchema.safeParse({
-      q: searchParams.get('q'),
-      limit: searchParams.get('limit'),
+      q: searchParams.get('q') || undefined,
+      limit: searchParams.get('limit') || undefined,
     })
 
     if (!parsed.success) {
@@ -37,12 +38,34 @@ export async function GET(request: NextRequest) {
 
     const results = await searchMemory(q, userId, limit)
 
+    // Enrich results with note metadata (tags, dates, archive status)
+    const noteIds = [...new Set(results.map((r) => r.noteId))]
+    const notesMeta = noteIds.length > 0
+      ? await db.note.findMany({
+          where: { id: { in: noteIds }, userId },
+          select: { id: true, tags: true, createdAt: true, updatedAt: true, isArchived: true },
+        })
+      : []
+
+    const notesMap = new Map(notesMeta.map((n) => [n.id, n]))
+
+    const enrichedResults = results.map((r) => {
+      const meta = notesMap.get(r.noteId)
+      return {
+        ...r,
+        tags: meta?.tags ? meta.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
+        createdAt: meta?.createdAt?.toISOString() || new Date().toISOString(),
+        updatedAt: meta?.updatedAt?.toISOString() || new Date().toISOString(),
+        isArchived: meta?.isArchived || false,
+      }
+    })
+
     return NextResponse.json({
       success: true,
       data: {
         query: q,
-        results,
-        count: results.length,
+        results: enrichedResults,
+        count: enrichedResults.length,
       },
     })
   } catch (error) {

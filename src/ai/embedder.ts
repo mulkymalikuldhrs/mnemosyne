@@ -12,7 +12,9 @@ const embeddingCache = new Map<string, { embedding: number[]; tokenCount: number
 const CACHE_MAX_SIZE = 500
 
 function cacheKey(text: string, userId?: string): string {
-  return `${userId ?? 'anonymous'}:${text.slice(0, 200)}`
+  // Use full text hash to avoid collisions from truncated text
+  const hash = hashString(text)
+  return `${userId ?? 'anonymous'}:${hash}`
 }
 
 function evictCache(): void {

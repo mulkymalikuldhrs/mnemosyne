@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard,
@@ -53,6 +54,13 @@ import { toast } from 'sonner'
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { status } = useSession()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    }
+  }, [status, router])
 
   if (status === 'loading') {
     return (
@@ -75,7 +83,6 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
           <p className="text-muted-foreground text-sm">Redirecting to login...</p>
-          <meta httpEquiv="refresh" content="0;url=/login" />
         </div>
       </div>
     )
@@ -90,6 +97,8 @@ function DashboardView() {
   const { notes, setNotes, setIsLoading: setNotesLoading } = useNotesStore()
   const { setActiveSection } = useUIStore()
   const { decisions, setDecisions, setIsLoading: setDecisionsLoading } = useDecisionsStore()
+  const [conversationCount, setConversationCount] = useState(0)
+  const [patternCount, setPatternCount] = useState(0)
 
   // Fetch notes and decisions on mount
   useEffect(() => {
@@ -97,9 +106,11 @@ function DashboardView() {
       setNotesLoading(true)
       setDecisionsLoading(true)
       try {
-        const [notesRes, decisionsRes] = await Promise.all([
+        const [notesRes, decisionsRes, chatRes, patternsRes] = await Promise.all([
           api.getNotes('limit=50'),
           api.getDecisions('limit=50'),
+          api.getConversations(),
+          api.getPatterns(),
         ])
 
         if (notesRes.success && notesRes.data?.notes) {
@@ -123,10 +134,18 @@ function DashboardView() {
             reasoning: d.reasoning || '',
             alternatives: '',
             outcome: d.outcome || '',
-            status: 'pending' as const,
+            status: (d.status || 'pending') as 'pending' | 'decided' | 'revisited',
             createdAt: d.createdAt,
           }))
           setDecisions(mapped)
+        }
+
+        if (chatRes.success && chatRes.data?.conversations) {
+          setConversationCount(chatRes.data.conversations.length || chatRes.data.pagination?.total || 0)
+        }
+
+        if (patternsRes.success && patternsRes.data?.patterns) {
+          setPatternCount(patternsRes.data.patterns.length)
         }
       } catch (err) {
         console.error('Failed to fetch dashboard data:', err)
@@ -175,9 +194,9 @@ function DashboardView() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { icon: FileText, label: 'Total Notes', value: notes.filter((n) => !n.isArchived).length, section: 'notes' as const, color: 'text-violet-500' },
-          { icon: MessageSquare, label: 'Conversations', value: 3, section: 'chat' as const, color: 'text-emerald-500' },
+          { icon: MessageSquare, label: 'Conversations', value: conversationCount, section: 'chat' as const, color: 'text-emerald-500' },
           { icon: GitBranch, label: 'Decisions', value: decisions.length, section: 'decisions' as const, color: 'text-amber-500' },
-          { icon: Sparkles, label: 'Patterns', value: 3, section: 'dashboard' as const, color: 'text-rose-500' },
+          { icon: Sparkles, label: 'Patterns', value: patternCount, section: 'dashboard' as const, color: 'text-rose-500' },
         ].map((stat) => (
           <motion.div
             key={stat.label}
@@ -295,7 +314,7 @@ function DecisionsView() {
             reasoning: d.reasoning || '',
             alternatives: '',
             outcome: d.outcome || '',
-            status: 'pending' as const,
+            status: (d.status || 'pending') as 'pending' | 'decided' | 'revisited',
             createdAt: d.createdAt,
           }))
           setDecisions(mapped)
@@ -317,7 +336,7 @@ function DecisionsView() {
         title,
         context,
         reasoning,
-        decision: title, // Use title as decision since it's required by API
+        decision: title,
         alternatives,
       })
 
@@ -329,7 +348,7 @@ function DecisionsView() {
           reasoning: res.data.reasoning || '',
           alternatives: '',
           outcome: res.data.outcome || '',
-          status: 'pending' as const,
+          status: (res.data.status || 'pending') as 'pending' | 'decided' | 'revisited',
           createdAt: res.data.createdAt,
         }
         addDecision(newDecision)
@@ -346,6 +365,23 @@ function DecisionsView() {
       toast.error('Failed to create decision')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleStatusChange = async (decisionId: string, newStatus: 'decided' | 'revisited') => {
+    // Optimistic update
+    updateDecision(decisionId, { status: newStatus })
+    try {
+      const res = await api.updateDecision(decisionId, { status: newStatus })
+      if (!res.success) {
+        // Revert on failure
+        updateDecision(decisionId, { status: newStatus === 'decided' ? 'pending' : 'decided' })
+        toast.error('Failed to update decision status')
+      }
+    } catch {
+      // Revert on error
+      updateDecision(decisionId, { status: newStatus === 'decided' ? 'pending' : 'decided' })
+      toast.error('Failed to update decision status')
     }
   }
 
@@ -461,7 +497,7 @@ function DecisionsView() {
                             variant="ghost"
                             size="sm"
                             className="h-6 text-[10px]"
-                            onClick={() => updateDecision(decision.id, { status: 'decided' })}
+                            onClick={() => handleStatusChange(decision.id, 'decided')}
                           >
                             Mark Decided
                           </Button>
@@ -471,7 +507,7 @@ function DecisionsView() {
                             variant="ghost"
                             size="sm"
                             className="h-6 text-[10px]"
-                            onClick={() => updateDecision(decision.id, { status: 'revisited' })}
+                            onClick={() => handleStatusChange(decision.id, 'revisited')}
                           >
                             Revisit
                           </Button>

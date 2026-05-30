@@ -21,7 +21,6 @@
     "mcp-server/dist/",
     "mcp-server/README.md",
     "prisma/",
-    "src/",
     "README.md",
     "LICENSE"
   ],
