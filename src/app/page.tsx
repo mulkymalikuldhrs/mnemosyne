@@ -28,6 +28,10 @@ import {
   Sparkles,
   FileCode2,
   Loader2,
+  Star,
+  Network,
+  Calendar,
+  LayoutGrid,
 } from 'lucide-react'
 import { AppLayout } from '@/components/layout/app-layout'
 import { NotesList } from '@/components/notes/notes-list'
@@ -35,6 +39,11 @@ import { NoteCard } from '@/components/notes/note-card'
 import { ChatPanel } from '@/components/chat/chat-panel'
 import { SemanticSearch } from '@/components/search/semantic-search'
 import { MemoryInsights } from '@/components/memory/memory-insights'
+import { KnowledgeGraph } from '@/components/graph/knowledge-graph'
+import { DailyNotes } from '@/components/daily/daily-notes'
+import { CanvasView } from '@/components/canvas/canvas-view'
+import { TemplatesView } from '@/components/templates/templates-view'
+import { QuickSwitcher } from '@/components/quick-switcher'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -177,12 +186,12 @@ function DashboardView() {
             </div>
             <div>
               <h1 className="text-xl md:text-2xl font-bold">Welcome to Memorix</h1>
-              <p className="text-sm text-muted-foreground">Your AI-powered memory infrastructure</p>
+              <p className="text-sm text-muted-foreground">Your AI-powered memory infrastructure — better than Obsidian</p>
             </div>
           </div>
           <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
             Store, search, and connect your notes, decisions, and conversations using semantic understanding.
-            Your memories are always just a query away.
+            Your memories are always just a query away. Use <kbd className="px-1 py-0.5 rounded border border-border bg-muted text-[10px]">⌘K</kbd> to search.
           </p>
         </div>
         <div className="absolute top-4 right-4 opacity-[0.03]">
@@ -215,6 +224,35 @@ function DashboardView() {
                   <span className="text-xs text-muted-foreground">{stat.label}</span>
                 </div>
                 <p className="text-2xl font-bold">{stat.value}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Feature Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { icon: Network, label: 'Knowledge Graph', section: 'graph' as const, desc: 'Visualize connections' },
+          { icon: Calendar, label: 'Daily Notes', section: 'daily' as const, desc: 'Journal your thoughts' },
+          { icon: LayoutGrid, label: 'Canvas', section: 'canvas' as const, desc: 'Spatial thinking' },
+          { icon: FileCode2, label: 'Templates', section: 'templates' as const, desc: 'Consistent workflows' },
+        ].map((feature) => (
+          <motion.div
+            key={feature.label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -2 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Card
+              className="cursor-pointer hover:shadow-md hover:border-primary/20 transition-all border-dashed"
+              onClick={() => setActiveSection(feature.section)}
+            >
+              <CardContent className="p-4 text-center">
+                <feature.icon className="w-6 h-6 mx-auto mb-2 text-primary" />
+                <p className="text-sm font-medium">{feature.label}</p>
+                <p className="text-[10px] text-muted-foreground">{feature.desc}</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -263,6 +301,10 @@ function DashboardView() {
                 <Search className="w-3.5 h-3.5 mr-1.5" />
                 Semantic Search
               </Button>
+              <Button variant="outline" size="sm" onClick={() => setActiveSection('graph')}>
+                <Network className="w-3.5 h-3.5 mr-1.5" />
+                Knowledge Graph
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -287,6 +329,30 @@ function ChatView() {
 
 function SearchView() {
   return <SemanticSearch />
+}
+
+// ─── Graph View ──────────────────────────────────────────────────────────────
+
+function GraphView() {
+  return <KnowledgeGraph />
+}
+
+// ─── Daily Notes View ────────────────────────────────────────────────────────
+
+function DailyNotesView() {
+  return <DailyNotes />
+}
+
+// ─── Canvas View ─────────────────────────────────────────────────────────────
+
+function CanvasFullView() {
+  return <CanvasView />
+}
+
+// ─── Templates View ──────────────────────────────────────────────────────────
+
+function TemplatesFullView() {
+  return <TemplatesView />
 }
 
 // ─── Decisions View ──────────────────────────────────────────────────────────
@@ -369,17 +435,14 @@ function DecisionsView() {
   }
 
   const handleStatusChange = async (decisionId: string, newStatus: 'decided' | 'revisited') => {
-    // Optimistic update
     updateDecision(decisionId, { status: newStatus })
     try {
       const res = await api.updateDecision(decisionId, { status: newStatus })
       if (!res.success) {
-        // Revert on failure
         updateDecision(decisionId, { status: newStatus === 'decided' ? 'pending' : 'decided' })
         toast.error('Failed to update decision status')
       }
     } catch {
-      // Revert on error
       updateDecision(decisionId, { status: newStatus === 'decided' ? 'pending' : 'decided' })
       toast.error('Failed to update decision status')
     }
@@ -532,11 +595,9 @@ function SettingsView() {
   const [settings, setSettings] = useState<any>(null)
   const [apiKeys, setApiKeys] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isSaving, setIsSaving] = useState(false)
   const [newKeyName, setNewKeyName] = useState('')
   const [showNewKey, setShowNewKey] = useState<string | null>(null)
 
-  // Fetch settings and API keys on mount
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true)
@@ -669,7 +730,6 @@ function SettingsView() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {/* New key reveal */}
           {showNewKey && (
             <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 space-y-2">
               <p className="text-xs font-medium text-emerald-500">API Key Created</p>
@@ -804,7 +864,6 @@ function McpServerView() {
         </p>
       </div>
 
-      {/* Status */}
       <Card className="border-emerald-500/20 bg-emerald-500/5">
         <CardContent className="p-4 flex items-center gap-3">
           <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
@@ -815,7 +874,6 @@ function McpServerView() {
         </CardContent>
       </Card>
 
-      {/* Connection Info */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -845,7 +903,6 @@ function McpServerView() {
         </CardContent>
       </Card>
 
-      {/* Tools */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -875,7 +932,6 @@ function McpServerView() {
         </CardContent>
       </Card>
 
-      {/* Client Setup */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium">Client Setup</CardTitle>
@@ -943,6 +999,14 @@ export default function HomePage() {
         return <ChatView />
       case 'search':
         return <SearchView />
+      case 'graph':
+        return <GraphView />
+      case 'daily':
+        return <DailyNotesView />
+      case 'canvas':
+        return <CanvasFullView />
+      case 'templates':
+        return <TemplatesFullView />
       case 'decisions':
         return <DecisionsView />
       case 'settings':
@@ -956,6 +1020,7 @@ export default function HomePage() {
 
   return (
     <AuthGuard>
+      <QuickSwitcher />
       <AppLayout>
         <AnimatePresence mode="wait">
           <motion.div

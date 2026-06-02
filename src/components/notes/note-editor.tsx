@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Save, Archive, FileText, X, Sparkles, Loader2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,9 @@ import { useNotesStore } from '@/lib/store'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { SmartTags } from './smart-tags'
+import { BacklinksPanel } from './backlinks-panel'
+import { OutlineView } from './outline-view'
 
 interface NoteEditorProps {
   noteId?: string | null
@@ -27,6 +30,11 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
   const [tagsInput, setTagsInput] = useState(existingNote?.tags.join(', ') ?? '')
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  // Parse tags from input
+  const currentTags = useMemo(() => {
+    return tagsInput.split(',').map((t) => t.trim()).filter(Boolean)
+  }, [tagsInput])
 
   const handleSave = async () => {
     const tags = tagsInput
@@ -128,14 +136,47 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
     }
   }
 
+  const handleAddTag = (tag: string) => {
+    if (!currentTags.includes(tag)) {
+      setTagsInput((prev) => prev ? `${prev}, ${tag}` : tag)
+    }
+  }
+
+  const handleRemoveTag = (tag: string) => {
+    setTagsInput((prev) =>
+      prev.split(',')
+        .map((t) => t.trim())
+        .filter((t) => t !== tag)
+        .join(', ')
+    )
+  }
+
+  const handleHeadingClick = (headingIndex: number) => {
+    // Scroll to heading in textarea (simple approach)
+    const lines = content.split('\n')
+    let headingCount = 0
+    let charIndex = 0
+    for (let i = 0; i < lines.length; i++) {
+      if (/^#{1,3}\s+/.test(lines[i])) {
+        if (headingCount === headingIndex) {
+          const textarea = document.querySelector('textarea')
+          if (textarea) {
+            textarea.focus()
+            textarea.setSelectionRange(charIndex, charIndex)
+          }
+          break
+        }
+        headingCount++
+      }
+      charIndex += lines[i].length + 1
+    }
+  }
+
   // Get related notes based on tag overlap
   const relatedNotes = notes.filter((n) => {
     if (n.id === noteId || n.isArchived) return false
-    const currentTags = tagsInput
-      .split(',')
-      .map((t) => t.trim().toLowerCase())
-      .filter(Boolean)
-    return n.tags.some((t) => currentTags.includes(t.toLowerCase()))
+    const currentTagsLower = currentTags.map((t) => t.toLowerCase())
+    return n.tags.some((t) => currentTagsLower.includes(t.toLowerCase()))
   })
 
   return (
@@ -145,7 +186,7 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
       className="flex flex-col h-full"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-border">
+      <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-border shrink-0">
         <div className="flex items-center gap-2">
           <FileText className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-semibold">{existingNote ? 'Edit Note' : 'New Note'}</h2>
@@ -175,86 +216,108 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
         </div>
       </div>
 
-      {/* Editor Body */}
-      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4">
-        <Input
-          placeholder="Note title..."
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="text-xl font-semibold border-0 px-0 h-auto py-1 focus-visible:ring-0 bg-transparent placeholder:text-muted-foreground/50"
-        />
-
-        <div className="relative">
-          <Textarea
-            placeholder="Write your note here... Markdown is supported"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="min-h-[300px] resize-none border-0 px-0 focus-visible:ring-0 bg-transparent text-sm leading-relaxed placeholder:text-muted-foreground/50"
-          />
-          <div className="absolute bottom-2 right-2 flex items-center gap-1 text-[10px] text-muted-foreground/50">
-            <Sparkles className="w-3 h-3" />
-            Markdown
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tags</label>
+      {/* Main content area with side panel */}
+      <div className="flex-1 flex min-h-0">
+        {/* Editor Body */}
+        <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 space-y-4">
           <Input
-            placeholder="Enter tags separated by commas..."
-            value={tagsInput}
-            onChange={(e) => setTagsInput(e.target.value)}
-            className="h-9"
+            placeholder="Note title..."
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="text-xl font-semibold border-0 px-0 h-auto py-1 focus-visible:ring-0 bg-transparent placeholder:text-muted-foreground/50"
           />
-          {tagsInput && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
-              {tagsInput
-                .split(',')
-                .map((t) => t.trim())
-                .filter(Boolean)
-                .map((tag, i) => (
+
+          <div className="relative">
+            <Textarea
+              placeholder="Write your note here... Markdown is supported. Use [[wiki-links]] to connect notes."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="min-h-[300px] resize-none border-0 px-0 focus-visible:ring-0 bg-transparent text-sm leading-relaxed placeholder:text-muted-foreground/50"
+            />
+            <div className="absolute bottom-2 right-2 flex items-center gap-1 text-[10px] text-muted-foreground/50">
+              <Sparkles className="w-3 h-3" />
+              Markdown
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tags</label>
+            <Input
+              placeholder="Enter tags separated by commas..."
+              value={tagsInput}
+              onChange={(e) => setTagsInput(e.target.value)}
+              className="h-9"
+            />
+            {currentTags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {currentTags.map((tag, i) => (
                   <Badge key={i} variant="secondary" className="text-xs">
                     {tag}
                   </Badge>
                 ))}
-            </div>
+              </div>
+            )}
+          </div>
+
+          {/* Related Notes */}
+          {relatedNotes.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <h3 className="text-sm font-medium flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                  Related Notes
+                </h3>
+                <div className="space-y-2">
+                  {relatedNotes.slice(0, 5).map((note) => (
+                    <button
+                      key={note.id}
+                      onClick={() => {
+                        setSelectedNoteId(note.id)
+                        setIsEditing(true)
+                      }}
+                      className="w-full text-left p-3 rounded-lg border border-border hover:bg-accent/50 transition-colors"
+                    >
+                      <p className="text-sm font-medium truncate">{note.title}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                        {note.content.slice(0, 80)}...
+                      </p>
+                      <div className="flex gap-1 mt-1.5">
+                        {note.tags.slice(0, 3).map((tag) => (
+                          <Badge key={tag} variant="outline" className="text-[10px] h-4 px-1.5">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
           )}
         </div>
 
-        {/* Related Notes */}
-        {relatedNotes.length > 0 && (
-          <>
-            <Separator />
-            <div className="space-y-3">
-              <h3 className="text-sm font-medium flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                Related Notes
-              </h3>
-              <div className="space-y-2">
-                {relatedNotes.slice(0, 5).map((note) => (
-                  <button
-                    key={note.id}
-                    onClick={() => {
-                      setSelectedNoteId(note.id)
-                      setIsEditing(true)
-                    }}
-                    className="w-full text-left p-3 rounded-lg border border-border hover:bg-accent/50 transition-colors"
-                  >
-                    <p className="text-sm font-medium truncate">{note.title}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
-                      {note.content.slice(0, 80)}...
-                    </p>
-                    <div className="flex gap-1 mt-1.5">
-                      {note.tags.slice(0, 3).map((tag) => (
-                        <Badge key={tag} variant="outline" className="text-[10px] h-4 px-1.5">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </>
+        {/* Right Side Panel - Outline, Smart Tags, Backlinks */}
+        {existingNote && (
+          <div className="hidden md:flex w-[280px] border-l border-border flex-col shrink-0 overflow-y-auto">
+            <OutlineView
+              content={content}
+              onHeadingClick={handleHeadingClick}
+            />
+            <SmartTags
+              content={content}
+              existingTags={currentTags}
+              onAddTag={handleAddTag}
+              onRemoveTag={handleRemoveTag}
+            />
+            <BacklinksPanel
+              noteId={existingNote.id}
+              onNavigateToNote={(id) => {
+                setSelectedNoteId(id)
+                setIsEditing(true)
+              }}
+            />
+          </div>
         )}
       </div>
     </motion.div>

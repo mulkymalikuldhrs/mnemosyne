@@ -46,6 +46,8 @@ export const api = {
     apiFetch<any>(`/notes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteNote: (id: string) =>
     apiFetch<any>(`/notes/${id}`, { method: 'DELETE' }),
+  getBacklinks: (noteId: string) =>
+    apiFetch<any>(`/notes/${noteId}/backlinks`),
 
   // Chat
   getConversations: () =>
@@ -94,4 +96,74 @@ export const api = {
     apiFetch<any>('/api-keys'),
   createApiKey: (name: string) =>
     apiFetch<any>('/api-keys', { method: 'POST', body: JSON.stringify({ name }) }),
+
+  // Daily Notes
+  getDailyNotes: (params?: string) =>
+    apiFetch<any>(`/daily-notes${params ? `?${params}` : ''}`),
+  getDailyNoteByDate: (date: string) =>
+    apiFetch<any>(`/daily-notes/${date}`),
+  upsertDailyNote: (data: { date: string; content: string; markdown?: string }) =>
+    apiFetch<any>('/daily-notes', { method: 'POST', body: JSON.stringify(data) }),
+  updateDailyNote: (date: string, data: { content?: string; markdown?: string }) =>
+    apiFetch<any>(`/daily-notes/${date}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteDailyNote: (date: string) =>
+    apiFetch<any>(`/daily-notes/${date}`, { method: 'DELETE' }),
+
+  // Templates
+  getTemplates: (category?: string) =>
+    apiFetch<any>(`/templates${category ? `?category=${category}` : ''}`),
+  getTemplate: (id: string) =>
+    apiFetch<any>(`/templates/${id}`),
+  createTemplate: (data: { name: string; description?: string; content: string; category?: string }) =>
+    apiFetch<any>('/templates', { method: 'POST', body: JSON.stringify(data) }),
+  updateTemplate: (id: string, data: any) =>
+    apiFetch<any>(`/templates/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteTemplate: (id: string) =>
+    apiFetch<any>(`/templates/${id}`, { method: 'DELETE' }),
+
+  // Favorites
+  getFavorites: () =>
+    apiFetch<any>('/favorites'),
+  addFavorite: (noteId: string) =>
+    apiFetch<any>('/favorites', { method: 'POST', body: JSON.stringify({ noteId }) }),
+  removeFavorite: (noteId: string) =>
+    apiFetch<any>(`/favorites/${noteId}`, { method: 'DELETE' }),
+
+  // Canvas
+  getCanvases: () =>
+    apiFetch<any>('/canvas'),
+  getCanvas: (id: string) =>
+    apiFetch<any>(`/canvas/${id}`),
+  createCanvas: (data: { title: string; description?: string; data?: string }) =>
+    apiFetch<any>('/canvas', { method: 'POST', body: JSON.stringify(data) }),
+  updateCanvas: (id: string, data: any) =>
+    apiFetch<any>(`/canvas/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteCanvas: (id: string) =>
+    apiFetch<any>(`/canvas/${id}`, { method: 'DELETE' }),
+
+  // Knowledge Graph
+  getGraphData: () =>
+    apiFetch<any>('/graph'),
+
+  // Wiki Links
+  searchWikiLinks: (query: string) =>
+    apiFetch<any>(`/wiki-links?q=${encodeURIComponent(query)}`),
+  syncWikiLinks: (noteId: string, content: string) =>
+    apiFetch<any>('/wiki-links', { method: 'POST', body: JSON.stringify({ noteId, content }) }),
+  searchNoteTitles: (query: string) =>
+    apiFetch<any>(`/wiki-links?q=${encodeURIComponent(query)}`),
+  createWikiLinks: (noteId: string, links: Array<{ targetTitle: string; linkText: string }>) =>
+    apiFetch<any>('/wiki-links', { method: 'POST', body: JSON.stringify({ noteId, links }) }),
+
+  // Smart Tags
+  generateSmartTags: (data: { content: string; title?: string }) =>
+    apiFetch<any>('/smart-tags', { method: 'POST', body: JSON.stringify(data) }),
+  getSmartTags: (content: string, existingTags?: string[]) =>
+    apiFetch<any>('/smart-tags', { method: 'POST', body: JSON.stringify({ content, existingTags }) }),
+
+  // Daily Notes (additional aliases)
+  getDailyNote: (date: string) =>
+    apiFetch<any>(`/daily-notes/${date}`),
+  saveDailyNote: (date: string, content: string) =>
+    apiFetch<any>('/daily-notes', { method: 'POST', body: JSON.stringify({ date, content }) }),
 }

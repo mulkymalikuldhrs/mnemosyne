@@ -121,3 +121,27 @@ android/build/
 android/app/src/main/res/mipmap-*/
 !android/app/src/main/res/mipmap-anydpi-v26/
 android/local.properties
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+
+# Database
+db/
+*.db
+
+# Logs
+*.log
+dev.log
+
+# Android / Tauri / Capacitor
+android/
+src-tauri/
+capacitor.config.ts
+
+# E2E
+e2e/
+playwright.config.ts
+e2e-full-test.mjs
+e2e-test.mjs

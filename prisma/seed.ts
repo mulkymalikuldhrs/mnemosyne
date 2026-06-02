@@ -174,11 +174,199 @@ async function main() {
     console.log(`🎯 Decision created: ${decision.title}`)
   }
 
+  // ─── Create Built-in Templates ───
+  const templates = [
+    {
+      name: 'Daily Note',
+      description: 'Template for daily journaling and reflection',
+      content: `# {{date}} — Daily Note
+
+## Morning Intentions
+- What do I want to accomplish today?
+- 
+
+## Notes & Observations
+- 
+
+## Learnings
+- 
+
+## Gratitude
+- 
+
+## Tomorrow's Focus
+- `,
+      category: 'daily',
+      isBuiltIn: true,
+    },
+    {
+      name: 'Meeting Notes',
+      description: 'Template for capturing meeting discussions and action items',
+      content: `# {{title}} — Meeting Notes
+**Date:** {{date}}
+**Time:** {{time}}
+**Attendees:** 
+
+## Agenda
+1. 
+
+## Discussion
+- 
+
+## Decisions
+- 
+
+## Action Items
+- [ ] 
+- [ ] 
+
+## Next Steps
+- 
+
+## Related Notes
+- [[]]`,
+      category: 'meeting',
+      isBuiltIn: true,
+    },
+    {
+      name: 'Project Brief',
+      description: 'Template for defining project scope and objectives',
+      content: `# {{title}} — Project Brief
+
+## Overview
+**Goal:** 
+**Timeline:** 
+**Status:** Planning
+
+## Problem Statement
+What problem are we solving?
+
+## Objectives
+1. 
+2. 
+3. 
+
+## Success Criteria
+- [ ] 
+- [ ] 
+
+## Key Stakeholders
+- 
+
+## Technical Approach
+- 
+
+## Risks & Mitigations
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| | | |
+
+## Resources
+- [[]]
+
+## Milestones
+- [ ] Phase 1: 
+- [ ] Phase 2: 
+- [ ] Phase 3: `,
+      category: 'project',
+      isBuiltIn: true,
+    },
+    {
+      name: 'Decision Record',
+      description: 'Template for documenting important decisions with context',
+      content: `# {{title}} — Decision Record
+**Date:** {{date}}
+**Status:** Pending
+
+## Context
+What is the situation that necessitates this decision?
+
+## Decision
+What was decided?
+
+## Reasoning
+Why was this decision made? What factors were considered?
+
+## Alternatives Considered
+1. **Option A:** 
+   - Pros: 
+   - Cons: 
+2. **Option B:** 
+   - Pros: 
+   - Cons: 
+
+## Outcome
+_To be filled in after the decision is implemented._
+
+## Evaluation
+_Retrospective assessment — was this the right decision?_
+
+## Related Notes
+- [[]]`,
+      category: 'decision',
+      isBuiltIn: true,
+    },
+    {
+      name: 'Weekly Review',
+      description: 'Template for weekly reflection and planning',
+      content: `# Week of {{date}} — Weekly Review
+
+## This Week's Highlights
+- 
+
+## Accomplishments
+- [ ] 
+- [ ] 
+
+## Challenges
+- 
+
+## Key Decisions
+- [[]]
+
+## Learnings & Insights
+- 
+
+## Next Week's Priorities
+1. 
+2. 
+3. 
+
+## Habit Tracker
+| Habit | Mon | Tue | Wed | Thu | Fri | Sat | Sun |
+|-------|-----|-----|-----|-----|-----|-----|-----|
+| | | | | | | | |
+
+## Gratitude
+- 
+
+## Notes
+- `,
+      category: 'review',
+      isBuiltIn: true,
+    },
+  ]
+
+  for (const templateData of templates) {
+    const template = await prisma.template.create({
+      data: {
+        userId: user.id,
+        name: templateData.name,
+        description: templateData.description,
+        content: templateData.content,
+        category: templateData.category,
+        isBuiltIn: templateData.isBuiltIn,
+      },
+    })
+    console.log(`📋 Template created: ${template.name}`)
+  }
+
   console.log('\n🎉 Seeding complete!')
   console.log(`   User: ${user.email}`)
   console.log(`   Notes: ${notes.length}`)
   console.log(`   Conversations: 1 (${messages.length} messages)`)
   console.log(`   Decisions: ${decisions.length}`)
+  console.log(`   Templates: ${templates.length}`)
 }
 
 main()

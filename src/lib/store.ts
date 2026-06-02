@@ -11,6 +11,7 @@ export interface Note {
   updatedAt: string
   isArchived: boolean
   relationScore?: number
+  isFavorite?: boolean
 }
 
 export interface Message {
@@ -54,7 +55,7 @@ export interface MemoryInsight {
   weeklyGrowth: { week: string; notes: number }[]
 }
 
-export type ActiveSection = 'dashboard' | 'notes' | 'chat' | 'search' | 'decisions' | 'settings' | 'mcp'
+export type ActiveSection = 'dashboard' | 'notes' | 'chat' | 'search' | 'decisions' | 'settings' | 'mcp' | 'graph' | 'daily' | 'canvas' | 'templates'
 
 // ─── UI Store ────────────────────────────────────────────────────────────────
 
@@ -213,4 +214,24 @@ export const useDecisionsStore = create<DecisionsState>((set) => ({
       decisions: s.decisions.map((d) => (d.id === id ? { ...d, ...updates } : d)),
     })),
   setIsLoading: (isLoading) => set({ isLoading }),
+}))
+
+// ─── Favorites Store ─────────────────────────────────────────────────────────
+
+interface FavoritesState {
+  favoriteNoteIds: string[]
+  setFavoriteNoteIds: (ids: string[]) => void
+  toggleFavorite: (noteId: string) => void
+  isFavorite: (noteId: string) => boolean
+}
+
+export const useFavoritesStore = create<FavoritesState>((set, get) => ({
+  favoriteNoteIds: [],
+  setFavoriteNoteIds: (favoriteNoteIds) => set({ favoriteNoteIds }),
+  toggleFavorite: (noteId) => set((s) => ({
+    favoriteNoteIds: s.favoriteNoteIds.includes(noteId)
+      ? s.favoriteNoteIds.filter((id) => id !== noteId)
+      : [...s.favoriteNoteIds, noteId],
+  })),
+  isFavorite: (noteId) => get().favoriteNoteIds.includes(noteId),
 }))

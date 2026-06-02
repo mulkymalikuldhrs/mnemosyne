@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard,
@@ -12,8 +13,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Brain,
+  Network,
+  Calendar,
+  LayoutGrid,
+  FileCode2,
+  Star,
+  ChevronDown,
 } from 'lucide-react'
-import { useUIStore, type ActiveSection } from '@/lib/store'
+import { useUIStore, useNotesStore, useFavoritesStore, type ActiveSection } from '@/lib/store'
+import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -28,6 +36,10 @@ const navItems: { icon: React.ElementType; label: string; section: ActiveSection
   { icon: FileText, label: 'Notes', section: 'notes' },
   { icon: MessageSquare, label: 'Chat', section: 'chat' },
   { icon: Search, label: 'Search', section: 'search' },
+  { icon: Network, label: 'Knowledge Graph', section: 'graph' },
+  { icon: Calendar, label: 'Daily Notes', section: 'daily' },
+  { icon: LayoutGrid, label: 'Canvas', section: 'canvas' },
+  { icon: FileCode2, label: 'Templates', section: 'templates' },
   { icon: GitBranch, label: 'Decisions', section: 'decisions' },
   { icon: Plug, label: 'MCP Server', section: 'mcp' },
   { icon: Settings, label: 'Settings', section: 'settings' },
@@ -35,6 +47,27 @@ const navItems: { icon: React.ElementType; label: string; section: ActiveSection
 
 export function Sidebar() {
   const { sidebarCollapsed, toggleSidebar, activeSection, setActiveSection } = useUIStore()
+  const { notes } = useNotesStore()
+  const { favoriteNoteIds, setFavoriteNoteIds } = useFavoritesStore()
+  const [favoritesOpen, setFavoritesOpen] = useState(true)
+
+  // Fetch favorites on mount
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        const res = await api.getFavorites()
+        if (res.success && res.data?.favorites) {
+          setFavoriteNoteIds(res.data.favorites.map((f: any) => f.noteId))
+        }
+      } catch (err) {
+        console.error('Failed to fetch favorites:', err)
+      }
+    }
+    fetchFavorites()
+  }, [setFavoriteNoteIds])
+
+  // Get favorited notes
+  const favoriteNotes = notes.filter((n) => favoriteNoteIds.includes(n.id))
 
   return (
     <motion.aside
@@ -113,6 +146,72 @@ export function Sidebar() {
 
           return button
         })}
+
+        {/* Favorites Section */}
+        {!sidebarCollapsed && favoriteNotes.length > 0 && (
+          <>
+            <Separator className="my-2" />
+            <div className="px-2">
+              <button
+                onClick={() => setFavoritesOpen(!favoritesOpen)}
+                className="w-full flex items-center gap-2 px-1 py-1.5 text-[10px] text-muted-foreground uppercase tracking-wider font-medium hover:text-foreground transition-colors"
+              >
+                <Star className="w-3 h-3 text-amber-500 shrink-0" />
+                <span className="flex-1 text-left">Favorites</span>
+                <ChevronDown
+                  className={cn(
+                    'w-3 h-3 transition-transform',
+                    !favoritesOpen && '-rotate-90'
+                  )}
+                />
+              </button>
+
+              <AnimatePresence>
+                {favoritesOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="space-y-0.5 max-h-48 overflow-y-auto">
+                      {favoriteNotes.map((note) => (
+                        <Button
+                          key={note.id}
+                          variant="ghost"
+                          size="sm"
+                          className="w-full justify-start gap-2 h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                          onClick={() => setActiveSection('notes')}
+                        >
+                          <Star className="w-3 h-3 text-amber-500 shrink-0 fill-amber-500" />
+                          <span className="truncate">{note.title}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </>
+        )}
+
+        {sidebarCollapsed && favoriteNotes.length > 0 && (
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                className="w-full justify-center px-0 h-10 text-muted-foreground hover:text-foreground"
+                onClick={() => setActiveSection('notes')}
+              >
+                <Star className="w-[18px] h-[18px] text-amber-500" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="font-medium">
+              {favoriteNotes.length} Favorite{favoriteNotes.length !== 1 ? 's' : ''}
+            </TooltipContent>
+          </Tooltip>
+        )}
       </nav>
 
       <Separator />

@@ -95,6 +95,31 @@ export class RateLimiter {
   }
 }
 
+import { NextResponse } from 'next/server'
+
+/**
+ * Convenience function for route-level rate limiting.
+ * Returns an error response if rate limited, or null if allowed.
+ */
+export function rateLimit(
+  request: { headers: { get: (name: string) => string | null } },
+  options?: { windowMs?: number; maxRequests?: number }
+): NextResponse | null {
+  const limiter = new RateLimiter(
+    options?.maxRequests ?? 60,
+    options?.windowMs ?? 60000
+  )
+  const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+  const result = limiter.check(ip)
+  if (!result.allowed) {
+    return NextResponse.json(
+      { success: false, error: 'Rate limit exceeded' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((result.resetAt - Date.now()) / 1000)) } }
+    )
+  }
+  return null
+}
+
 // Pre-configured rate limiters for use by external services (MCP server, etc.)
 // The main Next.js app uses middleware.ts for rate limiting.
 export const apiRateLimit = new RateLimiter(60, 60000)    // 60 req/min default

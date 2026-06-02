@@ -91,7 +91,10 @@ export function MemoryInsights() {
             const chatRes = await api.getConversations()
             if (chatRes.success && chatRes.data) {
               const chatCount = chatRes.data.conversations?.length || chatRes.data.pagination?.total || 0
-              setInsights(prev => prev ? { ...prev, totalConversations: chatCount } : prev)
+              const currentInsights = useMemoryStore.getState().insights
+              if (currentInsights) {
+                setInsights({ ...currentInsights, totalConversations: chatCount })
+              }
             }
           } catch {
             // Ignore — keep 0 as fallback

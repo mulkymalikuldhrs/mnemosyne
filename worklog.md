@@ -1029,3 +1029,306 @@ Stage Summary:
 - MEDIUM fixes: Toaster component, Dashboard hardcoded stats, Conversation count
 - All 23 API endpoints verified working with proper auth, validation, and error handling
 - Code pushed to https://github.com/mulkymalikuldhrs/memorix
+
+---
+Task ID: 1d
+Agent: Quick Switcher + Store + API + Sidebar + Page Updater
+Task: Build Quick Switcher and Update Store, API, Sidebar, Main Page for Memorix
+
+Work Log:
+- Rewrote `/home/z/my-project/src/components/quick-switcher.tsx` with enhanced features:
+  - Added fuzzy search matching with `fuzzyMatch()` and `fuzzyScore()` functions
+  - Added conversation search alongside notes and decisions
+  - Added recent items display when search query is empty (with Clock icon + "Recent" header)
+  - Added grouped search results by category (Notes, Conversations, Decisions) with category headers and icons
+  - Added item preview snippets (content preview for notes, message count for conversations, status for decisions)
+  - Added scroll-into-view for keyboard navigation
+  - Added loading spinner in search bar
+  - Preserved all existing functionality: Cmd+K shortcut, Escape to close, arrow key navigation, click to navigate
+- Updated `/home/z/my-project/src/lib/store.ts`:
+  - Changed `FavoritesState` from `Set<string>` to `string[]` array-based `favoriteNoteIds`
+  - Added `setFavoriteNoteIds`, `toggleFavorite`, and `isFavorite` methods per spec
+  - Kept all existing stores (UI, Notes, Chat, Memory, Decisions) intact
+- Updated `/home/z/my-project/src/lib/api.ts`:
+  - Added `searchNoteTitles` method (alias for wiki-links search)
+  - Added `createWikiLinks` method (with typed links parameter)
+  - Added `getSmartTags` method (content + existingTags parameters)
+  - Added `getDailyNote` alias method
+  - Added `saveDailyNote` alias method
+  - Kept all existing API methods intact
+- Updated `/home/z/my-project/src/components/layout/sidebar.tsx`:
+  - Added collapsible Favorites section below main navigation
+  - Fetches favorites from API on mount via `api.getFavorites()`
+  - Shows favorited notes with Star icon and amber color
+  - Collapsible with ChevronDown animation
+  - Sidebar collapsed mode shows Star icon with favorites count tooltip
+  - Added imports: useState, useEffect, useNotesStore, useFavoritesStore, api, ChevronDown
+- Updated `/home/z/my-project/src/app/page.tsx`:
+  - Moved `<QuickSwitcher />` from inside `<AppLayout>` to outside (but inside `<AuthGuard>`)
+  - This ensures the command palette overlay renders at the top level without layout constraints
+
+Stage Summary:
+- Quick Switcher: Full Cmd+K command palette with fuzzy search, recent items, grouped results, and conversation search
+- Store: Favorites store updated to use string array with isFavorite helper method
+- API: 5 new API methods added (searchNoteTitles, createWikiLinks, getSmartTags, getDailyNote, saveDailyNote)
+- Sidebar: Collapsible Favorites section with API-backed favorite notes
+- Main Page: QuickSwitcher positioned at top level (inside AuthGuard, outside AppLayout)
+- Zero new lint/TS errors introduced
+
+---
+Task ID: 1b
+Agent: Subagent (Knowledge Graph + Canvas Builder)
+Task: Build Knowledge Graph and Canvas components for Memorix
+
+Work Log:
+- Rewrote `/src/components/graph/knowledge-graph.tsx` — complete interactive knowledge graph
+  - Full D3.js force-directed layout with `import * as d3 from 'd3'` (no dynamic import)
+  - Nodes sized by connection count (radius = max(12, 8 + connectionCount * 3))
+  - Edges colored by type: solid gray for memory links, dashed violet for wiki links
+  - Arrow markers on edges (SVG defs markers)
+  - Click node → preview popup card (with tags, connection count, "Open Note" button)
+  - Double-click node → navigates to notes section and selects the note
+  - Hover → tooltip with note title + tags + connection count
+  - Hover also highlights connected edges and dims unrelated nodes
+  - Zoom (scroll), pan (drag background), drag nodes (D3 drag behavior)
+  - Filter panel sidebar: search nodes by title/tag, filter by tag badges
+  - Nodes colored by tag cluster (20+ named tag colors + deterministic fallback)
+  - Responsive layout with ResizeObserver
+  - Loading skeleton (custom skeleton with circle placeholders)
+  - Error and empty states
+  - Zoom controls (zoom in/out/reset) with zoom percentage indicator
+  - Legend overlay
+  - Graph stats (nodes, edges, tags, avg links)
+  - Controls tips section
+  - Animated sidebar toggle for mobile
+  - Cleaned up `require()` imports — replaced with proper ES imports from `@/lib/store`
+
+- Rewrote `/src/components/canvas/canvas-view.tsx` — infinite SVG canvas for visual thinking
+  - SVG-based infinite canvas with HTML overlay for nodes
+  - Pan (left-click drag on background, or space+drag) and zoom (scroll with zoom-toward-cursor)
+  - Double-click on canvas to add text node at click position
+  - Add text nodes (toolbar button) and note reference nodes (toolbar button)
+  - Connect nodes with arrows: Shift+Click two nodes, or use Connect mode in toolbar
+  - Drag nodes to reposition (with proper offset calculation)
+  - Select nodes (click), delete with backspace key
+  - Color nodes via right-click context menu (6 color options: Default, Violet, Emerald, Amber, Rose, Cyan)
+  - Context menu also has "Delete Node" option
+  - Minimap in bottom-right corner showing all nodes, edges, and viewport indicator
+  - Toolbar at top: Text, Note, Connect, Zoom In/Out/Reset, Export SVG, Save, New Canvas
+  - Canvas switcher dropdown to list/switch between canvases
+  - Delete canvas from switcher dropdown
+  - Debounced auto-save (1.5s) after any node/edge change
+  - Manual save button with toast feedback
+  - Auto-save indicator overlay
+  - Export canvas as SVG file download
+  - Empty state with usage hints
+  - Inline text editing (double-click to edit node content)
+  - Last saved timestamp in toolbar
+  - Connection dot indicator on each node
+
+- Installed missing `@radix-ui/react-context-menu` dependency
+- Fixed `require()` ESLint errors in knowledge-graph.tsx by using proper ES imports
+- Both files pass ESLint with zero errors/warnings
+- Dev server running and responding (HTTP 200 on /)
+
+Stage Summary:
+- Knowledge Graph: Full-featured D3.js interactive graph with tooltips, preview popups, tag filtering, search, zoom/pan, node coloring by tag cluster, hover highlighting, and responsive layout
+- Canvas View: Complete infinite canvas with SVG edges + HTML nodes, minimap, context menu color picker, auto-save, canvas management, inline editing, and export
+- Both components integrated with existing API routes (`/api/graph`, `/api/canvas`)
+- Zero new lint errors introduced
+
+
+
+---
+Task ID: 1c
+Agent: Subagent (full-stack-developer)
+Task: Build Daily Notes, Templates, and Smart Tags for Memorix
+
+Work Log:
+- Rewrote `/home/z/my-project/src/components/daily/daily-notes.tsx`
+  - Calendar strip at top showing current week (Mon-Sun) with date numbers
+  - Today highlighted with primary color ring
+  - Click a date to load/create its daily note
+  - Prev/Next week navigation with weekOffset state
+  - Auto-create today's note on first visit via API with template support
+  - When creating daily note, applies daily template if available (fetches from /api/templates?category=daily)
+  - Simple textarea editor area
+  - Below the editor: shows notes created on this day (fetched from /api/notes)
+  - Right sidebar: linked notes (wiki-links from content), recent activity, day stats
+  - Uses framer-motion animations, shadcn/ui components
+- Enhanced `/home/z/my-project/src/components/templates/templates-view.tsx`
+  - 5 built-in templates: Daily Note, Meeting Notes, Project Brief, Decision Record, Weekly Review
+  - Built-in templates shown first in the grid
+  - Each template card shows: name, description, category badge with color-coded icon, preview button
+  - Click "Use Template" creates a new note with resolved variable placeholders
+  - Variable placeholders: {{date}}, {{title}}, {{time}}, {{day_of_week}} — all supported
+  - Create custom template dialog with category selector and variable placeholder buttons
+  - Delete custom templates (built-in cannot be deleted — shows error toast)
+  - Search/filter templates by name, description, or content
+  - Category filter badges with counts
+  - Template preview panel with rendered content
+- Enhanced `/home/z/my-project/src/components/notes/smart-tags.tsx`
+  - Confidence bars (0-100%) with color coding: green (70%+), amber (40-70%), red (<40%)
+  - Progress bar visualization for each suggestion
+  - Tag cloud visualization showing all user's tags with frequency counts
+  - Tags sized by frequency (larger = more common)
+  - Color-coded by category (auto-detected from tag name)
+  - 12 category colors for tag cloud: ai, programming, business, design, productivity, finance, health, learning, meeting, project, research, personal
+  - Click tag in cloud to add it to note
+  - Already-applied tags shown with ring indicator
+- Enhanced `/home/z/my-project/src/components/notes/backlinks-panel.tsx`
+  - Count badge in header showing total backlinks
+  - Separate wiki/memory link type badges
+  - Empty state with icon and helpful message
+  - Each backlink shows source note title, link type (wiki with FileText icon / memory with GitBranch icon)
+  - Context snippets with quotes for wiki links
+  - Confidence-scored badges for memory links
+  - Navigate-to-note functionality via onNavigateToNote prop
+- Enhanced `/home/z/my-project/src/components/notes/outline-view.tsx`
+  - Hierarchical heading tree (buildHeadingTree function)
+  - Collapsible sections with chevron indicators
+  - Heading level icons (H1, H2, H3)
+  - Heading count badge in header
+  - Active heading highlighting
+  - onHeadingClick callback with headingIndex parameter
+- Rewrote `/home/z/my-project/src/lib/wiki-links.ts`
+  - extractWikiLinks(): extracts [[wiki-links]] from content, returns deduplicated array
+  - renderWikiLinks(): converts [[Note Title]] to [Note Title](/notes?search=Note+Title)
+  - hasWikiLinks(): checks if content contains wiki-links
+  - resolveWikiLinks(): maps link texts to note IDs from available notes list (case-insensitive)
+- Updated `/home/z/my-project/src/components/notes/note-editor.tsx`
+  - Integrated SmartTags, BacklinksPanel, OutlineView into right side panel
+  - Right panel shows Outline → Smart Tags → Backlinks for existing notes
+  - handleAddTag/handleRemoveTag wired to tagsInput state
+  - handleHeadingClick scrolls textarea to heading position
+- Updated `/home/z/my-project/src/app/api/notes/[id]/backlinks/route.ts`
+  - Returns { wikiLinks, memoryLinks } format matching BacklinksPanel component expectations
+  - Each wiki link includes: sourceNoteId, sourceNoteTitle, linkText, context
+  - Each memory link includes: sourceNoteId, sourceNoteTitle, relationScore, reason
+- Updated `/home/z/my-project/src/app/api/smart-tags/route.ts`
+  - Returns category field with each suggestion
+  - Category detected from tag keyword mapping
+- Updated `/home/z/my-project/src/app/api/templates/route.ts`
+  - Auto-seeds 5 built-in templates on first GET request for each user
+  - Built-in templates sorted first in results
+- Installed missing `@radix-ui/react-context-menu` dependency
+
+Stage Summary:
+- 6 frontend components created/enhanced
+- 1 utility library rewritten
+- 4 API routes updated
+- 1 note editor integration
+- All files pass ESLint
+- Dev server running, health endpoint OK, page renders correctly
+
+
+---
+Task ID: 1a
+Agent: API Route Builder
+Task: Build all new API routes for Memorix AI Memory SaaS
+
+Work Log:
+- Read worklog.md and existing project patterns
+- Read all 12 existing route files that needed improvement
+- Read Prisma schema, auth.ts, db.ts, wiki-links.ts, and notes/[id]/route.ts for reference patterns
+- Identified that routes existed but lacked Zod validation, proper try/catch, correct request/response formats
+
+- Rewrote /api/daily-notes/route.ts:
+  - Added Zod schema for POST body (date regex validation, content length limits)
+  - Changed query params from `from/to` to `startDate/endDate` per spec
+  - Added `limit` query param with cap (max 365)
+  - Added try/catch error handling throughout
+  - Consistent { success, data/error } response format
+
+- Rewrote /api/daily-notes/[date]/route.ts:
+  - Added Zod schema for PUT body (content/markdown optional with length limits)
+  - Added ownership verification before DELETE
+  - Added try/catch error handling throughout
+
+- Rewrote /api/templates/route.ts:
+  - Added Zod schema for POST body (name, content required; description, category optional with enum validation)
+  - Added 5 built-in templates (Daily Journal, Meeting Notes, Project Brief, Weekly Review, Idea Capture)
+  - Merges built-in templates with user's custom templates in GET response
+  - Category filtering supported via query param
+  - Added try/catch error handling
+
+- Rewrote /api/templates/[id]/route.ts:
+  - Added Zod schema for PUT body
+  - Added built-in template protection (403 Forbidden on PUT to built-in)
+  - DELETE only allows removing non-built-in templates
+  - Added try/catch error handling
+
+- Rewrote /api/favorites/route.ts:
+  - Added Zod schema for POST body (noteId required)
+  - Added note ownership verification before adding favorite
+  - Added duplicate favorite detection (409 Conflict)
+  - Returns note details in GET response (include: { note: { select: ... } })
+  - Added try/catch error handling
+
+- Rewrote /api/favorites/[noteId]/route.ts:
+  - Added try/catch error handling
+  - Returns deleted noteId in response data
+
+- Rewrote /api/canvas/route.ts:
+  - Added Zod schema for POST body (title required, description/data optional with length limits)
+  - Default canvas data: '{"nodes":[],"edges":[]}'
+  - Added try/catch error handling
+
+- Rewrote /api/canvas/[id]/route.ts:
+  - Added Zod schema for PUT body
+  - Added ownership verification before update/delete
+  - Uses direct db.canvas.delete instead of deleteMany (verified ownership first)
+  - Added try/catch error handling
+
+- Rewrote /api/graph/route.ts:
+  - Returns correct format: { nodes: [{id, title, tags, connectionCount}], edges: [{source, target, score, type, reason}] }
+  - `score` field (not `relationScore`) in edges
+  - Wiki edges have score: 1.0 and reason: "Wiki link: [[linkText]]"
+  - Memory edges have score: relationScore and reason from MemoryLink
+  - Uses NextRequest parameter type
+  - Added try/catch error handling
+
+- Rewrote /api/wiki-links/route.ts:
+  - POST body format changed to { noteId, links: [{targetTitle, linkText}] } per spec
+  - Added Zod schema for POST (noteId required, links array 1-100 items)
+  - Resolves targetTitle to note IDs, creates WikiLink records
+  - GET returns { notes: [{id, title}] } for autocomplete
+  - Added try/catch error handling
+
+- Rewrote /api/smart-tags/route.ts:
+  - POST body format: { content, existingTags } per spec
+  - Response format: { suggestedTags: [{tag, confidence, reason}] }
+  - 14 keyword-to-tag categories with confidence scoring and reasons
+  - Frequency analysis of content words (excluding stop words)
+  - Context-aware suggestions using user's existing tags
+  - High-frequency word suggestions with occurrence-based confidence
+  - Filters out existing tags from suggestions
+  - Added Zod schema, try/catch error handling
+
+- Rewrote /api/notes/[id]/backlinks/route.ts:
+  - Response format: { backlinks: [{noteId, title, linkType, context}] }
+  - linkType is 'wiki' or 'memory'
+  - Wiki backlinks: context is extracted from source note content around the link
+  - Memory backlinks: context is the relation reason
+  - Verifies note ownership before returning backlinks
+  - Filters backlinks to only include notes belonging to the same user
+  - Deduplicates backlinks by noteId+linkType
+  - Added try/catch error handling
+
+- Fixed ESLint warnings (removed unused eslint-disable directives)
+- Installed missing @radix-ui/react-context-menu dependency
+- Verified all 12 routes compile and return correct "Unauthorized" for unauthenticated requests
+- ESLint passes with 0 errors for all new route files
+
+Stage Summary:
+- 12 API route files rewritten with production-grade quality
+- All routes use Zod input validation (addressing BUG-10 from audit)
+- All routes use proper try/catch error handling
+- All routes return consistent { success: true, data } / { success: false, error } format
+- All routes validate user session via getServerSession(authOptions)
+- Pagination limits capped to prevent abuse (addressing BUG-16)
+- Smart-tags uses keyword extraction + frequency analysis with 14 tag categories
+- Templates include 5 built-in templates available to all users
+- Graph endpoint returns correct node/edge format with score field
+- Wiki-links POST accepts structured links array format
+- Backlinks returns unified format with both wiki and memory link types
