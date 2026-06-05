@@ -898,7 +898,7 @@ async function toolAddNote(
           1.0
         );
 
-        // Check if link already exists (in either direction)
+        // Check if link already exists in either direction
         const existingLink = await prisma.memoryLink.findFirst({
           where: {
             OR: [
@@ -909,13 +909,25 @@ async function toolAddNote(
         });
 
         if (!existingLink) {
+          const reason = `Shared tags: ${sharedTags.join(", ")}`;
           // Create forward link (sourceNote → targetNote)
           await prisma.memoryLink.create({
             data: {
               sourceNoteId: note.id,
               targetNoteId: existing.id,
               relationScore,
-              reason: `Shared tags: ${sharedTags.join(", ")}`,
+              reason,
+              autoLinked: true,
+            },
+          });
+          // Create reverse link (targetNote → sourceNote)
+          // This ensures related notes appear from both directions
+          await prisma.memoryLink.create({
+            data: {
+              sourceNoteId: existing.id,
+              targetNoteId: note.id,
+              relationScore,
+              reason,
               autoLinked: true,
             },
           });

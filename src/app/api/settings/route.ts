@@ -87,8 +87,9 @@ export async function PUT(request: NextRequest) {
     const parsed = settingsUpdateSchema.safeParse(body)
 
     if (!parsed.success) {
+      const firstError = parsed.error.issues[0]
       return NextResponse.json(
-        { success: false, error: 'Invalid input', details: parsed.error.flatten().fieldErrors },
+        { success: false, error: firstError?.message || 'Invalid input' },
         { status: 400 }
       )
     }
@@ -162,40 +163,75 @@ export async function DELETE() {
       },
     })
 
-    // 2. Delete note chunks (cascade should handle, but explicit for safety)
+    // 2. Delete wiki links pointing to user's notes
+    await db.wikiLink.deleteMany({
+      where: {
+        OR: [
+          { sourceNote: { userId } },
+          { targetNote: { userId } },
+        ],
+      },
+    })
+
+    // 3. Delete note chunks (cascade should handle, but explicit for safety)
     await db.noteChunk.deleteMany({
       where: { note: { userId } },
     })
 
-    // 3. Delete notes
+    // 4. Delete favorites
+    await db.favorite.deleteMany({
+      where: { userId },
+    })
+
+    // 5. Delete notes
     await db.note.deleteMany({
       where: { userId },
     })
 
-    // 4. Delete messages
+    // 6. Delete messages
     await db.message.deleteMany({
       where: { conversation: { userId } },
     })
 
-    // 5. Delete conversations
+    // 7. Delete conversations
     await db.conversation.deleteMany({
       where: { userId },
     })
 
-    // 6. Delete decisions
+    // 8. Delete decisions
     await db.decision.deleteMany({
       where: { userId },
     })
 
-    // 7. Delete API keys
+    // 9. Delete daily notes
+    await db.dailyNote.deleteMany({
+      where: { userId },
+    })
+
+    // 10. Delete templates
+    await db.template.deleteMany({
+      where: { userId },
+    })
+
+    // 11. Delete canvases
+    await db.canvas.deleteMany({
+      where: { userId },
+    })
+
+    // 12. Delete API keys (cascade deletes MCP sessions)
+    await db.mcpSession.deleteMany({
+      where: { userId },
+    })
     await db.apiKey.deleteMany({
       where: { userId },
     })
 
-    // 8. Delete MCP sessions
-    await db.mcpSession.deleteMany({
-      where: { userId },
+    // 13. Delete AI memory and sync queue entries
+    await db.syncQueue.deleteMany({
+      where: { action: 'delete' }, // Clean up any pending syncs
     })
+
+    // Note: AiMemory records are global (no userId field), so they are not deleted here
 
     return NextResponse.json({
       success: true,

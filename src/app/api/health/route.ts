@@ -1,5 +1,17 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { readFileSync } from 'fs'
+import { join } from 'path'
+
+// Read version from package.json — resolved at build time
+function getVersion(): string {
+  try {
+    const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf-8'))
+    return pkg.version || 'unknown'
+  } catch {
+    return 'unknown'
+  }
+}
 
 export async function GET() {
   let dbStatus = 'ok'
@@ -17,7 +29,7 @@ export async function GET() {
       data: {
         status: healthy ? 'ok' : 'degraded',
         timestamp: new Date().toISOString(),
-        version: '1.0.0',
+        version: getVersion(),
         db: dbStatus,
       },
     },

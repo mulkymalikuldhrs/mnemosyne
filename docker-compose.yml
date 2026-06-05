@@ -5,7 +5,7 @@ services:
       - "3000:3000"
     environment:
       - DATABASE_URL=file:/app/data/memorix.db
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-change-me}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:?Set NEXTAUTH_SECRET in .env - generate with: openssl rand -base64 32}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
     volumes:

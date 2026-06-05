@@ -1,220 +1,78 @@
-# Security Policy
+# Memorix Security Policy
 
-## Supported Versions
+## Reporting Security Vulnerabilities
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 2.0.x   | :white_check_mark: |
-| 1.0.x   | :white_check_mark: |
+If you discover a security vulnerability in Memorix, please report it responsibly:
 
-## Reporting a Vulnerability
+- **Email:** mulkymalikuldhaher@email.com
+- **GitHub:** Open a private security advisory at [github.com/mulkymalikuldhrs/memorix/security](https://github.com/mulkymalikuldhrs/memorix/security)
 
-We take security vulnerabilities seriously. If you discover a security issue in Memorix AI Memory, please report it responsibly.
-
-### How to Report
-
-**Do NOT open a public GitHub issue for security vulnerabilities.**
-
-Instead, please report security issues by emailing:
-
-**Mulky Malikul Dhaher** — mulkymalikuldhaher@email.com
-
-### What to Include
-
-Please include the following information in your report:
-
-1. **Description** — A clear description of the vulnerability
-2. **Impact** — What an attacker could achieve by exploiting this vulnerability
-3. **Reproduction Steps** — Step-by-step instructions to reproduce the issue
-4. **Affected Versions** — Which versions are affected
-5. **Suggested Fix** — If you have ideas for how to fix the issue (optional)
-6. **Your Contact** — How we can reach you for follow-up questions
-
-### Response Timeline
-
-| Stage | Expected Time |
-|-------|--------------|
-| Acknowledgment | Within 48 hours |
-| Initial Assessment | Within 5 business days |
-| Status Update | Every 7 days until resolved |
-| Fix Delivery | Depends on severity and complexity |
-
-### Severity Levels
-
-| Level | Description |
-|-------|-------------|
-| **Critical** | Remote code execution, hardware access, or data breach |
-| **High** | Privilege escalation or significant information disclosure |
-| **Medium** | Limited information disclosure or denial of service |
-| **Low** | Minor information leakage or cosmetic issues |
-
-### Scope
-
-**In Scope:**
-- Memorix AI Memory core application code
-- API endpoints and authentication
-- Hardware communication protocols
-- Database access controls
-- Desktop (Tauri) and mobile (Capacitor) packaging
-- Multi-agent system communication
-
-**Out of Scope:**
-- Third-party library vulnerabilities (report to library maintainers)
-- Social engineering attacks
-- Physical access attacks on robotics hardware
-- Denial of service via network flooding
-
-### Responsible Disclosure
-
-We ask that you:
-
-1. **Do not exploit** the vulnerability beyond what is needed to demonstrate it
-2. **Do not access** or modify other users' data
-3. **Do not disclose** the vulnerability publicly until a fix is released
-4. **Provide reasonable time** for us to address the issue before any public disclosure
-
-We are committed to working with security researchers to resolve issues quickly and will credit reporters (with permission) in our security advisories.
+**Please do not disclose security vulnerabilities publicly until they have been addressed.**
 
 ---
 
 ## Security Measures
 
-### API Key Authentication
+### Authentication & Authorization
+- **Password Hashing:** User passwords are hashed with bcryptjs (cost factor 12)
+- **Session Management:** JWT-based sessions via NextAuth.js
+- **API Key Authentication:** MCP server requires API key validation (plain text in DB — see Known Issues)
+- **Production Guard:** NEXTAUTH_SECRET must be changed from default in production (enforced at startup)
+- **MCP Server Auth:** Refuses to start in production without MEMORIX_API_KEY
 
-Memorix AI Memory uses API key authentication to protect critical routes. The `MEMORIX_API_KEY` environment variable must be set in production.
+### API Security
+- **Rate Limiting:** Per-route rate limiting enforced at middleware level (10-60 req/min depending on endpoint)
+- **Input Validation:** All API inputs validated with Zod schemas
+- **Error Sanitization:** Internal error details are not exposed to clients in production
+- **Security Headers:** X-Frame-Options, CSP, X-Content-Type-Options, Referrer-Policy applied globally
+- **CORS:** Restricted via CSP connect-src directive
 
-**Implementation** (`src/lib/auth.ts`):
-- Validates `x-api-key` header
-- Validates `Authorization: Bearer` header
-- Validates `api_key` query parameter
-- In development without key: requests are allowed (for convenience)
-- In production without key: returns `401 Unauthorized`
-
-**Protected Routes**:
-- `POST /api/mcp` — MCP tool execution
-- `POST /api/system` — System configuration updates
-- `POST /api/flash` — Firmware flashing
-- `POST /api/hardware-bridge` — Hardware bus operations
-
-**Setup**:
-```bash
-# Generate a secure API key
-export MEMORIX_API_KEY=$(openssl rand -hex 32)
-```
-
-### Command Injection Protection
-
-All routes that handle hardware communication implement command injection protection:
-
-- **No shell execution** — Routes never use `exec()`, `spawn()`, or similar functions with user input
-- **Input sanitization** — All user-provided strings are validated before use
-- **Serial port library** — Direct communication via `serialport` package (no shell commands)
-- **Type validation** — Input types are validated with Zod schemas
-
-### Content Security Policy (CSP)
-
-Tauri desktop builds include Content Security Policy headers:
-
-- Restricts script sources to trusted origins
-- Prevents inline script execution (where possible)
-- Limits style sources
-- Blocks unauthorized network connections
-- Configured in `src-tauri/capabilities/default.json`
-
-### Input Validation
-
-Critical API routes use Zod schema validation:
-
-| Route | Validated Fields |
-|-------|-----------------|
-| `POST /api/missions` | `name` (string, required), `type` (enum), `altitude` (number), `speed` (number) |
-| `POST /api/navigation` | `name` (string), `type` (enum), `waypoints` (JSON) |
-| `POST /api/mcp` | `tool` (string, required), `arguments` (object) |
-| `POST /api/hardware` | `name` (string), `deviceType` (enum), `protocol` (enum) |
-| `POST /api/agents/chat` | `prompt` (string), `agent` (string) |
-| `POST /api/system` | `configs` (array of key-value pairs) |
-
-### Rate Limiting
-
-Rate limiting is recommended in production via the Caddy reverse proxy:
-
-```caddy
-rate_limit {
-    zone memorix_zone {
-        key    {remote_host}
-        events 100
-        window 1m
-    }
-}
-```
-
-**Recommended Limits**:
-
-| Endpoint Category | Rate Limit |
-|-------------------|------------|
-| General API | 100 requests/minute |
-| Agent Chat | 10 requests/minute |
-| MCP Tools | 20 requests/minute |
-| SSE Streams | 5 concurrent connections |
-
-### SQL Injection Prevention
-
-Memorix AI Memory uses Prisma ORM with parameterized queries:
-- All database queries are automatically parameterized
-- No raw SQL queries in the codebase
-- Prisma client provides type-safe query building
-
-### Cross-Site Scripting (XSS) Prevention
-
-- React auto-escapes rendered content
-- CSP headers restrict script execution (Tauri)
-- Input validation prevents script injection in stored data
-- `dangerouslySetInnerHTML` is not used in the codebase
-
-### Error Handling
-
-- React error boundaries catch component crashes gracefully
-- API routes return structured error responses without stack traces in production
-- Database errors are caught and return generic error messages
-- No sensitive information is leaked in error responses
+### Data Protection
+- **User Isolation:** All database queries are scoped to the authenticated user's ID
+- **Ownership Checks:** All mutations verify resource ownership before modification/deletion
+- **API Key Masking:** API keys are masked when listed (only full key shown once at creation)
 
 ---
 
-## Security Best Practices for Deployers
+## Known Security Issues & Limitations
 
-When deploying Memorix AI Memory:
+### API Keys Stored in Plain Text (MEDIUM)
+API keys are currently stored as plain text in the `ApiKey` table and looked up directly via `findUnique({ where: { key } })`.
 
-### Essential
+**Risk:** If the database is compromised, all API keys are exposed.
 
-- **Set `MEMORIX_API_KEY`** — Generate a strong, unique key for production
-- **Enable HTTPS** — Use Caddy, Nginx, or Vercel for TLS termination
-- **Keep `.env` secure** — Never commit it to version control
-- **Restrict serial port access** — Only authorized users should access hardware
-- **Update dependencies** — Run `bun update` regularly
+**Planned Fix:** Store API keys as SHA-256 hashes. The lookup should hash the incoming key and search by hash. A migration strategy will support both hash lookup (new) and plain text lookup (legacy) during transition.
 
-### Recommended
+### In-Memory Rate Limiting (LOW)
+Rate limiting uses in-memory stores which do not persist across server instances. In multi-instance deployments (e.g., Kubernetes), each instance maintains its own rate limit counters.
 
-- **Configure rate limiting** — Protect against abuse via Caddy or Nginx
-- **Set up monitoring** — Monitor `/api` health endpoint and logs
-- **Regular backups** — Back up the SQLite database file regularly
-- **Review logs** — Check for suspicious API activity patterns
-- **Network isolation** — Place IoT devices on a separate VLAN
-- **Firewall rules** — Only expose necessary ports (80, 443)
+**Mitigation:** Configure `UPSTASH_REDIS_URL` and `UPSTASH_REDIS_TOKEN` for production Redis-backed rate limiting.
 
-### Hardware Security
+### SQLite Limitations (LOW)
+SQLite does not support native vector search. Embeddings are stored as JSON strings and similarity search is performed in application memory. This limits scalability for very large note collections (>50K notes per user).
 
-- **Physical access** — Restrict physical access to Raspberry Pi and connected devices
-- **USB devices** — Use udev rules to control which USB devices are recognized
-- **Serial permissions** — Only add trusted users to the `dialout` group
-- **GPIO protection** — Ensure GPIO pins are properly configured to prevent short circuits
+**Mitigation:** For production at scale, migrate to PostgreSQL with pgvector extension.
 
-### Database Security
+### MCP Server Single-User Mode (LOW)
+The MCP server authenticates a single user per process via the API key. Multiple concurrent users require separate MCP server instances.
 
-- **File permissions** — Set SQLite database file to `600` (owner read/write only)
-- **Directory protection** — Ensure the `db/` directory is not web-accessible
-- **Backup encryption** — Encrypt database backups if they contain sensitive data
-- **WAL mode** — SQLite WAL mode is used for concurrent read/write performance
+### Demo Credentials (INFO)
+The seed script creates a demo user with known credentials (`demo@memorix.ai` / `demo123`). These should only be used in local development and changed immediately in any shared environment.
 
 ---
 
-*Thank you for helping keep Memorix AI Memory and its users safe.*
+## Deployment Security Checklist
+
+- [ ] Set `NEXTAUTH_SECRET` to a cryptographically random value (use `openssl rand -base64 32`)
+- [ ] Set `MEMORIX_API_KEY` for MCP server authentication
+- [ ] Remove or change demo user credentials
+- [ ] Configure Redis for production rate limiting
+- [ ] Enable HTTPS/TLS termination (via reverse proxy like Caddy or Nginx)
+- [ ] Review CSP headers for your deployment needs
+- [ ] Set `NODE_ENV=production` to disable stack trace leaking
+- [ ] Restrict database file permissions (SQLite)
+- [ ] Regularly update dependencies (`bun audit`)
+
+---
+
+*Last updated: 2026-06-05 by AGENT-01 (Dhaher Corporation)*

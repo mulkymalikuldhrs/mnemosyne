@@ -120,8 +120,9 @@ export async function PUT(
     const parsed = noteUpdateSchema.safeParse(body)
 
     if (!parsed.success) {
+      const firstError = parsed.error.issues[0]
       return NextResponse.json(
-        { success: false, error: 'Invalid input', details: parsed.error.flatten().fieldErrors },
+        { success: false, error: firstError?.message || 'Invalid input' },
         { status: 400 }
       )
     }

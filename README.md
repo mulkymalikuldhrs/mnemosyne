@@ -6,7 +6,7 @@
 
 **Own Your AI Memory**
 
-[![Version](https://img.shields.io/badge/version-1.0.0-purple.svg)](https://github.com/mulkymalikuldhrs/memorix)
+[![Version](https://img.shields.io/badge/version-2.0.0-purple.svg)](https://github.com/mulkymalikuldhrs/memorix)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://typescriptlang.org)
@@ -113,6 +113,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser. Log in with
 
 - **Email:** `demo@memorix.ai`
 - **Password:** `demo123`
+
+> ⚠️ **Security Warning:** Change the demo password immediately after first login in any shared or public environment. The demo credentials are only for local development.
 
 ### Available Scripts
 

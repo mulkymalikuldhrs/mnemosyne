@@ -22,6 +22,7 @@ node_modules/
 # Production build output
 /build
 /dist
+mcp-server/dist/
 
 # Environment & secrets (NEVER commit these)
 .env
