@@ -9,6 +9,27 @@ import { db } from '@/lib/db'
  *
  * Overload 1: Pass a string API key → returns userId or null
  * Overload 2: Pass a NextRequest → extracts API key from header, returns NextResponse error or null
+ *
+ * ⚠️ SECURITY ISSUE (known, future improvement):
+ * API keys are currently stored as plain text in the database and looked up
+ * directly via `findUnique({ where: { key } })`. This means:
+ *   1. Anyone with database access can read all API keys.
+ *   2. Keys cannot be rotated without regenerating.
+ *   3. If the DB is compromised, all API keys are exposed.
+ *
+ * TODO: New keys should be stored as SHA-256 hashes. The lookup should hash
+ * the incoming key and search by hash. For backward compatibility during
+ * migration, `validateApiKeyString` should try both hash lookup (new) and
+ * plain text lookup (legacy). Once all keys are migrated, remove the plain
+ * text fallback.
+ *
+ * Example migration approach:
+ *   const hash = crypto.createHash('sha256').update(apiKey).digest('hex')
+ *   const byHash = await db.apiKey.findUnique({ where: { keyHash: hash } })
+ *   if (byHash) return byHash.userId
+ *   // Legacy fallback — remove after migration
+ *   const byPlain = await db.apiKey.findUnique({ where: { key: apiKey } })
+ *   if (byPlain) return byPlain.userId
  */
 export async function validateApiKey(apiKey: string): Promise<string | null>
 export async function validateApiKey(request: NextRequest): Promise<NextResponse | null>

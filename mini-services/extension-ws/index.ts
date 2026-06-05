@@ -1,5 +1,5 @@
 // ============================================================
-// NANGGROE IOT - Extension WebSocket Server
+// MEMORIX IOT - Extension WebSocket Server
 // Port 3004 — Real-time push to connected IDE extensions
 // ============================================================
 

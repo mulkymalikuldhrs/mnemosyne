@@ -90,6 +90,8 @@ export const api = {
     apiFetch<any>('/settings'),
   updateSettings: (data: any) =>
     apiFetch<any>('/settings', { method: 'PUT', body: JSON.stringify(data) }),
+  resetAllData: () =>
+    apiFetch<any>('/settings', { method: 'DELETE' }),
 
   // API Keys
   getApiKeys: () =>

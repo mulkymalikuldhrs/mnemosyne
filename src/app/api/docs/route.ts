@@ -1,5 +1,5 @@
 // ============================================================
-// NANGGROE IOT - OpenAPI 3.0 Specification Endpoint
+// MEMORIX IOT - OpenAPI 3.0 Specification Endpoint
 // GET /api/docs — Returns the full OpenAPI spec as JSON
 // ============================================================
 
@@ -19,14 +19,14 @@ function generateOpenApiSpec() {
   return {
     openapi: '3.0.3',
     info: {
-      title: 'Nanggroe IoT API',
+      title: 'Memorix API',
       description:
-        'Modular IoT & Robotics Platform — Full API reference for hardware management, missions, navigation, telemetry, AI agents, communication, and more.',
+        'Memorix — Personal AI Memory Infrastructure. Full API reference for notes, memory, chat, search, decisions, and MCP integration.',
       version: '1.0.0',
       contact: {
         name: 'Mulky Malikul Dhaher',
         email: 'mulkymalikuldhaher@email.com',
-        url: 'https://github.com/mulkymalikuldhrs/nanggroe-iot',
+        url: 'https://github.com/mulkymalikuldhrs/memorix-ai',
       },
       license: {
         name: 'MIT',

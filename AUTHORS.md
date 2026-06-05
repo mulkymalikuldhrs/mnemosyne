@@ -1,4 +1,4 @@
-# Nanggroe IoT — Authors
+# Memorix AI Memory — Authors
 
 ## Creator & Lead Developer
 
@@ -9,7 +9,7 @@
 
 ## Project
 
-**Nanggroe IoT** — Modular IoT & Robotics Platform
+**Memorix AI Memory** — Personal AI Memory Infrastructure
 
 A modular autonomous robotics operating system designed to build, control, and manage amphibious robots (tricopter drones, rovers, USVs) with integrated AI. Built with Next.js 16, Tauri v2, Capacitor, and TypeScript.
 

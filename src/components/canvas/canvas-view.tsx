@@ -19,6 +19,16 @@ import {
   Loader2, Plus, ZoomIn, ZoomOut, Trash2, Save, Move,
   Type, FileText, Link2, Download, Minimize2, X, ChevronDown,
 } from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -213,6 +223,7 @@ function CanvasSwitcher({
   onDelete: (id: string) => void
 }) {
   const [isOpen, setIsOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<CanvasData | null>(null)
 
   return (
     <div className="relative">
@@ -252,7 +263,7 @@ function CanvasSwitcher({
                       className="shrink-0 ml-2 p-0.5 rounded hover:bg-destructive/10 hover:text-destructive transition-colors"
                       onClick={(e) => {
                         e.stopPropagation()
-                        onDelete(c.id)
+                        setDeleteTarget(c)
                       }}
                     >
                       <Trash2 className="w-3 h-3" />
@@ -281,6 +292,32 @@ function CanvasSwitcher({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Canvas</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &ldquo;{deleteTarget?.title || 'Untitled'}&rdquo;? All nodes and edges in this canvas will be permanently removed. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteTarget) {
+                  onDelete(deleteTarget.id)
+                  setDeleteTarget(null)
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Canvas
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

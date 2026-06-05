@@ -104,7 +104,7 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 function ChartTooltipContent({
   active,
   payload,

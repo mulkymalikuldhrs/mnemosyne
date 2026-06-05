@@ -27,6 +27,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -122,6 +132,7 @@ export function TemplatesView() {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
   const [filterCategory, setFilterCategory] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState<Template | null>(null)
 
   // Form state
   const [newName, setNewName] = useState('')
@@ -226,6 +237,7 @@ export function TemplatesView() {
       if (res.success) {
         setTemplates((prev) => prev.filter((t) => t.id !== id))
         if (selectedTemplate?.id === id) setSelectedTemplate(null)
+        setDeleteTarget(null)
         toast.success('Template deleted')
       } else {
         toast.error(res.error || 'Failed to delete template')
@@ -504,7 +516,7 @@ export function TemplatesView() {
                             className="h-6 w-6 opacity-0 group-hover:opacity-100 text-destructive"
                             onClick={(e) => {
                               e.stopPropagation()
-                              handleDelete(template.id)
+                              setDeleteTarget(template)
                             }}
                             title="Delete template"
                           >
@@ -591,7 +603,7 @@ export function TemplatesView() {
                       variant="outline"
                       size="sm"
                       className="text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(selectedTemplate.id)}
+                      onClick={() => setDeleteTarget(selectedTemplate)}
                     >
                       <Trash2 className="w-3.5 h-3.5 mr-1.5" />
                       Delete
@@ -615,6 +627,29 @@ export function TemplatesView() {
           <p className="text-xs text-muted-foreground mt-1">Create your first template to get started</p>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Template</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &ldquo;{deleteTarget?.name || 'Untitled'}&rdquo;? This template will be permanently removed. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (deleteTarget) handleDelete(deleteTarget.id)
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Template
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

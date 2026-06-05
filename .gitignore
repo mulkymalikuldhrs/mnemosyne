@@ -19,28 +19,68 @@ node_modules/
 /.next/
 /out/
 
-# Production
+# Production build output
 /build
 /dist
 
-# Misc
-.DS_Store
-*.pem
-Thumbs.db
+# Environment & secrets (NEVER commit these)
+.env
+.env.local
+.env.*.local
+.env*.local
+.env.*
+!.env.example
 
-# Debug
+# Database files (may contain user data)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+prisma/dev.db
+prisma/*.db
+db/
+prisma/db/
+prisma/migrations/
+
+# Logs
+*.log
+dev.log
+dev.out.log
+server.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# Environment files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env*.local
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Security — never commit keys or certificates
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+
+# Secrets — icon source files
+android-icon-source.png
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Bun (using bun, not npm)
+package-lock.json
+bun.lock
 
 # Vercel
 .vercel
@@ -49,29 +89,15 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Logs
-*.log
-dev.log
-dev.out.log
-server.log
-
 # AI / IDE / Agent config
 .claude
 .z-ai-config
+.zscripts/
 local-*
 prompt
 
 # Skills directory
 /skills/
-
-# Database files
-*.db
-*.db-journal
-*.db-shm
-*.db-wal
-db/*.db
-db/*.db-journal
-prisma/db/*.db
 
 # Agent context (internal)
 /agent-ctx/
@@ -85,63 +111,18 @@ prisma/db/*.db
 # Worklog (internal)
 worklog.md
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Prisma
-prisma/migrations/
-
-# Bun
-bun.lock
-
 # Playwright
 test-results/
 playwright-report/
-
-# Capacitor
-android/app/src/main/assets/public/
-
-# Android build output
-android/app/build/
-android/.gradle/
-android/build/
-android/app/src/main/res/mipmap-*/
-!android/app/src/main/res/mipmap-anydpi-v26/
-android/local.properties
-
-# Environment & secrets
-.env
-.env.*
-!.env.example
-
-# Database
-db/
-*.db
-
-# Logs
-*.log
-dev.log
+playwright.config.ts
+e2e/
+e2e-full-test.mjs
+e2e-test.mjs
 
 # Android / Tauri / Capacitor
 android/
 src-tauri/
 capacitor.config.ts
 
-# E2E
-e2e/
-playwright.config.ts
-e2e-full-test.mjs
-e2e-test.mjs
+# Prisma generated (regenerated on build)
+prisma/prisma-client/

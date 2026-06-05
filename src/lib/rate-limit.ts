@@ -11,6 +11,8 @@
  * main Next.js app — the middleware has its own in-memory store.
  */
 
+import { NextResponse } from 'next/server'
+
 interface RateLimitEntry {
   count: number
   resetAt: number
@@ -95,20 +97,33 @@ export class RateLimiter {
   }
 }
 
-import { NextResponse } from 'next/server'
+// Pre-configured rate limiter singletons for use by external services (MCP server, etc.)
+// The main Next.js app uses middleware.ts for rate limiting.
+export const apiRateLimit = new RateLimiter(60, 60000)    // 60 req/min default
+export const chatRateLimit = new RateLimiter(20, 60000)   // 20 req/min for AI chat
+export const memoryRateLimit = new RateLimiter(30, 60000)  // 30 req/min for memory ops
 
 /**
  * Convenience function for route-level rate limiting.
  * Returns an error response if rate limited, or null if allowed.
+ *
+ * Uses pre-configured singleton instances based on the requested limits
+ * instead of creating a new RateLimiter on every call.
  */
 export function rateLimit(
   request: { headers: { get: (name: string) => string | null } },
   options?: { windowMs?: number; maxRequests?: number }
 ): NextResponse | null {
-  const limiter = new RateLimiter(
-    options?.maxRequests ?? 60,
-    options?.windowMs ?? 60000
-  )
+  // Select the appropriate pre-configured singleton based on options
+  let limiter: RateLimiter
+  if (options?.maxRequests !== undefined && options.maxRequests <= 20) {
+    limiter = chatRateLimit
+  } else if (options?.maxRequests !== undefined && options.maxRequests <= 30) {
+    limiter = memoryRateLimit
+  } else {
+    limiter = apiRateLimit
+  }
+
   const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
   const result = limiter.check(ip)
   if (!result.allowed) {
@@ -119,9 +134,3 @@ export function rateLimit(
   }
   return null
 }
-
-// Pre-configured rate limiters for use by external services (MCP server, etc.)
-// The main Next.js app uses middleware.ts for rate limiting.
-export const apiRateLimit = new RateLimiter(60, 60000)    // 60 req/min default
-export const chatRateLimit = new RateLimiter(20, 60000)   // 20 req/min for AI chat
-export const memoryRateLimit = new RateLimiter(30, 60000)  // 30 req/min for memory ops

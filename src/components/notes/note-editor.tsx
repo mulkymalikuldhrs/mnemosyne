@@ -1,13 +1,24 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Save, Archive, FileText, X, Sparkles, Loader2, Trash2 } from 'lucide-react'
+import { Save, Archive, FileText, X, Sparkles, Loader2, Trash2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { useNotesStore } from '@/lib/store'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -15,6 +26,8 @@ import { toast } from 'sonner'
 import { SmartTags } from './smart-tags'
 import { BacklinksPanel } from './backlinks-panel'
 import { OutlineView } from './outline-view'
+
+type SaveStatus = 'idle' | 'saving' | 'saved' | 'unsaved'
 
 interface NoteEditorProps {
   noteId?: string | null
@@ -30,11 +43,106 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
   const [tagsInput, setTagsInput] = useState(existingNote?.tags.join(', ') ?? '')
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
+
+  // Refs for auto-save
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const latestTitleRef = useRef(title)
+  const latestContentRef = useRef(content)
+  const latestTagsRef = useRef(tagsInput)
+
+  // Keep refs in sync
+  useEffect(() => { latestTitleRef.current = title }, [title])
+  useEffect(() => { latestContentRef.current = content }, [content])
+  useEffect(() => { latestTagsRef.current = tagsInput }, [tagsInput])
 
   // Parse tags from input
   const currentTags = useMemo(() => {
     return tagsInput.split(',').map((t) => t.trim()).filter(Boolean)
   }, [tagsInput])
+
+  // ── Auto-save logic ──
+  const performAutoSave = useCallback(async () => {
+    if (!existingNote) return // Don't auto-save new notes (no id yet)
+    if (isSaving) return
+
+    const currentTitle = latestTitleRef.current
+    const currentContent = latestContentRef.current
+    const currentTags = latestTagsRef.current
+
+    if (!currentTitle.trim() && !currentContent.trim()) return
+
+    setSaveStatus('saving')
+    try {
+      const tags = currentTags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+
+      const res = await api.updateNote(existingNote.id, {
+        title: currentTitle,
+        content: currentContent,
+        tags: tags.join(', '),
+      })
+      if (res.success && res.data) {
+        updateNote(existingNote.id, {
+          title: res.data.title,
+          content: res.data.content,
+          tags: res.data.tags ? res.data.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
+          updatedAt: res.data.updatedAt,
+        })
+        setSaveStatus('saved')
+        // Reset to idle after 3 seconds
+        setTimeout(() => setSaveStatus((prev) => prev === 'saved' ? 'idle' : prev), 3000)
+      } else {
+        setSaveStatus('unsaved')
+      }
+    } catch {
+      setSaveStatus('unsaved')
+    }
+  }, [existingNote, isSaving, updateNote])
+
+  const scheduleAutoSave = useCallback(() => {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current)
+    }
+    setSaveStatus('unsaved')
+    autoSaveTimerRef.current = setTimeout(() => {
+      performAutoSave()
+    }, 1500)
+  }, [performAutoSave])
+
+  const cancelAutoSave = useCallback(() => {
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current)
+      autoSaveTimerRef.current = null
+    }
+  }, [])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current)
+      }
+    }
+  }, [])
+
+  // ── Handlers ──
+  const handleTitleChange = (value: string) => {
+    setTitle(value)
+    if (existingNote) scheduleAutoSave()
+  }
+
+  const handleContentChange = (value: string) => {
+    setContent(value)
+    if (existingNote) scheduleAutoSave()
+  }
+
+  const handleTagsChange = (value: string) => {
+    setTagsInput(value)
+    if (existingNote) scheduleAutoSave()
+  }
 
   const handleSave = async () => {
     const tags = tagsInput
@@ -42,7 +150,10 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
       .map((t) => t.trim())
       .filter(Boolean)
 
+    // Cancel any pending auto-save
+    cancelAutoSave()
     setIsSaving(true)
+    setSaveStatus('saving')
     try {
       if (existingNote) {
         // Update existing note via API
@@ -58,10 +169,12 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
             tags: res.data.tags ? res.data.tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [],
             updatedAt: res.data.updatedAt,
           })
+          setSaveStatus('saved')
           toast.success('Note updated')
           setIsEditing(false)
           onClose?.()
         } else {
+          setSaveStatus('unsaved')
           toast.error(res.error || 'Failed to update note')
         }
       } else {
@@ -83,14 +196,17 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
           }
           addNote(newNote)
           setSelectedNoteId(newNote.id)
+          setSaveStatus('saved')
           toast.success('Note created')
           setIsEditing(false)
           onClose?.()
         } else {
+          setSaveStatus('unsaved')
           toast.error(res.error || 'Failed to create note')
         }
       }
     } catch {
+      setSaveStatus('unsaved')
       toast.error('Failed to save note')
     } finally {
       setIsSaving(false)
@@ -99,6 +215,7 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
 
   const handleArchive = async () => {
     if (!existingNote) return
+    cancelAutoSave()
     try {
       const res = await api.updateNote(existingNote.id, { isArchived: true })
       if (res.success) {
@@ -117,6 +234,7 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
 
   const handleDelete = async () => {
     if (!existingNote) return
+    cancelAutoSave()
     setIsDeleting(true)
     try {
       const res = await api.deleteNote(existingNote.id)
@@ -138,17 +256,20 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
 
   const handleAddTag = (tag: string) => {
     if (!currentTags.includes(tag)) {
-      setTagsInput((prev) => prev ? `${prev}, ${tag}` : tag)
+      const newTagsInput = tagsInput ? `${tagsInput}, ${tag}` : tag
+      setTagsInput(newTagsInput)
+      if (existingNote) scheduleAutoSave()
     }
   }
 
   const handleRemoveTag = (tag: string) => {
-    setTagsInput((prev) =>
-      prev.split(',')
+    const newTagsInput = tagsInput
+      .split(',')
         .map((t) => t.trim())
         .filter((t) => t !== tag)
         .join(', ')
-    )
+    setTagsInput(newTagsInput)
+    if (existingNote) scheduleAutoSave()
   }
 
   const handleHeadingClick = (headingIndex: number) => {
@@ -179,6 +300,32 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
     return n.tags.some((t) => currentTagsLower.includes(t.toLowerCase()))
   })
 
+  // Save status indicator
+  const statusIndicator = useMemo(() => {
+    switch (saveStatus) {
+      case 'saving':
+        return (
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Loader2 className="w-3 h-3 animate-spin" />
+            Saving...
+          </span>
+        )
+      case 'saved':
+        return (
+          <span className="flex items-center gap-1 text-xs text-emerald-500">
+            <Check className="w-3 h-3" />
+            Saved
+          </span>
+        )
+      case 'unsaved':
+        return (
+          <span className="text-xs text-amber-500">Unsaved changes</span>
+        )
+      default:
+        return null
+    }
+  }, [saveStatus])
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -190,6 +337,7 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
         <div className="flex items-center gap-2">
           <FileText className="w-5 h-5 text-primary" />
           <h2 className="text-lg font-semibold">{existingNote ? 'Edit Note' : 'New Note'}</h2>
+          {statusIndicator}
         </div>
         <div className="flex items-center gap-2">
           {existingNote && (
@@ -198,10 +346,31 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
                 <Archive className="w-4 h-4 mr-1.5" />
                 Archive
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleDelete} className="text-destructive hover:text-destructive" disabled={isDeleting}>
-                <Trash2 className="w-4 h-4 mr-1.5" />
-                {isDeleting ? 'Deleting...' : 'Delete'}
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" disabled={isDeleting}>
+                    <Trash2 className="w-4 h-4 mr-1.5" />
+                    {isDeleting ? 'Deleting...' : 'Delete'}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Note</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete &ldquo;{existingNote.title || 'Untitled Note'}&rdquo;? This action cannot be undone and will permanently remove this note from your memory.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete Note
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </>
           )}
           <Button size="sm" onClick={handleSave} disabled={(!title.trim() && !content.trim()) || isSaving}>
@@ -223,7 +392,7 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
           <Input
             placeholder="Note title..."
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => handleTitleChange(e.target.value)}
             className="text-xl font-semibold border-0 px-0 h-auto py-1 focus-visible:ring-0 bg-transparent placeholder:text-muted-foreground/50"
           />
 
@@ -231,7 +400,7 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
             <Textarea
               placeholder="Write your note here... Markdown is supported. Use [[wiki-links]] to connect notes."
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={(e) => handleContentChange(e.target.value)}
               className="min-h-[300px] resize-none border-0 px-0 focus-visible:ring-0 bg-transparent text-sm leading-relaxed placeholder:text-muted-foreground/50"
             />
             <div className="absolute bottom-2 right-2 flex items-center gap-1 text-[10px] text-muted-foreground/50">
@@ -245,7 +414,7 @@ export function NoteEditor({ noteId, onClose }: NoteEditorProps) {
             <Input
               placeholder="Enter tags separated by commas..."
               value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
+              onChange={(e) => handleTagsChange(e.target.value)}
               className="h-9"
             />
             {currentTags.length > 0 && (

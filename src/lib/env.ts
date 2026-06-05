@@ -1,8 +1,10 @@
 import { z } from 'zod'
 
+const DEV_SECRET = 'dev-secret-change-in-production'
+
 const envSchema = z.object({
   DATABASE_URL: z.string().default('file:./dev.db'),
-  NEXTAUTH_SECRET: z.string().default('dev-secret-change-in-production'),
+  NEXTAUTH_SECRET: z.string().default(DEV_SECRET),
   NEXTAUTH_URL: z.string().default('http://localhost:3000'),
   OPENROUTER_API_KEY: z.string().optional(),
   UPSTASH_REDIS_URL: z.string().optional(),
@@ -23,6 +25,16 @@ function validateEnv(): Env {
     console.error('❌ Invalid environment variables:', parsed.error.flatten().fieldErrors)
     throw new Error('Invalid environment variables')
   }
+
+  // Production safety check: NEXTAUTH_SECRET must not be the default value
+  if (process.env.NODE_ENV === 'production' && parsed.data.NEXTAUTH_SECRET === DEV_SECRET) {
+    throw new Error(
+      'FATAL: NEXTAUTH_SECRET is using the default dev value in production. ' +
+      'Set a strong, unique NEXTAUTH_SECRET environment variable before deploying. ' +
+      'You can generate one with: openssl rand -base64 32'
+    )
+  }
+
   return parsed.data
 }
 

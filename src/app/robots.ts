@@ -3,6 +3,6 @@ import { MetadataRoute } from 'next'
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: { userAgent: '*', allow: '/', disallow: '/api/' },
-    sitemap: 'https://github.com/mulkymalikuldhrs/nanggroe-iot/sitemap.xml',
+    sitemap: 'https://github.com/mulkymalikuldhrs/memorix-ai/sitemap.xml',
   }
 }

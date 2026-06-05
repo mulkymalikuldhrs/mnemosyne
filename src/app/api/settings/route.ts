@@ -138,3 +138,74 @@ export async function PUT(request: NextRequest) {
     )
   }
 }
+
+export async function DELETE() {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const userId = session.user.id
+
+    // Delete all user data in correct order (respecting foreign key constraints)
+    // 1. Delete memory links pointing to user's notes
+    await db.memoryLink.deleteMany({
+      where: {
+        OR: [
+          { sourceNote: { userId } },
+          { targetNote: { userId } },
+        ],
+      },
+    })
+
+    // 2. Delete note chunks (cascade should handle, but explicit for safety)
+    await db.noteChunk.deleteMany({
+      where: { note: { userId } },
+    })
+
+    // 3. Delete notes
+    await db.note.deleteMany({
+      where: { userId },
+    })
+
+    // 4. Delete messages
+    await db.message.deleteMany({
+      where: { conversation: { userId } },
+    })
+
+    // 5. Delete conversations
+    await db.conversation.deleteMany({
+      where: { userId },
+    })
+
+    // 6. Delete decisions
+    await db.decision.deleteMany({
+      where: { userId },
+    })
+
+    // 7. Delete API keys
+    await db.apiKey.deleteMany({
+      where: { userId },
+    })
+
+    // 8. Delete MCP sessions
+    await db.mcpSession.deleteMany({
+      where: { userId },
+    })
+
+    return NextResponse.json({
+      success: true,
+      data: { message: 'All data has been reset successfully' },
+    })
+  } catch (error) {
+    console.error('DELETE /api/settings error:', error)
+    return NextResponse.json(
+      { success: false, error: 'Failed to reset data' },
+      { status: 500 }
+    )
+  }
+}

@@ -1,6 +1,6 @@
-# Nanggroe IoT — Architecture
+# Memorix AI Memory — Architecture
 
-> System architecture documentation for Nanggroe IoT, a modular IoT & robotics platform.
+> System architecture documentation for Memorix AI Memory, a personal AI memory infrastructure platform.
 
 ---
 
@@ -20,7 +20,7 @@
 
 ## System Overview
 
-Nanggroe IoT is a full-stack IoT and robotics platform built on Next.js 16 with App Router. It provides a unified dashboard for managing robots, hardware, AI agents, missions, and telemetry across web, desktop (Tauri), and mobile (Capacitor) platforms.
+Memorix AI Memory is a full-stack personal AI memory infrastructure platform built on Next.js 16 with App Router. It provides a unified dashboard for managing notes, memory, AI chat, search, decisions, and MCP integration across web, desktop (Tauri), and mobile (Capacitor) platforms.
 
 ### Design Principles
 
@@ -37,7 +37,7 @@ Nanggroe IoT is a full-stack IoT and robotics platform built on Next.js 16 with 
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                        Nanggroe IoT Platform                        │
+│                        Memorix AI Memory Platform                        │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                      │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                 │
@@ -105,7 +105,7 @@ Layout (layout.tsx)
 ├── ThemeProvider (next-themes)
 ├── Dashboard (Dashboard.tsx)
 │   ├── Sidebar (desktop navigation)
-│   │   ├── Brand header ("NANGGROE IOT")
+│   │   ├── Brand header ("MEMORIX IOT")
 │   │   ├── System online indicator
 │   │   ├── Region info
 │   │   ├── 20 Navigation tabs
@@ -454,7 +454,7 @@ Radio Link ──► CommsGuard Monitor
 │                                               │
 │  ┌─────────────────────────────────────────┐ │
 │  │  Layer 2: Authentication (API Key)      │ │
-│  │  NANGGROE_API_KEY · Bearer Token        │ │
+│  │  MEMORIX_API_KEY · Bearer Token        │ │
 │  └─────────────────────────────────────────┘ │
 │                                               │
 │  ┌─────────────────────────────────────────┐ │
@@ -528,7 +528,7 @@ Next.js Build → Static Export → Capacitor Sync → Android Studio → APK/AA
 │           Raspberry Pi 4B                    │
 │                                               │
 │  ┌─────────────────────────────────────────┐ │
-│  │  Nanggroe IoT (Node.js / Bun)           │ │
+│  │  Memorix AI Memory (Node.js / Bun)           │ │
 │  │  Port 3000                              │ │
 │  └────────────────┬────────────────────────┘ │
 │                   │                           │
@@ -546,7 +546,7 @@ Next.js Build → Static Export → Capacitor Sync → Android Studio → APK/AA
 │                                               │
 │  ┌─────────────────────────────────────────┐ │
 │  │  SQLite Database                        │ │
-│  │  /home/pi/nanggroe-iot/db/              │ │
+│  │  /home/pi/memorix-ai/db/              │ │
 │  └─────────────────────────────────────────┘ │
 └──────────────────────────────────────────────┘
 ```

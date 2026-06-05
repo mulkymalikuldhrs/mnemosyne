@@ -9,7 +9,7 @@
 
 ## Reporting a Vulnerability
 
-We take security vulnerabilities seriously. If you discover a security issue in Nanggroe IoT, please report it responsibly.
+We take security vulnerabilities seriously. If you discover a security issue in Memorix AI Memory, please report it responsibly.
 
 ### How to Report
 
@@ -51,7 +51,7 @@ Please include the following information in your report:
 ### Scope
 
 **In Scope:**
-- Nanggroe IoT core application code
+- Memorix AI Memory core application code
 - API endpoints and authentication
 - Hardware communication protocols
 - Database access controls
@@ -81,7 +81,7 @@ We are committed to working with security researchers to resolve issues quickly 
 
 ### API Key Authentication
 
-Nanggroe IoT uses API key authentication to protect critical routes. The `NANGGROE_API_KEY` environment variable must be set in production.
+Memorix AI Memory uses API key authentication to protect critical routes. The `MEMORIX_API_KEY` environment variable must be set in production.
 
 **Implementation** (`src/lib/auth.ts`):
 - Validates `x-api-key` header
@@ -99,7 +99,7 @@ Nanggroe IoT uses API key authentication to protect critical routes. The `NANGGR
 **Setup**:
 ```bash
 # Generate a secure API key
-export NANGGROE_API_KEY=$(openssl rand -hex 32)
+export MEMORIX_API_KEY=$(openssl rand -hex 32)
 ```
 
 ### Command Injection Protection
@@ -140,7 +140,7 @@ Rate limiting is recommended in production via the Caddy reverse proxy:
 
 ```caddy
 rate_limit {
-    zone nanggroe_zone {
+    zone memorix_zone {
         key    {remote_host}
         events 100
         window 1m
@@ -159,7 +159,7 @@ rate_limit {
 
 ### SQL Injection Prevention
 
-Nanggroe IoT uses Prisma ORM with parameterized queries:
+Memorix AI Memory uses Prisma ORM with parameterized queries:
 - All database queries are automatically parameterized
 - No raw SQL queries in the codebase
 - Prisma client provides type-safe query building
@@ -182,11 +182,11 @@ Nanggroe IoT uses Prisma ORM with parameterized queries:
 
 ## Security Best Practices for Deployers
 
-When deploying Nanggroe IoT:
+When deploying Memorix AI Memory:
 
 ### Essential
 
-- **Set `NANGGROE_API_KEY`** — Generate a strong, unique key for production
+- **Set `MEMORIX_API_KEY`** — Generate a strong, unique key for production
 - **Enable HTTPS** — Use Caddy, Nginx, or Vercel for TLS termination
 - **Keep `.env` secure** — Never commit it to version control
 - **Restrict serial port access** — Only authorized users should access hardware
@@ -217,4 +217,4 @@ When deploying Nanggroe IoT:
 
 ---
 
-*Thank you for helping keep Nanggroe IoT and its users safe.*
+*Thank you for helping keep Memorix AI Memory and its users safe.*

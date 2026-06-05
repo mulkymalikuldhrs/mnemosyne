@@ -233,8 +233,22 @@ let authenticatedUserId: string | null = null;
 let authenticatedApiKeyId: string | null = null;
 
 /**
+ * Check if the --allow-open flag was passed via command line arguments.
+ * This flag explicitly opts in to open (unauthenticated) mode.
+ */
+function hasAllowOpenFlag(): boolean {
+  return process.argv.includes("--allow-open");
+}
+
+/**
  * Validate the API key from the MEMORIX_API_KEY environment variable
  * against the ApiKey table in the database.
+ *
+ * Security behavior:
+ * - If MEMORIX_API_KEY is set: validate against the ApiKey table in the database
+ * - If MEMORIX_API_KEY is NOT set AND NODE_ENV is "production": REFUSE to start
+ * - If MEMORIX_API_KEY is NOT set AND NODE_ENV is not "production": allow open mode
+ *   with a clear WARNING (requires --allow-open flag for explicit opt-in)
  *
  * - Looks up the key in the database
  * - Sets the authenticated user ID for all subsequent operations
@@ -243,16 +257,41 @@ let authenticatedApiKeyId: string | null = null;
  */
 async function validateAndAuthenticate(): Promise<boolean> {
   const apiKey = process.env.MEMORIX_API_KEY;
+  const isProduction = process.env.NODE_ENV === "production";
+  const allowOpen = hasAllowOpenFlag();
 
-  // If no API key is configured, check for open mode (development)
+  // If no API key is configured, enforce security policies
   if (!apiKey) {
-    // In open mode, try to use the first user as default
+    // PRODUCTION: Refuse to start without an API key
+    if (isProduction) {
+      log("FATAL: MEMORIX_API_KEY is not set and NODE_ENV is 'production'.");
+      log("  The MCP server REFUSES to run in open mode in production.");
+      log("  Set the MEMORIX_API_KEY environment variable to a valid API key.");
+      return false;
+    }
+
+    // DEVELOPMENT: Require --allow-open flag for explicit opt-in
+    if (!allowOpen) {
+      log("ERROR: MEMORIX_API_KEY is not set and --allow-open flag is not provided.");
+      log("  In development mode, you must explicitly opt in to open (unauthenticated)");
+      log("  mode by passing the --allow-open flag:");
+      log("    bun run mcp-server/index.ts --allow-open");
+      log("  WARNING: Open mode grants access to the first user's data without authentication.");
+      log("  Never use --allow-open in production!");
+      return false;
+    }
+
+    // Open mode with explicit opt-in (development only)
+    log("⚠️  WARNING: Running in OPEN MODE (no MEMORIX_API_KEY set, --allow-open flag provided).");
+    log("  This grants unauthenticated access to the first user's data.");
+    log("  NEVER use this in production!");
+
     const firstUser = await prisma.user.findFirst({
       orderBy: { createdAt: "asc" },
     });
     if (firstUser) {
       authenticatedUserId = firstUser.id;
-      log("Running in open mode (no MEMORIX_API_KEY set) — using first user");
+      log("Running in open mode — using first user");
       return true;
     }
     log("ERROR: No users in database and no MEMORIX_API_KEY set");

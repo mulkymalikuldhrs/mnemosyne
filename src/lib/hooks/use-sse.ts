@@ -1,5 +1,5 @@
 // ============================================================
-// NANGGROE IOT - Server-Sent Events Hook
+// MEMORIX IOT - Server-Sent Events Hook
 // React hook for consuming SSE streams with auto-reconnect
 // ============================================================
 

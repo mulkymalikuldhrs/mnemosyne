@@ -2,9 +2,9 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Nanggroe IoT',
-    short_name: 'NanggroeIoT',
-    description: 'Modular IoT & Robotics Platform',
+    name: 'Memorix AI Memory',
+    short_name: 'Memorix',
+    description: 'Personal AI Memory Infrastructure',
     start_url: '/',
     display: 'standalone',
     background_color: '#0f172a',

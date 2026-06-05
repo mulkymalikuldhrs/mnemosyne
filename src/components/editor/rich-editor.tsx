@@ -19,6 +19,23 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
+// ─── HTML Sanitizer ──────────────────────────────────────────────────────────
+// Strips dangerous tags and event handlers from HTML to prevent XSS.
+// This is used before rendering user-generated HTML in the preview pane.
+
+const DANGEROUS_TAGS = /<\/?(script|iframe|object|embed|form|input|textarea|select|button|meta|link|base|style)[^>]*>/gi
+const EVENT_HANDLERS = /\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi
+const JAVASCRIPT_HREF = /href\s*=\s*(?:"javascript:[^"]*"|'javascript:[^']*')/gi
+const DATA_URL_SRC = /src\s*=\s*(?:"data:[^"]*"|'data:[^']*')/gi
+
+function sanitizeHtml(html: string): string {
+  return html
+    .replace(DANGEROUS_TAGS, '')
+    .replace(EVENT_HANDLERS, '')
+    .replace(JAVASCRIPT_HREF, 'href="#"')
+    .replace(DATA_URL_SRC, '')
+}
+
 // WikiLink extension — recognizes [[text]] syntax
 import { Mark, markInputRule, markPasteRule } from '@tiptap/core'
 
@@ -294,7 +311,7 @@ export function RichEditor({
         ) : (
           <div
             className="p-4 prose prose-sm dark:prose-invert max-w-none"
-            dangerouslySetInnerHTML={{ __html: editor.getHTML() }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(editor.getHTML()) }}
           />
         )}
       </div>
@@ -305,7 +322,7 @@ export function RichEditor({
         <span>•</span>
         <span>{wordCount} words</span>
         <span>•</span>
-        <span>{editor.storage.characterCount?.characters?.() ?? 0} characters</span>
+        <span>{editor.getText().length} characters</span>
       </div>
 
       <style jsx global>{`

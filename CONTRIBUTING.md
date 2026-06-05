@@ -1,6 +1,6 @@
-# Contributing to Nanggroe IoT
+# Contributing to Memorix AI Memory
 
-Thank you for your interest in contributing to **Nanggroe IoT** — the Modular IoT & Robotics Platform! We welcome contributions from developers, roboticists, and AI enthusiasts of all skill levels.
+Thank you for your interest in contributing to **Memorix AI Memory** — the Personal AI Memory Infrastructure! We welcome contributions from developers, AI enthusiasts, and memory system researchers of all skill levels.
 
 ## Table of Contents
 
@@ -24,8 +24,8 @@ Be respectful, inclusive, and constructive. We are building robotics software fo
 1. **Fork** the repository on GitHub
 2. **Clone** your fork locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/nanggroe-iot.git
-   cd nanggroe-iot
+   git clone https://github.com/YOUR_USERNAME/memorix.git
+   cd memorix
    ```
 3. **Install** dependencies:
    ```bash
@@ -56,11 +56,11 @@ Be respectful, inclusive, and constructive. We are building robotics software fo
 - **Robot templates** — Create project templates for new robot types
 - **Documentation** — Improve guides, API docs, and inline comments
 - **Testing** — Write and improve tests for better reliability
-- **Translations** — Help make Nanggroe IoT accessible in more languages
+- **Translations** — Help make Memorix AI Memory accessible in more languages
 
 ### Suggested Workflow
 
-1. Check existing [Issues](https://github.com/mulkymalikuldhrs/nanggroe-iot/issues) for something to work on
+1. Check existing [Issues](https://github.com/mulkymalikuldhrs/memorix/issues) for something to work on
 2. If no issue exists, create one to discuss your proposed change
 3. Create a feature branch from `main`:
    ```bash
@@ -172,7 +172,7 @@ refactor(agents): simplify Hermes command dispatcher
 
 ## Reporting Bugs
 
-1. Check if the bug is already reported in [Issues](https://github.com/mulkymalikuldhrs/nanggroe-iot/issues)
+1. Check if the bug is already reported in [Issues](https://github.com/mulkymalikuldhrs/memorix/issues)
 2. If not, create a new issue with:
    - **Clear title** summarizing the problem
    - **Steps to reproduce** the bug
@@ -182,16 +182,16 @@ refactor(agents): simplify Hermes command dispatcher
 
 ## Feature Requests
 
-1. Open a [new issue](https://github.com/mulkymalikuldhrs/nanggroe-iot/issues/new) with the label `enhancement`
+1. Open a [new issue](https://github.com/mulkymalikuldhrs/memorix/issues/new) with the label `enhancement`
 2. Describe the feature and the use case it solves
-3. Explain why it fits the Nanggroe IoT platform vision
+3. Explain why it fits the Memorix AI Memory platform vision
 4. Optionally, propose an implementation approach
 
 ## Contact
 
 - **Creator & Lead Developer**: Mulky Malikul Dhaher — mulkymalikuldhaher@email.com
-- **Issues**: [GitHub Issues](https://github.com/mulkymalikuldhrs/nanggroe-iot/issues)
+- **Issues**: [GitHub Issues](https://github.com/mulkymalikuldhrs/memorix/issues)
 
 ---
 
-*Thank you for helping build the future of autonomous robotics with Nanggroe IoT!*
+*Thank you for helping build the future of AI-powered memory with Memorix!*

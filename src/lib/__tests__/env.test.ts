@@ -110,24 +110,24 @@ describe('env validation', () => {
     expect(env.HARDWARE_BRIDGE_MODE).toBe('simulation')
   })
 
-  it('should accept optional NANGGROE_API_KEY', async () => {
+  it('should accept optional MEMORIX_API_KEY', async () => {
     process.env.DATABASE_URL = 'file:./test.db'
     process.env.NODE_ENV = 'test'
-    process.env.NANGGROE_API_KEY = 'test-api-key'
+    process.env.MEMORIX_API_KEY = 'test-api-key'
     const { getEnv } = await import('../env')
     const env = getEnv()
-    expect(env.NANGGROE_API_KEY).toBe('test-api-key')
+    expect(env.MEMORIX_API_KEY).toBe('test-api-key')
   })
 
   it('should make optional keys undefined when not set', async () => {
     process.env.DATABASE_URL = 'file:./test.db'
     process.env.NODE_ENV = 'test'
-    delete process.env.NANGGROE_API_KEY
+    delete process.env.MEMORIX_API_KEY
     delete process.env.ZAI_API_KEY
     delete process.env.TELEGRAM_BOT_TOKEN
     const { getEnv } = await import('../env')
     const env = getEnv()
-    expect(env.NANGGROE_API_KEY).toBeUndefined()
+    expect(env.MEMORIX_API_KEY).toBeUndefined()
     expect(env.ZAI_API_KEY).toBeUndefined()
     expect(env.TELEGRAM_BOT_TOKEN).toBeUndefined()
   })

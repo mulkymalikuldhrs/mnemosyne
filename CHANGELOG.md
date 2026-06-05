@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to **Nanggroe IoT** will be documented in this file.
+All notable changes to **Memorix AI Memory** will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -36,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `playwright.config.ts` with CI configuration
 
 #### Security
-- **API Key Authentication** — `NANGGROE_API_KEY` environment variable for critical route protection
+- **API Key Authentication** — `MEMORIX_API_KEY` environment variable for critical route protection
 - **Command Injection Protection** — Input sanitization on all hardware communication routes
 - **CSP Headers** — Content Security Policy configured in Tauri desktop builds
 - **Input Validation** — Zod schema validation on critical POST/PUT endpoints
@@ -60,8 +60,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Renamed from "Nanggroe OS AI" to "Nanggroe IoT"** across all codebase and documentation
-- Updated all agent system prompt references from "NANGGROE OS AI" to "NANGGROE IOT"
+- **Renamed from "Nanggroe OS AI" to "Memorix AI Memory"** across all codebase and documentation
+- Updated all agent system prompt references from "MEMORIX OS AI" to "MEMORIX IOT"
 - Expanded Prisma schema from 18 to 22 models (added `AgentTaskRecord`, `LearningRecord`)
 - Expanded lib modules from 22 to 28 service modules
 - Expanded API routes from 40+ to 42+ endpoints
@@ -158,5 +158,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **State**: Zustand (client) + TanStack Query (server)
 - **AI SDK**: z-ai-web-dev-sdk
 
-[2.0.0]: https://github.com/mulkymalikuldhrs/nanggroe-iot/releases/tag/v2.0.0
-[1.0.0]: https://github.com/mulkymalikuldhrs/nanggroe-iot/releases/tag/v1.0.0
+[2.0.0]: https://github.com/mulkymalikuldhrs/memorix-ai/releases/tag/v2.0.0
+[1.0.0]: https://github.com/mulkymalikuldhrs/memorix-ai/releases/tag/v1.0.0

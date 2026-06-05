@@ -1,6 +1,6 @@
-# Nanggroe IoT — Agent System
+# Memorix AI Memory — Agent System
 
-> Documentation for the 6-agent system and Agent Orchestrator in Nanggroe IoT.
+> Documentation for the 6-agent system and Agent Orchestrator in Memorix AI Memory.
 
 ---
 
@@ -21,7 +21,7 @@
 
 ## Overview
 
-Nanggroe IoT uses a multi-agent architecture with 6 specialized agents coordinated by a central orchestrator. Each agent has a specific domain of responsibility and can communicate with other agents through a message bus.
+Memorix AI Memory uses a multi-agent architecture with 6 specialized agents coordinated by a central orchestrator. Each agent has a specific domain of responsibility and can communicate with other agents through a message bus.
 
 ### Agent Roster
 

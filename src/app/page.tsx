@@ -44,6 +44,7 @@ import { DailyNotes } from '@/components/daily/daily-notes'
 import { CanvasView } from '@/components/canvas/canvas-view'
 import { TemplatesView } from '@/components/templates/templates-view'
 import { QuickSwitcher } from '@/components/quick-switcher'
+import { KeyboardShortcutsPanel } from '@/components/keyboard-shortcuts'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -52,6 +53,17 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { useUIStore, useNotesStore, useDecisionsStore } from '@/lib/store'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -592,6 +604,8 @@ function DecisionsView() {
 
 function SettingsView() {
   const { data: session } = useSession()
+  const { setNotes } = useNotesStore()
+  const { setDecisions } = useDecisionsStore()
   const [settings, setSettings] = useState<any>(null)
   const [apiKeys, setApiKeys] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -828,9 +842,45 @@ function SettingsView() {
               <p className="text-sm font-medium">Reset All Data</p>
               <p className="text-xs text-muted-foreground">This will permanently delete all your notes, conversations, and decisions</p>
             </div>
-            <Button variant="destructive" size="sm">
-              Reset
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  Reset
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reset All Data</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete all your notes, conversations, decisions, API keys, and memory data. Your account will remain but will be completely empty.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={async () => {
+                      try {
+                        const res = await api.resetAllData()
+                        if (res.success) {
+                          toast.success('All data has been reset')
+                          // Clear local stores
+                          setNotes([])
+                          setDecisions([])
+                          setApiKeys([])
+                        } else {
+                          toast.error(res.error || 'Failed to reset data')
+                        }
+                      } catch {
+                        toast.error('Failed to reset data')
+                      }
+                    }}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Reset All Data
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </CardContent>
       </Card>
@@ -1021,6 +1071,7 @@ export default function HomePage() {
   return (
     <AuthGuard>
       <QuickSwitcher />
+      <KeyboardShortcutsPanel />
       <AppLayout>
         <AnimatePresence mode="wait">
           <motion.div

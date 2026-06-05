@@ -1,6 +1,6 @@
-# Nanggroe IoT — Deployment Guide
+# Memorix AI Memory — Deployment Guide
 
-> Comprehensive deployment guide for Nanggroe IoT across all supported platforms.
+> Comprehensive deployment guide for Memorix AI Memory across all supported platforms.
 
 ---
 
@@ -41,7 +41,7 @@ vercel --prod
 
 **Environment Variables** (set in Vercel dashboard):
 - `DATABASE_URL` — SQLite path (use Turso or PlanetScale for serverless)
-- `NANGGROE_API_KEY` — API authentication key
+- `MEMORIX_API_KEY` — API authentication key
 - `ZAI_API_KEY` — Z-AI SDK key (optional)
 
 ### Docker
@@ -72,14 +72,14 @@ CMD ["bun", "run", "start"]
 
 ```bash
 # Build image
-docker build -t nanggroe-iot .
+docker build -t memorix-ai .
 
 # Run container
 docker run -p 3000:3000 \
-  -e DATABASE_URL=file:./db/nanggroe-iot.db \
-  -e NANGGROE_API_KEY=your-secret-key \
-  -v nanggroe-data:/app/db \
-  nanggroe-iot
+  -e DATABASE_URL=file:./db/memorix-ai.db \
+  -e MEMORIX_API_KEY=your-secret-key \
+  -v memorix-data:/app/db \
+  memorix-ai
 ```
 
 ### Docker Compose
@@ -92,10 +92,10 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=file:./db/nanggroe-iot.db
-      - NANGGROE_API_KEY=${NANGGROE_API_KEY}
+      - DATABASE_URL=file:./db/memorix-ai.db
+      - MEMORIX_API_KEY=${MEMORIX_API_KEY}
     volumes:
-      - nanggroe-data:/app/db
+      - memorix-data:/app/db
     restart: unless-stopped
 
   caddy:
@@ -111,7 +111,7 @@ services:
       - app
 
 volumes:
-  nanggroe-data:
+  memorix-data:
   caddy-data:
   caddy-config:
 ```
@@ -179,10 +179,10 @@ bun run tauri:build:windows
 
 | Platform | Output Path |
 |----------|------------|
-| Linux DEB | `src-tauri/target/release/bundle/deb/nanggroe-iot_2.0.0_amd64.deb` |
-| Linux AppImage | `src-tauri/target/release/bundle/appimage/nanggroe-iot_2.0.0_amd64.AppImage` |
-| Windows MSI | `src-tauri/target/release/bundle/msi/Nanggroe IoT_2.0.0_x64_en-US.msi` |
-| Windows EXE | `src-tauri/target/release/bundle/nsis/Nanggroe IoT_2.0.0_x64-setup.exe` |
+| Linux DEB | `src-tauri/target/release/bundle/deb/memorix-ai_2.0.0_amd64.deb` |
+| Linux AppImage | `src-tauri/target/release/bundle/appimage/memorix-ai_2.0.0_amd64.AppImage` |
+| Windows MSI | `src-tauri/target/release/bundle/msi/Memorix AI Memory_2.0.0_x64_en-US.msi` |
+| Windows EXE | `src-tauri/target/release/bundle/nsis/Memorix AI Memory_2.0.0_x64-setup.exe` |
 
 ### Tauri Configuration
 
@@ -190,10 +190,10 @@ Key settings in `src-tauri/tauri.conf.json`:
 
 | Setting | Value |
 |---------|-------|
-| Product Name | Nanggroe IoT |
-| Identifier | com.nanggroe.iot |
+| Product Name | Memorix AI Memory |
+| Identifier | com.memorix.iot |
 | Window Size | 1440×900 (min: 1024×700) |
-| Window Title | Nanggroe IoT — IoT & Robotics Platform |
+| Window Title | Memorix AI Memory — Personal AI Memory Infrastructure |
 
 ### CSP Headers (Tauri)
 
@@ -245,8 +245,8 @@ cd android
 
 | Setting | Value |
 |---------|-------|
-| App ID | com.nanggroe.iot |
-| App Name | Nanggroe IoT |
+| App ID | com.memorix.iot |
+| App Name | Memorix AI Memory |
 | Web Dir | out |
 | Splash Duration | 2000ms |
 | Status Bar | Dark |
@@ -283,8 +283,8 @@ curl -fsSL https://bun.sh/install | bash
 source ~/.bashrc
 
 # Clone repository
-git clone https://github.com/mulkymalikuldhrs/nanggroe-iot.git
-cd nanggroe-iot
+git clone https://github.com/mulkymalikuldhrs/memorix-ai.git
+cd memorix-ai
 
 # Install dependencies
 bun install
@@ -296,24 +296,24 @@ bun run db:generate
 # Set up environment
 cp .env.example .env
 # Edit .env:
-# DATABASE_URL=file:./db/nanggroe-iot.db
-# NANGGROE_API_KEY=your-secure-key
+# DATABASE_URL=file:./db/memorix-ai.db
+# MEMORIX_API_KEY=your-secure-key
 # SERIAL_PORT=/dev/ttyACM0
 ```
 
 ### Systemd Service
 
-Create `/etc/systemd/system/nanggroe-iot.service`:
+Create `/etc/systemd/system/memorix-ai.service`:
 
 ```ini
 [Unit]
-Description=Nanggroe IoT Platform
+Description=Memorix AI Memory Platform
 After=network.target
 
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/home/pi/nanggroe-iot
+WorkingDirectory=/home/pi/memorix-ai
 ExecStart=/home/pi/.bun/bin/bun run start
 Restart=always
 RestartSec=10
@@ -326,14 +326,14 @@ WantedBy=multi-user.target
 
 ```bash
 # Enable and start
-sudo systemctl enable nanggroe-iot
-sudo systemctl start nanggroe-iot
+sudo systemctl enable memorix-ai
+sudo systemctl start memorix-ai
 
 # Check status
-sudo systemctl status nanggroe-iot
+sudo systemctl status memorix-ai
 
 # View logs
-sudo journalctl -u nanggroe-iot -f
+sudo journalctl -u memorix-ai -f
 ```
 
 ### Caddy Reverse Proxy
@@ -351,7 +351,7 @@ sudo apt install caddy
 Edit `/etc/caddy/Caddyfile`:
 
 ```
-nanggroe-iot.local {
+memorix-ai.local {
     reverse_proxy localhost:3000
 }
 ```
@@ -404,8 +404,8 @@ sudo udevadm trigger
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `DATABASE_URL` | SQLite database path | `file:./db/nanggroe-iot.db` |
-| `NANGGROE_API_KEY` | API authentication key | `nanggroe-iot-prod-key-2025` |
+| `DATABASE_URL` | SQLite database path | `file:./db/memorix-ai.db` |
+| `MEMORIX_API_KEY` | API authentication key | `memorix-ai-prod-key-2025` |
 
 ### Optional
 
@@ -435,7 +435,7 @@ openssl rand -hex 32
 ### Pre-Deployment
 
 - [ ] Set `NODE_ENV=production`
-- [ ] Set `NANGGROE_API_KEY` to a strong, unique key
+- [ ] Set `MEMORIX_API_KEY` to a strong, unique key
 - [ ] Run `bun run lint` — no errors
 - [ ] Run `bun run test:e2e` — all 183 tests pass
 - [ ] Run `bun run build` — build succeeds
@@ -478,7 +478,7 @@ openssl rand -hex 32
 
 ```bash
 # Set a strong API key
-export NANGGROE_API_KEY=$(openssl rand -hex 32)
+export MEMORIX_API_KEY=$(openssl rand -hex 32)
 ```
 
 The API key is validated by `src/lib/auth.ts`:
@@ -514,7 +514,7 @@ Critical API routes use Zod schema validation:
 ### HTTPS Configuration (Caddy)
 
 ```
-nanggroe-iot.local {
+memorix-ai.local {
     reverse_proxy localhost:3000
 
     # Security headers
@@ -530,11 +530,11 @@ nanggroe-iot.local {
 ### Rate Limiting (Caddy)
 
 ```
-nanggroe-iot.local {
+memorix-ai.local {
     reverse_proxy localhost:3000
 
     rate_limit {
-        zone nanggroe_zone {
+        zone memorix_zone {
             key    {remote_host}
             events 100
             window 1m
