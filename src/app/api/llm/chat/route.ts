@@ -1,41 +1,50 @@
 // ============================================================
-// MEMORIX IOT - LLM Chat Stream API Route
+// MEMORIX — LLM Chat Stream API Route
 // POST /api/llm/chat — Streaming & non-streaming chat with AI
-// Supports tool calling (Hermes tools, MCP tools), conversation
-// memory, and SSE streaming output
+// Uses z-ai-web-dev-sdk with memory context injection
 // ============================================================
 
 import { NextRequest, NextResponse } from 'next/server'
-import { getLLMService } from '@/lib/llm'
+import { getServerSession } from 'next-auth'
+import { chatWithMemory, type ChatMessage } from '@/ai/llm'
 import { validateApiKey } from '@/lib/auth'
-import { rateLimit } from '@/lib/rate-limit'
-import type { ChatMessage, ChatParams } from '@/lib/llm'
-import type { AgentName } from '@/lib/types'
+import { authOptions } from '@/lib/auth'
 
 // --- Request/Response Types ---
 
 interface ChatRequestBody {
   messages: ChatMessage[]
-  model?: string
+  conversationId?: string
   stream?: boolean
-  temperature?: number
-  maxTokens?: number
-  tools?: string[]
-  missionId?: string
-  agentName?: AgentName
-  includeContext?: boolean
 }
 
 // ============================================================
-// POST: Chat endpoint
+// POST: Chat endpoint with memory context
 // ============================================================
 
 export async function POST(request: NextRequest) {
-  const rateLimitError = rateLimit(request, { windowMs: 60000, maxRequests: 20 })
-  if (rateLimitError) return rateLimitError
+  // Authentication: Try session first, then API key
+  let userId: string | null = null
 
-  const authError = validateApiKey(request)
-  if (authError) return authError
+  const session = await getServerSession(authOptions)
+  if (session?.user?.id) {
+    userId = session.user.id
+  } else {
+    // Try API key authentication
+    const authHeader = request.headers.get('authorization')
+    const apiKey = authHeader?.replace('Bearer ', '') || request.headers.get('x-api-key')
+
+    if (apiKey) {
+      userId = await validateApiKey(apiKey as string)
+    }
+  }
+
+  if (!userId) {
+    return NextResponse.json(
+      { success: false, error: 'Authentication required' },
+      { status: 401 }
+    )
+  }
 
   try {
     const body = await request.json() as ChatRequestBody
@@ -56,65 +65,31 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
-      if (!['system', 'user', 'assistant', 'tool'].includes(msg.role)) {
+      if (!['system', 'user', 'assistant'].includes(msg.role)) {
         return NextResponse.json(
-          { success: false, error: `Invalid message role: ${msg.role}. Must be system, user, assistant, or tool` },
+          { success: false, error: `Invalid message role: ${msg.role}` },
           { status: 400 }
         )
       }
     }
 
-    const llm = getLLMService()
-
-    // Build system context if requested
-    let systemContext
-    if (body.includeContext !== false) {
-      try {
-        systemContext = await llm.buildSystemContext(body.missionId)
-      } catch (error) {
-        // Continue without context
-      }
-    }
-
-    const params: ChatParams = {
-      messages: body.messages,
-      model: body.model,
-      temperature: body.temperature,
-      maxTokens: body.maxTokens,
-      stream: body.stream,
-      tools: body.tools,
-      missionId: body.missionId,
-      agentName: body.agentName,
-      systemContext,
-    }
-
     // --- Streaming Response ---
     if (body.stream) {
-      return handleStreamResponse(params)
+      return handleStreamResponse(body.messages, userId, body.conversationId)
     }
 
     // --- Non-Streaming Response ---
-    const result = await llm.chat(params)
+    const result = await chatWithMemory(body.messages, userId, body.conversationId)
 
     return NextResponse.json({
       success: true,
       data: {
         content: result.content,
-        model: result.model,
-        usage: result.usage,
-        toolCalls: result.toolCalls,
-        finishReason: result.finishReason,
+        memoryRefs: result.memoryRefs,
+        tokenUsage: result.tokenUsage,
       },
     })
   } catch (error) {
-
-    if (error instanceof Error && error.message.includes('Rate limit')) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 429 }
-      )
-    }
-
     return NextResponse.json(
       {
         success: false,
@@ -129,27 +104,50 @@ export async function POST(request: NextRequest) {
 // Streaming Response Handler
 // ============================================================
 
-async function handleStreamResponse(params: ChatParams): Promise<NextResponse> {
+async function handleStreamResponse(
+  messages: ChatMessage[],
+  userId: string,
+  conversationId?: string
+): Promise<NextResponse> {
+  const { chatWithMemory } = await import('@/ai/llm')
+
+  // For streaming, we first get the full response then stream it
+  // This is because the z-ai-web-dev-sdk doesn't support streaming directly
   const encoder = new TextEncoder()
 
   const stream = new ReadableStream({
     async start(controller) {
-      const llm = getLLMService()
-
       try {
-        for await (const chunk of llm.chatStream(params)) {
-          const sseData = formatSSE(chunk as unknown as Record<string, unknown>)
+        const result = await chatWithMemory(messages, userId, conversationId)
+
+        // Stream the content word by word for a typing effect
+        const words = result.content.split(' ')
+        for (let i = 0; i < words.length; i++) {
+          const chunk = {
+            type: 'content',
+            content: i === 0 ? words[i] : ' ' + words[i],
+            memoryRefs: i === words.length - 1 ? result.memoryRefs : undefined,
+          }
+          const sseData = `event: content\ndata: ${JSON.stringify(chunk)}\n\n`
           controller.enqueue(encoder.encode(sseData))
+
+          // Small delay for typing effect
+          await new Promise((resolve) => setTimeout(resolve, 20))
         }
 
-        // Send final done event
-        controller.enqueue(encoder.encode('event: done\ndata: {}\n\n'))
+        // Send final done event with metadata
+        const doneData = {
+          type: 'done',
+          tokenUsage: result.tokenUsage,
+          memoryRefs: result.memoryRefs,
+        }
+        controller.enqueue(encoder.encode(`event: done\ndata: ${JSON.stringify(doneData)}\n\n`))
       } catch (error) {
-        const errorData = formatSSE({
+        const errorData = {
           type: 'error',
           error: error instanceof Error ? error.message : 'Stream failed',
-        })
-        controller.enqueue(encoder.encode(errorData))
+        }
+        controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify(errorData)}\n\n`))
       } finally {
         controller.close()
       }
@@ -165,15 +163,4 @@ async function handleStreamResponse(params: ChatParams): Promise<NextResponse> {
       'X-Accel-Buffering': 'no',
     },
   })
-}
-
-// --- SSE Formatting ---
-
-function formatSSE(chunk: Record<string, unknown>): string {
-  const eventType = chunk.type || 'message'
-
-  // Serialize the chunk data without the type (type goes into event name)
-  const { type: _, ...data } = chunk
-
-  return `event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`
 }

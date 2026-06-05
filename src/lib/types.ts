@@ -228,3 +228,25 @@ export interface ApiKeyInfo {
   lastUsedAt?: string | null
   createdAt: string
 }
+
+// --- AI Memory Types ---
+
+export type AiMemoryCategory =
+  | 'conversation'
+  | 'decision'
+  | 'learning'
+  | 'pattern'
+  | 'preference'
+
+export interface AiMemoryEntry {
+  id: string
+  category: AiMemoryCategory
+  key: string
+  value: unknown
+  context?: string | null
+  confidence: number
+  accessCount: number
+  isSynced: boolean
+  createdAt: string
+  accessedAt: string
+}

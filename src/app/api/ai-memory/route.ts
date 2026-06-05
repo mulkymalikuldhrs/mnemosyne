@@ -1,7 +1,48 @@
+// ============================================================
+// MEMORIX — AI Memory API Route
+// GET/POST/DELETE /api/ai-memory — AI memory management
+// Requires authentication (session or API key)
+// ============================================================
+
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
 import { AiMemoryService } from '@/lib/ai-memory'
+import { validateApiKey } from '@/lib/auth'
+import { authOptions } from '@/lib/auth'
+
+/**
+ * Helper: Get authenticated user ID from request
+ */
+async function getAuthenticatedUserId(request: NextRequest): Promise<string | null> {
+  // Try session first
+  const session = await getServerSession(authOptions)
+  if (session?.user?.id) {
+    return session.user.id
+  }
+
+  // Try API key
+  const authHeader = request.headers.get('authorization')
+  const apiKey = authHeader?.replace('Bearer ', '') || request.headers.get('x-api-key')
+  if (apiKey) {
+    return await validateApiKey(apiKey as string)
+  }
+
+  return null
+}
+
+// ============================================================
+// GET: Retrieve AI memory entries
+// ============================================================
 
 export async function GET(request: NextRequest) {
+  const userId = await getAuthenticatedUserId(request)
+  if (!userId) {
+    return NextResponse.json(
+      { success: false, error: 'Authentication required' },
+      { status: 401 }
+    )
+  }
+
   try {
     const service = AiMemoryService.getInstance()
     const { searchParams } = new URL(request.url)
@@ -31,7 +72,19 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// ============================================================
+// POST: Create or manage AI memory entries
+// ============================================================
+
 export async function POST(request: NextRequest) {
+  const userId = await getAuthenticatedUserId(request)
+  if (!userId) {
+    return NextResponse.json(
+      { success: false, error: 'Authentication required' },
+      { status: 401 }
+    )
+  }
+
   try {
     const body = await request.json()
     const service = AiMemoryService.getInstance()
@@ -73,7 +126,19 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// ============================================================
+// DELETE: Remove AI memory entry
+// ============================================================
+
 export async function DELETE(request: NextRequest) {
+  const userId = await getAuthenticatedUserId(request)
+  if (!userId) {
+    return NextResponse.json(
+      { success: false, error: 'Authentication required' },
+      { status: 401 }
+    )
+  }
+
   try {
     const { searchParams } = new URL(request.url)
     const memoryId = searchParams.get('memoryId')

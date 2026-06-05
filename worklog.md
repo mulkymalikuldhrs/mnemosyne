@@ -1432,3 +1432,303 @@ Stage Summary:
 - Key Obsidian-beating features added (auto-save, keyboard shortcuts, delete confirmations)
 - Repository pushed to GitHub without any credentials
 - Dev server running successfully, API health check passing
+
+---
+Task ID: 6-b
+Agent: Import Fix Agent
+Task: Fix any remaining broken imports after IoT/hardware file deletion
+
+Work Log:
+- Searched all 10 specific import categories listed in the task:
+  1. Deleted component imports (PowerTab, HardwareTab, etc.) — NONE FOUND
+  2. Deleted lib imports (robot-templates, face-tracking, etc.) — NONE FOUND
+  3. `@/lib/llm` imports — NONE FOUND (chat routes correctly use `@/ai/llm`)
+  4. `AgentName` type imports — NONE FOUND
+  5. `@/hooks/use-toast` imports — NONE FOUND (components use `@/lib/hooks/use-toast`)
+  6. `@/hooks/use-sse` and `@/hooks/usePlatform` imports — NONE FOUND
+  7. `@/lib/sentry` imports — NONE FOUND
+  8. Fixed `src/lib/ai-memory.ts` header: "MEMORIX IOT" → "MEMORIX — AI Memory Service"
+  9. Added missing `AiMemoryCategory` and `AiMemoryEntry` types to `src/lib/types.ts`
+  10. Verified `src/app/api/chat/route.ts` correctly imports from `@/ai/llm`
+
+- Additionally discovered and fixed broken imports beyond the task list:
+  - Deleted `src/hooks/use-ws.ts` — imported from non-existent `@/lib/websocket` module (orphaned IoT WebSocket hook, not used by any other file)
+  - Deleted `src/app/api/testing/route.ts` — imported from non-existent `@/lib/testing` module (IoT hardware/firmware testing route, not used by any other file)
+
+Stage Summary:
+- All 10 specified import checks completed — 7 were already clean, 3 required fixes
+- 2 additional broken imports found and resolved (use-ws.ts and testing route)
+- ESLint passes with 0 errors, 0 warnings
+- Dev server running cleanly
+
+Fixes Applied:
+1. `src/lib/ai-memory.ts`: Header comment updated from "MEMORIX IOT - AI Memory & Sync Service" to "MEMORIX — AI Memory Service"
+2. `src/lib/types.ts`: Added `AiMemoryCategory` type and `AiMemoryEntry` interface (imported by ai-memory.ts but previously missing)
+3. `src/hooks/use-ws.ts`: Deleted (broken import to non-existent `@/lib/websocket`)
+4. `src/app/api/testing/route.ts`: Deleted (broken import to non-existent `@/lib/testing`, IoT leftover)
+
+Note: `src/lib/ai-memory.ts` and `src/app/api/ai-memory/route.ts` reference `db.aiMemory` and `db.syncQueue` which don't exist in the Prisma schema — these are runtime errors (not import-level), flagged for awareness.
+
+---
+Task ID: 6
+Agent: Comprehensive QA Auditor
+Task: Full QA audit — typecheck, lint, broken imports, API routes, MCP build, security
+
+Work Log:
+- Ran TypeScript typecheck: 41 errors found
+- Ran ESLint: 0 errors, 0 warnings
+- Searched for broken IoT imports (PowerTab, HardwareTab, etc.): none found
+- Searched for broken module imports (@/lib/llm, @/lib/constants, @/hooks/use-toast, AgentName): none found
+- Checked all 31 API route files for import errors
+- Ran MCP server build: 3 errors
+- Verified .gitignore is comprehensive
+- Checked git history for .env commits: found in 4 historical commits (no real secrets, only dev defaults)
+- Verified dev server running and health endpoint responding with DB check
+- Identified 3 orphaned IoT files + 1 broken API route + 1 duplicate hook file
+- Checked status of previously identified bugs (BUG-01 through BUG-24, MCP-C1 through MCP-L2)
+
+Stage Summary:
+
+## EXECUTIVE SUMMARY
+
+The project has improved significantly since the initial audits. Several critical bugs have been fixed (uuid dependency, auth bypass, chat conversationId, session type augmentation, login/register pages, API client layer, health DB check). However, **4 orphaned IoT remnant files introduce 38 of 41 TypeScript errors**, the MCP server still has 3 build errors, and several IoT packages remain in dependencies. The production build (`next build`) will fail due to TypeScript errors.
+
+---
+
+## 1. TypeScript Type Check: 41 ERRORS ❌
+
+**Root Causes (3 categories):**
+
+### Category A: Orphaned IoT file `src/lib/ai-memory.ts` — 35 errors
+- **File**: `src/lib/ai-memory.ts` (615 lines)
+- **Issue**: References `db.aiMemory` and `db.syncQueue` which do NOT exist in `prisma/schema.prisma`. Also imports `AiMemoryCategory` and `AiMemoryEntry` from `./types` which are not exported by `src/lib/types.ts`. File header says "MEMORIX IOT".
+- **Impact**: This file cannot compile and will break `next build`.
+- **Fix**: Delete this file and its consumer `src/app/api/ai-memory/route.ts` (162 lines). These are IoT remnant code with no place in a memory SaaS. The main memory system uses `src/ai/memory.ts` + `src/ai/llm.ts`.
+
+### Category B: Orphaned IoT files with missing dependencies — 3 errors
+- `src/app/api/testing/route.ts` (2 errors): Imports `@/lib/testing` which does not exist. File header says "MEMORIX IOT". References IoT-specific actions (`generate_hardware`, `generate_firmware`, `verify_hardware`).
+- `src/hooks/use-ws.ts` (1 error): Imports `@/lib/websocket` which does not exist. WebSocket hook with no backend.
+- **Fix**: Delete both files. They are IoT remnants.
+
+### Category C: MCP Server build errors — 3 errors
+- `mcp-server/index.ts` line 438: `Property 'data' does not exist on type '{}'` (3 occurrences)
+- **Issue**: The `response.json()` return type is not properly typed. The code does `result?.data?.[0]?.embedding` but TypeScript can't infer the shape.
+- **Fix**: Add a type assertion: `const result = await response.json() as { data?: Array<{ embedding?: number[] }> }`
+
+---
+
+## 2. ESLint: 0 ERRORS, 0 WARNINGS ✅
+
+Clean lint pass.
+
+---
+
+## 3. Broken IoT Imports: NONE FOUND ✅
+
+No references to `PowerTab`, `HardwareTab`, `RobotBuilderTab`, `IoTTab`, `SensorTab`, or `DeviceTab` in the codebase.
+
+---
+
+## 4. Broken Imports to Non-Existent Modules: 3 FOUND ❌
+
+| File | Import | Status |
+|------|--------|--------|
+| `src/app/api/testing/route.ts:10-11` | `@/lib/testing` | **Module does not exist** |
+| `src/hooks/use-ws.ts:4` | `@/lib/websocket` | **Module does not exist** |
+| `src/app/api/ai-memory/route.ts:9` | `@/lib/ai-memory` | Module exists but **references non-existent Prisma models** |
+
+---
+
+## 5. API Routes Audit: 31 ROUTES, 2 BROKEN ❌
+
+### Working Routes (29):
+All properly authenticate with `getServerSession(authOptions)`, use `db` from `@/lib/db`, and have proper error handling:
+- `auth/[...nextauth]`, `auth/register`
+- `notes`, `notes/[id]`, `notes/[id]/backlinks`
+- `chat`, `chat/[conversationId]`
+- `search`, `memory`, `memory/patterns`, `memory/related/[noteId]`
+- `decisions`, `decisions/[id]`
+- `settings`, `api-keys`
+- `health` (unauthenticated, includes DB check ✅)
+- `daily-notes`, `daily-notes/[date]` ✅ NEW
+- `templates`, `templates/[id]` ✅ NEW
+- `favorites`, `favorites/[noteId]` ✅ NEW
+- `canvas`, `canvas/[id]` ✅ NEW
+- `graph` ✅ NEW
+- `wiki-links` ✅ NEW
+- `smart-tags` ✅ NEW
+- `llm/chat` ✅ NEW (streaming + non-streaming)
+
+### Broken Routes (2):
+- **`api/testing/route.ts`**: Imports non-existent `@/lib/testing`. Returns 500 at runtime. IoT remnant.
+- **`api/ai-memory/route.ts`**: Imports broken `@/lib/ai-memory`. Returns 500 at runtime. IoT remnant.
+
+### Security Issue:
+- **`api/route.ts` (root `/api/`)**: No authentication. Exposes system stats (total users, notes, conversations, decisions). Should either require auth or be removed.
+
+---
+
+## 6. MCP Server Build: 3 ERRORS ❌
+
+```
+mcp-server/index.ts(438,21): error TS2339: Property 'data' does not exist on type '{}'.
+mcp-server/index.ts(438,66): error TS2339: Property 'data' does not exist on type '{}'.
+mcp-server/index.ts(439,25): error TS2339: Property 'data' does not exist on type '{}'.
+```
+
+**Fix**: Add type assertion on `response.json()` result.
+
+---
+
+## 7. .gitignore: COMPREHENSIVE ✅
+
+Covers: `.env*`, `node_modules`, `.next`, DB files, logs, OS files, security files (`.pem`, `.key`, `.cert`), IDE, AI config, etc.
+
+---
+
+## 8. Credentials in Repo: LOW RISK ⚠️
+
+- `.env` was committed in 4 historical commits (8625646, 80d1863, 913d301, 2b04df6)
+- Content is only dev defaults: `DATABASE_URL`, `NEXTAUTH_SECRET=dev-secret-change-in-production`, empty API keys
+- **No real secrets** were exposed, but the dev secret is in history
+- **Recommendation**: Use `git filter-repo` or BFG to scrub `.env` from history. Rotate `NEXTAUTH_SECRET` in production.
+
+---
+
+## 9. Dev Server: RUNNING ✅
+
+Dev server responds at `http://localhost:3000`.
+
+---
+
+## 10. API Health Endpoint: WORKING ✅
+
+```json
+{"success":true,"data":{"status":"ok","timestamp":"2026-06-05T12:38:14.439Z","version":"1.0.0","db":"ok"}}
+```
+
+Now includes database connectivity check (`"db":"ok"`). Previously identified BUG-15 is FIXED.
+
+---
+
+## ADDITIONAL FINDINGS
+
+### IoT Remnant Files to Delete (4 files, 1,237 lines of dead code)
+
+| File | Lines | Issue |
+|------|-------|-------|
+| `src/lib/ai-memory.ts` | 615 | References non-existent Prisma models (`aiMemory`, `syncQueue`). Header: "MEMORIX IOT" |
+| `src/app/api/testing/route.ts` | 416 | Imports non-existent `@/lib/testing`. IoT testing with hardware/firmware actions |
+| `src/hooks/use-ws.ts` | 44 | Imports non-existent `@/lib/websocket`. WebSocket hook with no backend |
+| `src/app/api/ai-memory/route.ts` | 162 | Depends on broken `@/lib/ai-memory` |
+
+### IoT Remnants in Test Files
+
+- `src/lib/__tests__/env.test.ts`: Tests for `HARDWARE_BRIDGE_MODE` env var (not in current `env.ts` schema — will fail)
+- `src/lib/__tests__/store.test.ts`: Tests for IoT tabs (`hardware`, `telemetry`, `missions`, `agents`, `power`) and `onlineDevices` state (not in current store)
+
+### IoT Dependencies in package.json (should be removed)
+
+| Package | Version | Issue |
+|---------|---------|-------|
+| `serialport` | ^13.0.0 | Hardware serial port communication — NOT needed for SaaS |
+| `spi-device` | ^3.1.2 | SPI device communication — NOT needed for SaaS |
+| `@capacitor/cli` | ^8.3.4 | Mobile app framework — should be devDependency if needed |
+| `@capacitor/core` | ^8.3.4 | Mobile app runtime — should be devDependency if needed |
+
+### Packages in Wrong Section (dependencies → devDependencies)
+
+| Package | Current | Should Be |
+|---------|---------|-----------|
+| `@playwright/test` | dependencies | devDependencies |
+| `puppeteer` | dependencies | devDependencies |
+| `jsdom` | dependencies | devDependencies |
+| `@vitejs/plugin-react` | dependencies | devDependencies |
+| `prisma` | dependencies | devDependencies |
+
+### Duplicate Files
+
+| File | Size | Orphan |
+|------|------|--------|
+| `src/hooks/use-toast.ts` | 4,367 bytes | ✅ Orphan (nothing imports from `@/hooks/use-toast`) |
+| `src/lib/hooks/use-toast.ts` | 4,367 bytes | ✅ Active (imported by `src/components/ui/toaster.tsx`) |
+
+---
+
+## PREVIOUS AUDIT BUG STATUS TRACKER
+
+### Previously CRITICAL — Now FIXED ✅
+| Bug | Status | Evidence |
+|-----|--------|----------|
+| BUG-01: `uuid` missing | ✅ FIXED | `uuid: ^14.0.0` in package.json dependencies |
+| BUG-02: Frontend disconnected | ✅ PARTIALLY FIXED | `src/lib/api.ts` created, imported by 15 components |
+| BUG-03: Chat no conversationId | ✅ FIXED | `chat/route.ts` creates conversation first, returns `conversationId` |
+| BUG-04: Settings leaks apiKey | ✅ FIXED | Separate `keyCheck` query, raw key never in response |
+| BUG-05: Auth bypass | ✅ FIXED | Demo bypass removed, `bcrypt.compare()` required for all users |
+| BUG-15: Health no DB check | ✅ FIXED | Health endpoint returns `"db":"ok"` |
+| BUG-20: No API key auth | ✅ FIXED | `validateApiKey()` function exists in `auth.ts` with overloads |
+| MCP-C2: bin points to .ts | ✅ FIXED | `bin` now points to `./mcp-server/cli.js` |
+| MCP-C3: No build step | ✅ FIXED | `tsconfig.build.json` created, `mcp:build` script added |
+| MCP-H1: No `files` field | ✅ FIXED | `files` field added to package.json |
+| MCP-L1: No prepublishOnly | ✅ FIXED | `prepublishOnly: npm run mcp:build` added |
+
+### Previously CRITICAL — Still OPEN ❌
+| Bug | Status | Notes |
+|-----|--------|-------|
+| MCP-C1: Schema divergence | ❌ OPEN | MCP server still has separate schema |
+| MCP-C4: Docker exposes port | ❌ OPEN | Port 4000 still exposed for stdio-only server |
+| MCP-C5: MCP chat no LLM | ❌ OPEN | MCP chat still uses keyword matching only |
+
+### Previously HIGH — Still OPEN ❌
+| Bug | Status | Notes |
+|-----|--------|-------|
+| BUG-06: Duplicate rate limiting | ❌ OPEN | Both `middleware.ts` and `lib/rate-limit.ts` still exist |
+| BUG-07: Embedding dimension mismatch | ❌ OPEN | 768 in code, env validates as string '768' |
+| BUG-08: storeMemory race condition | ❌ OPEN | No transaction wrapper |
+| BUG-09: findRelatedNotes N+1 | ❌ OPEN | Still loads all embeddings per call |
+| BUG-10: Missing input validation | ⚠️ PARTIAL | Some routes now use Zod (chat, canvas, favorites, wiki-links, settings, llm/chat), but daily-notes, templates, smart-tags still lack validation |
+| BUG-11: env.ts not imported | ❌ OPEN | Most files still use `process.env` directly |
+| BUG-12: api-utils.ts dead code | ❌ OPEN | Still not used by any route |
+| MCP-H3: uuid missing | ✅ FIXED | uuid ^14.0.0 in dependencies |
+| MCP-H4: Shebang uses bun | ❌ OPEN | Source .ts still uses `#!/usr/bin/env bun` |
+| MCP-H5: Auth is no-op | ❌ OPEN | Still checks env var only, not per-request |
+| MCP-H6: No userId in MCP | ❌ OPEN | MCP Note model still has no userId |
+
+### New Issues Found in This Audit
+
+| ID | Severity | File | Issue | Fix |
+|----|----------|------|-------|-----|
+| QA-01 | CRITICAL | `src/lib/ai-memory.ts` | 35 TS errors — references non-existent Prisma models `aiMemory`, `syncQueue` | Delete file (IoT remnant) |
+| QA-02 | CRITICAL | `src/app/api/testing/route.ts` | 2 TS errors — imports non-existent `@/lib/testing` | Delete file (IoT remnant) |
+| QA-03 | HIGH | `src/hooks/use-ws.ts` | 1 TS error — imports non-existent `@/lib/websocket` | Delete file (IoT remnant) |
+| QA-04 | HIGH | `src/app/api/ai-memory/route.ts` | Depends on broken `ai-memory.ts` | Delete file (IoT remnant) |
+| QA-05 | HIGH | `src/app/api/route.ts` | No auth — exposes system stats (user count, etc.) | Add auth check or remove endpoint |
+| QA-06 | MEDIUM | `package.json` | `serialport`, `spi-device` in dependencies — IoT hardware packages | Remove from dependencies |
+| QA-07 | MEDIUM | `package.json` | `@playwright/test`, `puppeteer`, `jsdom`, `@vitejs/plugin-react`, `prisma` in dependencies instead of devDependencies | Move to devDependencies |
+| QA-08 | MEDIUM | `src/hooks/use-toast.ts` | Duplicate of `src/lib/hooks/use-toast.ts`, not imported by anything | Delete file |
+| QA-09 | MEDIUM | `src/lib/__tests__/env.test.ts` | Tests `HARDWARE_BRIDGE_MODE` which doesn't exist in `env.ts` | Fix or delete test |
+| QA-10 | MEDIUM | `src/lib/__tests__/store.test.ts` | Tests IoT store tabs (`hardware`, `telemetry`, etc.) that don't exist | Fix or delete test |
+| QA-11 | LOW | `mcp-server/index.ts:438` | 3 TS errors — `response.json()` not typed | Add type assertion |
+| QA-12 | LOW | `.env` in git history | Dev secrets in 4 historical commits | Scrub with git filter-repo |
+
+---
+
+## RECOMMENDED ACTIONS (Priority Order)
+
+1. **Delete 4 orphaned IoT files** → Eliminates 38 of 41 TS errors immediately:
+   - `rm src/lib/ai-memory.ts src/app/api/testing/route.ts src/hooks/use-ws.ts src/app/api/ai-memory/route.ts`
+
+2. **Fix MCP server type error** → Eliminates remaining 3 TS errors:
+   - In `mcp-server/index.ts:438`, add type assertion to `response.json()`
+
+3. **After steps 1-2, re-run `npx tsc --noEmit`** → Should reach 0 errors
+
+4. **Remove IoT packages** from `package.json`:
+   - Remove `serialport`, `spi-device`
+   - Move `@playwright/test`, `puppeteer`, `jsdom`, `@vitejs/plugin-react`, `prisma` to devDependencies
+
+5. **Delete duplicate `src/hooks/use-toast.ts`** and fix stale test files
+
+6. **Add auth to `src/app/api/route.ts`** or document it as intentionally public
+
+7. **Scrub `.env` from git history** with `git filter-repo`

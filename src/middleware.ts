@@ -6,16 +6,16 @@ const rateLimitStore = new Map<string, { count: number; resetAt: number }>()
 
 // Rate limit configuration per route prefix
 const RATE_LIMITS: Record<string, { maxRequests: number; windowMs: number }> = {
-  '/api/chat': { maxRequests: 20, windowMs: 60000 },     // 20 req/min for AI chat
-  '/api/memory': { maxRequests: 30, windowMs: 60000 },    // 30 req/min for memory ops
-  '/api/notes': { maxRequests: 30, windowMs: 60000 },     // 30 req/min for note ops
-  '/api/search': { maxRequests: 30, windowMs: 60000 },    // 30 req/min for search
-  '/api/auth': { maxRequests: 10, windowMs: 60000 },      // 10 req/min for auth
-  '/api': { maxRequests: 60, windowMs: 60000 },           // 60 req/min default
+  '/api/chat': { maxRequests: 20, windowMs: 60000 },
+  '/api/llm': { maxRequests: 20, windowMs: 60000 },
+  '/api/memory': { maxRequests: 30, windowMs: 60000 },
+  '/api/notes': { maxRequests: 30, windowMs: 60000 },
+  '/api/search': { maxRequests: 30, windowMs: 60000 },
+  '/api/auth': { maxRequests: 10, windowMs: 60000 },
+  '/api': { maxRequests: 60, windowMs: 60000 },
 }
 
 function getRateLimitConfig(pathname: string) {
-  // Find the most specific matching prefix
   const matches = Object.keys(RATE_LIMITS)
     .filter((prefix) => pathname.startsWith(prefix))
     .sort((a, b) => b.length - a.length)
@@ -24,7 +24,7 @@ function getRateLimitConfig(pathname: string) {
     return RATE_LIMITS[matches[0]]
   }
 
-  return { maxRequests: 60, windowMs: 60000 } // fallback default
+  return { maxRequests: 60, windowMs: 60000 }
 }
 
 function checkRateLimit(key: string, config: { maxRequests: number; windowMs: number }) {
@@ -47,7 +47,7 @@ function checkRateLimit(key: string, config: { maxRequests: number; windowMs: nu
 }
 
 // Periodic cleanup of expired rate limit entries
-const CLEANUP_INTERVAL = 5 * 60 * 1000 // 5 minutes
+const CLEANUP_INTERVAL = 5 * 60 * 1000
 let lastCleanup = Date.now()
 
 function cleanupRateLimits() {
@@ -72,10 +72,13 @@ const SECURITY_HEADERS: Record<string, string> = {
   'X-DNS-Prefetch-Control': 'on',
 }
 
-// Content Security Policy
+// Content Security Policy — production-safe
+const isDev = process.env.NODE_ENV === 'development'
 const CSP_HEADER = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // unsafe-inline/eval needed for Next.js dev
+  isDev
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
@@ -85,34 +88,13 @@ const CSP_HEADER = [
   "form-action 'self'",
 ].join('; ')
 
-// CORS headers for MCP-related routes
-const MCP_CORS_HEADERS: Record<string, string> = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
-  'Access-Control-Max-Age': '86400', // 24 hours
-}
-
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-
-  // Handle CORS preflight for MCP routes
-  if (pathname.startsWith('/api/mcp') && request.method === 'OPTIONS') {
-    return new NextResponse(null, {
-      status: 204,
-      headers: {
-        ...MCP_CORS_HEADERS,
-        ...SECURITY_HEADERS,
-        'Content-Security-Policy': CSP_HEADER,
-      },
-    })
-  }
 
   // Rate limiting for API routes
   let rateLimitHeaders: Record<string, string> = {}
   if (pathname.startsWith('/api/')) {
     const config = getRateLimitConfig(pathname)
-    // Use IP-based key (fallback to a generic key if IP not available)
     const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
       || request.headers.get('x-real-ip')
       || 'unknown'
@@ -126,7 +108,6 @@ export function middleware(request: NextRequest) {
       'X-RateLimit-Reset': String(Math.ceil(result.resetAt / 1000)),
     }
 
-    // Cleanup expired entries periodically
     cleanupRateLimits()
 
     if (!result.allowed) {
@@ -159,14 +140,7 @@ export function middleware(request: NextRequest) {
     response.headers.set(key, value)
   }
 
-  // Apply CORS headers for MCP routes
-  if (pathname.startsWith('/api/mcp')) {
-    for (const [key, value] of Object.entries(MCP_CORS_HEADERS)) {
-      response.headers.set(key, value)
-    }
-  }
-
-  // Remove X-Powered-By header (also configured in next.config.ts)
+  // Remove X-Powered-By header
   response.headers.delete('X-Powered-By')
 
   return response
@@ -174,13 +148,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (images, etc.)
-     */
     '/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

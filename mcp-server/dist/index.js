@@ -215,8 +215,21 @@ const prisma = new client_1.PrismaClient({
 let authenticatedUserId = null;
 let authenticatedApiKeyId = null;
 /**
+ * Check if the --allow-open flag was passed via command line arguments.
+ * This flag explicitly opts in to open (unauthenticated) mode.
+ */
+function hasAllowOpenFlag() {
+    return process.argv.includes("--allow-open");
+}
+/**
  * Validate the API key from the MEMORIX_API_KEY environment variable
  * against the ApiKey table in the database.
+ *
+ * Security behavior:
+ * - If MEMORIX_API_KEY is set: validate against the ApiKey table in the database
+ * - If MEMORIX_API_KEY is NOT set AND NODE_ENV is "production": REFUSE to start
+ * - If MEMORIX_API_KEY is NOT set AND NODE_ENV is not "production": allow open mode
+ *   with a clear WARNING (requires --allow-open flag for explicit opt-in)
  *
  * - Looks up the key in the database
  * - Sets the authenticated user ID for all subsequent operations
@@ -225,15 +238,37 @@ let authenticatedApiKeyId = null;
  */
 async function validateAndAuthenticate() {
     const apiKey = process.env.MEMORIX_API_KEY;
-    // If no API key is configured, check for open mode (development)
+    const isProduction = process.env.NODE_ENV === "production";
+    const allowOpen = hasAllowOpenFlag();
+    // If no API key is configured, enforce security policies
     if (!apiKey) {
-        // In open mode, try to use the first user as default
+        // PRODUCTION: Refuse to start without an API key
+        if (isProduction) {
+            log("FATAL: MEMORIX_API_KEY is not set and NODE_ENV is 'production'.");
+            log("  The MCP server REFUSES to run in open mode in production.");
+            log("  Set the MEMORIX_API_KEY environment variable to a valid API key.");
+            return false;
+        }
+        // DEVELOPMENT: Require --allow-open flag for explicit opt-in
+        if (!allowOpen) {
+            log("ERROR: MEMORIX_API_KEY is not set and --allow-open flag is not provided.");
+            log("  In development mode, you must explicitly opt in to open (unauthenticated)");
+            log("  mode by passing the --allow-open flag:");
+            log("    bun run mcp-server/index.ts --allow-open");
+            log("  WARNING: Open mode grants access to the first user's data without authentication.");
+            log("  Never use --allow-open in production!");
+            return false;
+        }
+        // Open mode with explicit opt-in (development only)
+        log("⚠️  WARNING: Running in OPEN MODE (no MEMORIX_API_KEY set, --allow-open flag provided).");
+        log("  This grants unauthenticated access to the first user's data.");
+        log("  NEVER use this in production!");
         const firstUser = await prisma.user.findFirst({
             orderBy: { createdAt: "asc" },
         });
         if (firstUser) {
             authenticatedUserId = firstUser.id;
-            log("Running in open mode (no MEMORIX_API_KEY set) — using first user");
+            log("Running in open mode — using first user");
             return true;
         }
         log("ERROR: No users in database and no MEMORIX_API_KEY set");
@@ -278,6 +313,168 @@ function requireUserId() {
         };
     }
     return authenticatedUserId;
+}
+// ---------------------------------------------------------------------------
+// Vector Search — uses NoteChunk embeddings for semantic search
+// ---------------------------------------------------------------------------
+const DEFAULT_DIMENSIONS = parseInt(process.env.EMBEDDING_DIMENSION || "768");
+/**
+ * Generate a pseudo-embedding for vector search in the MCP server.
+ * Uses the same n-gram hashing approach as the main app's embedder
+ * to ensure compatibility with stored embeddings.
+ */
+function generateMcpPseudoEmbedding(text, dimensions = DEFAULT_DIMENSIONS) {
+    const embedding = new Float64Array(dimensions);
+    const normalizedText = text.toLowerCase().trim();
+    const ngramSizes = [3, 4, 5, 6];
+    function hashStr(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash + char) | 0;
+        }
+        return hash;
+    }
+    for (const ngramSize of ngramSizes) {
+        for (let i = 0; i <= normalizedText.length - ngramSize; i++) {
+            const ngram = normalizedText.slice(i, i + ngramSize);
+            const h = hashStr(ngram);
+            const idx1 = Math.abs(h) % dimensions;
+            const idx2 = Math.abs(hashStr(ngram + ':v2')) % dimensions;
+            const sign = h >= 0 ? 1 : -1;
+            embedding[idx1] += sign * 0.1;
+            embedding[idx2] += sign * 0.05;
+        }
+    }
+    const words = normalizedText.split(/\s+/).filter((w) => w.length > 1);
+    for (const word of words) {
+        const h = hashStr(word);
+        const idx = Math.abs(h) % dimensions;
+        const sign = h >= 0 ? 1 : -1;
+        embedding[idx] += sign * 0.15;
+    }
+    const globalHash = hashStr(normalizedText);
+    for (let i = 0; i < dimensions; i++) {
+        const seed = i * 31 + 7;
+        const h = hashStr(`${seed}:${normalizedText}`);
+        embedding[i] += (h % 10000) / 10000 * 0.01;
+    }
+    const magnitude = Math.sqrt(embedding.reduce((sum, v) => sum + v * v, 0));
+    const result = new Array(dimensions);
+    if (magnitude > 0) {
+        for (let i = 0; i < dimensions; i++) {
+            result[i] = embedding[i] / magnitude;
+        }
+    }
+    else {
+        for (let i = 0; i < dimensions; i++) {
+            result[i] = 0;
+        }
+    }
+    return result;
+}
+/**
+ * Generate embedding for a query — tries external API first, falls back to pseudo-embedding.
+ */
+async function generateMcpEmbedding(text) {
+    const embeddingApiUrl = process.env.EMBEDDING_API_URL;
+    const embeddingApiKey = process.env.EMBEDDING_API_KEY;
+    if (embeddingApiUrl) {
+        try {
+            const headers = { "Content-Type": "application/json" };
+            if (embeddingApiKey)
+                headers["Authorization"] = `Bearer ${embeddingApiKey}`;
+            const response = await fetch(embeddingApiUrl, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({
+                    input: text,
+                    model: process.env.EMBEDDING_MODEL ?? "nomic-embed-text",
+                    dimensions: DEFAULT_DIMENSIONS,
+                }),
+            });
+            if (response.ok) {
+                const result = await response.json();
+                if (result?.data?.[0]?.embedding && Array.isArray(result.data[0].embedding)) {
+                    return result.data[0].embedding;
+                }
+            }
+        }
+        catch {
+            // Fall through to pseudo-embedding
+        }
+    }
+    return generateMcpPseudoEmbedding(text, DEFAULT_DIMENSIONS);
+}
+/**
+ * Cosine similarity between two vectors.
+ */
+function cosineSimilarity(a, b) {
+    if (a.length !== b.length || a.length === 0)
+        return 0;
+    const dot = a.reduce((sum, ai, i) => sum + ai * b[i], 0);
+    const magA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
+    const magB = Math.sqrt(b.reduce((sum, bi) => sum + bi * bi, 0));
+    if (magA === 0 || magB === 0)
+        return 0;
+    return dot / (magA * magB);
+}
+/**
+ * Perform vector search using NoteChunk embeddings stored by the main app.
+ * Returns results sorted by cosine similarity.
+ */
+async function vectorSearch(queryEmbedding, userId, limit) {
+    if (queryEmbedding.length === 0)
+        return [];
+    // Load all chunks for the user
+    const chunks = await prisma.noteChunk.findMany({
+        where: {
+            note: { userId },
+        },
+        include: {
+            note: { select: { title: true } },
+        },
+        take: 1000, // Cap for performance
+    });
+    if (chunks.length === 0)
+        return [];
+    // Score each chunk
+    const scored = [];
+    for (const chunk of chunks) {
+        try {
+            const chunkEmbedding = JSON.parse(chunk.embedding);
+            if (!Array.isArray(chunkEmbedding) || chunkEmbedding.length === 0)
+                continue;
+            const score = cosineSimilarity(queryEmbedding, chunkEmbedding);
+            if (score > 0.1) { // Minimum similarity threshold
+                scored.push({
+                    noteId: chunk.noteId,
+                    title: chunk.note.title,
+                    content: chunk.content,
+                    score,
+                });
+            }
+        }
+        catch {
+            // Skip malformed embeddings
+        }
+    }
+    // Group by note, keeping the highest-scoring chunk per note
+    const bestByNote = new Map();
+    for (const item of scored) {
+        const existing = bestByNote.get(item.noteId);
+        if (!existing || item.score > existing.score) {
+            bestByNote.set(item.noteId, item);
+        }
+    }
+    return Array.from(bestByNote.values())
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit)
+        .map((r) => ({
+        ...r,
+        content: r.content.slice(0, 500) + (r.content.length > 500 ? "..." : ""),
+        score: Math.round(r.score * 1000) / 1000,
+    }));
 }
 // ---------------------------------------------------------------------------
 // Utility Functions
@@ -499,21 +696,27 @@ async function toolSearch(params) {
     if (!query.trim()) {
         throw { code: RPC_ERROR.INVALID_PARAMS, message: "Query cannot be empty" };
     }
-    // Fetch user's notes for scoring (scoped to authenticated user)
+    // Step 1: Try vector-based search using NoteChunk embeddings
+    // This uses the same embeddings stored by the main app's memory engine
+    const queryEmbeddingResult = await generateMcpEmbedding(query);
+    const vectorResults = await vectorSearch(queryEmbeddingResult, userId, limit);
+    if (vectorResults.length > 0) {
+        return { results: vectorResults, searchType: "vector" };
+    }
+    // Step 2: Fallback to keyword-based search
     const allNotes = await prisma.note.findMany({
         where: {
             userId,
             isArchived: false,
         },
         orderBy: { createdAt: "desc" },
-        take: 500, // Cap to avoid memory issues
+        take: 500,
     });
     const scored = allNotes.map((note) => {
         const tags = parseTags(note.tags);
         const score = computeRelevanceScore(query, note.title, note.content, tags);
         return { note, score };
     });
-    // Filter to only include results with some relevance
     const results = scored
         .filter((r) => r.score > 0)
         .sort((a, b) => b.score - a.score)
@@ -521,10 +724,10 @@ async function toolSearch(params) {
         .map((r) => ({
         noteId: r.note.id,
         title: r.note.title,
-        content: r.note.content,
+        content: r.note.content.slice(0, 500) + (r.note.content.length > 500 ? "..." : ""),
         score: Math.round(r.score * 1000) / 1000,
     }));
-    return { results };
+    return { results, searchType: "keyword" };
 }
 async function toolAddNote(params) {
     const userId = requireUserId();

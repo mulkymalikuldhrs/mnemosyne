@@ -1,10 +1,9 @@
 // ============================================================
-// MEMORIX IOT - AI Memory & Sync Service
+// MEMORIX — AI Memory Service
 // Offline-first memory for AI agents, sync when online
 //
-// Improvements over stub version:
-//   - syncToCloud() now actually POSTs data to a configurable
-//     cloud endpoint instead of just marking entries as synced
+// Features:
+//   - syncToCloud() POSTs data to a configurable cloud endpoint
 //   - Retry logic with exponential backoff for failed syncs
 //   - Batch sync for efficiency (sends entries in batches)
 //   - Conflict resolution: last-write-wins with timestamp

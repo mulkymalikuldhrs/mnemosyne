@@ -235,3 +235,39 @@ model WikiLink {
   @@index([sourceNoteId])
   @@index([targetNoteId])
 }
+
+// ─── AI Memory Service Models ───
+
+model AiMemory {
+  id          String   @id @default(cuid())
+  category    String   // conversation | decision | learning | pattern | preference
+  key         String
+  value       String   // JSON-serialized value
+  context     String?
+  confidence  Float    @default(1.0)
+  accessCount Int      @default(0)
+  isSynced    Boolean  @default(false)
+  projectId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  accessedAt  DateTime @default(now())
+
+  @@index([category])
+  @@index([key])
+  @@index([isSynced])
+}
+
+model SyncQueue {
+  id          String    @id @default(cuid())
+  entityType  String    // ai_memory, note, etc.
+  entityId    String
+  action      String    // create | update | delete
+  data        String    // JSON-serialized entity data
+  status      String    @default("pending") // pending | synced | failed
+  attempts    Int       @default(0)
+  syncedAt    DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([entityType, status])
+  @@index([status])
+}
