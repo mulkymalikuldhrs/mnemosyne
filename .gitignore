@@ -26,6 +26,7 @@ node_modules/
 # Environment & secrets (NEVER commit these)
 .env
 .env.local
+.env.development
 .env.*.local
 .env*.local
 .env.*
@@ -126,3 +127,12 @@ capacitor.config.ts
 
 # Prisma generated (regenerated on build)
 prisma/prisma-client/
+
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Replit
+.replit
