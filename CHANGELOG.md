@@ -5,6 +5,85 @@ All notable changes to **Memorix AI Memory** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] — 2026-06-07
+
+### Added
+
+#### Universal AI/Human Memory Hub
+- **Cloud Storage Hub** — Multi-cloud storage integration (Google Drive, TeraBox, S3-compatible, Dropbox, OneDrive, Local filesystem)
+- **Email Hub** — Email integration (Gmail API, IMAP/SMTP, Outlook) with AI-powered summaries
+- **Composio MCP Integration** — 250+ service connectors via Composio managed MCP servers
+- **Temporal Knowledge Graph** — Entity-relationship memory with time-travel queries (validFrom/validTo)
+- **Agent Hub** — AI agent profiles with MCP access, system prompts, and capability management
+- **SaaS/IaaS Subscription** — Plan-based billing (Free/Pro/Enterprise/IaaS) with Stripe integration
+
+#### Multi-Cloud Storage
+- Abstract `CloudStorageProviderInterface` with 8 standard methods
+- Google Drive adapter with OAuth2, pagination, rate limiting, multipart upload
+- TeraBox adapter with cookie-based auth (best-effort, documented limitations)
+- S3-compatible adapter (AWS S3, MinIO, Cloudflare R2) with AWS Signature V4
+- Local filesystem adapter for self-hosted/IaaS deployments
+- `StorageManager` orchestrator with account sync, file ingestion, cross-provider search
+- Smart ingestion pipeline: download → text extraction → create Note → chunk → embed
+
+#### Email Integration
+- `EmailProviderInterface` with 7 standard methods
+- Gmail REST API provider with OAuth2, token refresh, Base64URL MIME
+- IMAP/SMTP provider for any mail server (RFC 2822, RFC 2047)
+- `EmailManager` orchestrator with incremental sync, AI summarization
+- Email ingestion into memory (extract text → create Note → store chunks)
+- AI-powered email summaries via z-ai-web-dev-sdk
+
+#### Temporal Knowledge Graph
+- `MemoryEntity` model — people, projects, concepts, topics, organizations, tools, events
+- `MemoryRelation` model — typed edges with temporal validity (validFrom/validTo)
+- `TemporalSnapshot` model — point-in-time graph snapshots for time-travel queries
+- Graph rebuild from existing notes and decisions
+- Entity search, relation creation, time-travel API
+
+#### Agent Profiles
+- `AgentProfile` model with system prompts, capabilities, MCP access toggle
+- Agent CRUD API for creating/managing AI agent identities
+- MCP session management per agent profile
+- Active agent selection on User model
+
+#### PWA Support
+- Dynamic web app manifest with Memorix v3 branding
+- Service worker with three caching strategies (cache-first, network-first, stale-while-revalidate)
+- Background sync for offline note creation via IndexedDB
+- Push notification support
+- `usePWA()` hook with install prompt, update detection, online/offline status
+- PWA registration component with install banner, update banner, offline indicator
+
+#### API Routes (22 new endpoints)
+- `/api/storage/*` — 6 endpoints for cloud storage management
+- `/api/email/*` — 7 endpoints for email integration
+- `/api/integrations/*` — 2 endpoints for Composio/custom integrations
+- `/api/entities/*` — 3 endpoints for temporal knowledge graph
+- `/api/graph/temporal` — 1 endpoint for time-travel queries
+- `/api/agents/*` — 2 endpoints for agent profiles
+- `/api/subscription` — 1 endpoint for SaaS billing
+
+#### Dashboard Views (5 new sections)
+- **Storage Hub** — Cloud account cards, file browser, sync, ingest-to-memory
+- **Email Hub** — Account management, message list, AI summary, ingest
+- **Integrations** — Connected services with enable/disable toggles
+- **Temporal Graph** — Entity list with type badges, time-travel slider, graph visualization
+- **Agent Hub** — Agent profiles with system prompt editor, MCP access toggle
+
+### Changed
+- **Version bumped from 2.0.0 to 3.0.0**
+- Renamed from "Personal AI Memory Infrastructure" to "Universal AI/Human Memory Hub"
+- Expanded Prisma schema from 16 to 25+ models
+- Expanded API routes from 20+ to 42+ endpoints
+- Expanded dashboard from 11 to 16 sections
+- Updated sidebar navigation with 5 new sections
+- Updated Zustand store with new active section types
+- Updated API utility with 18 new methods
+- Updated description and keywords in package.json
+
+---
+
 ## [2.0.0] — 2025-03-04
 
 ### Added

@@ -32,6 +32,29 @@ import {
   Network,
   Calendar,
   LayoutGrid,
+  // v3.0.0 icons
+  Cloud,
+  Mail,
+  Puzzle,
+  History,
+  Bot,
+  Download,
+  RefreshCw,
+  Inbox,
+  ToggleLeft,
+  ToggleRight,
+  SlidersHorizontal,
+  Edit3,
+  Save,
+  X,
+  HardDrive,
+  Globe,
+  Database,
+  Zap,
+  Eye,
+  ChevronDown,
+  Send,
+  FileSearch,
 } from 'lucide-react'
 import { AppLayout } from '@/components/layout/app-layout'
 import { NotesList } from '@/components/notes/notes-list'
@@ -53,6 +76,23 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
+import { Slider } from '@/components/ui/slider'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -121,7 +161,6 @@ function DashboardView() {
   const [conversationCount, setConversationCount] = useState(0)
   const [patternCount, setPatternCount] = useState(0)
 
-  // Fetch notes and decisions on mount
   useEffect(() => {
     const fetchData = async () => {
       setNotesLoading(true)
@@ -197,8 +236,8 @@ function DashboardView() {
               <Brain className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold">Welcome to Memorix</h1>
-              <p className="text-sm text-muted-foreground">Your AI-powered memory infrastructure — better than Obsidian</p>
+              <h1 className="text-xl md:text-2xl font-bold">Welcome to Memorix v3</h1>
+              <p className="text-sm text-muted-foreground">Universal AI/Human Memory Hub — storage, email, integrations & more</p>
             </div>
           </div>
           <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
@@ -265,6 +304,39 @@ function DashboardView() {
                 <feature.icon className="w-6 h-6 mx-auto mb-2 text-primary" />
                 <p className="text-sm font-medium">{feature.label}</p>
                 <p className="text-[10px] text-muted-foreground">{feature.desc}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* v3.0.0 Feature Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {[
+          { icon: Cloud, label: 'Storage Hub', section: 'storage' as const, desc: 'Cloud files & sync' },
+          { icon: Mail, label: 'Email Hub', section: 'email' as const, desc: 'Ingest emails' },
+          { icon: Puzzle, label: 'Integrations', section: 'integrations' as const, desc: 'Connected services' },
+          { icon: History, label: 'Temporal Graph', section: 'temporal' as const, desc: 'Time-travel graph' },
+          { icon: Bot, label: 'Agent Hub', section: 'agents' as const, desc: 'AI agent profiles' },
+        ].map((feature) => (
+          <motion.div
+            key={feature.label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ y: -2 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Card
+              className="cursor-pointer hover:shadow-md hover:border-primary/30 transition-all border-primary/20 bg-gradient-to-br from-primary/5 to-transparent"
+              onClick={() => setActiveSection(feature.section)}
+            >
+              <CardContent className="p-4 text-center">
+                <div className="w-8 h-8 mx-auto mb-2 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <feature.icon className="w-4 h-4 text-primary" />
+                </div>
+                <p className="text-sm font-medium">{feature.label}</p>
+                <p className="text-[10px] text-muted-foreground">{feature.desc}</p>
+                <Badge variant="secondary" className="text-[8px] mt-1 h-4">NEW</Badge>
               </CardContent>
             </Card>
           </motion.div>
@@ -367,6 +439,1378 @@ function TemplatesFullView() {
   return <TemplatesView />
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── v3.0.0 — Storage Hub View ────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const STORAGE_PROVIDERS = [
+  { value: 'google_drive', label: 'Google Drive', icon: '📁' },
+  { value: 's3', label: 'Amazon S3', icon: '☁️' },
+  { value: 'terabox', label: 'TeraBox', icon: '📦' },
+  { value: 'dropbox', label: 'Dropbox', icon: '💼' },
+  { value: 'onedrive', label: 'OneDrive', icon: '🔷' },
+  { value: 'local', label: 'Local Storage', icon: '🖥️' },
+]
+
+function StorageHubView() {
+  const [accounts, setAccounts] = useState<any[]>([])
+  const [files, setFiles] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [syncingId, setSyncingId] = useState<string | null>(null)
+  const [ingestingId, setIngestingId] = useState<string | null>(null)
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [newProvider, setNewProvider] = useState('')
+  const [newName, setNewName] = useState('')
+  const [newToken, setNewToken] = useState('')
+  const [isAdding, setIsAdding] = useState(false)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        const [accRes, filesRes] = await Promise.all([
+          api.getStorageAccounts(),
+          api.getStorageFiles('limit=50'),
+        ])
+        if (accRes.success && accRes.data?.accounts) setAccounts(accRes.data.accounts)
+        if (filesRes.success && filesRes.data?.files) setFiles(filesRes.data.files)
+      } catch (err) {
+        console.error('Failed to fetch storage data:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  const handleSync = async (accountId: string) => {
+    setSyncingId(accountId)
+    try {
+      const res = await api.syncStorage(accountId)
+      if (res.success) {
+        toast.success('Sync started')
+        // Refresh files
+        const filesRes = await api.getStorageFiles('limit=50')
+        if (filesRes.success && filesRes.data?.files) setFiles(filesRes.data.files)
+        // Refresh accounts
+        const accRes = await api.getStorageAccounts()
+        if (accRes.success && accRes.data?.accounts) setAccounts(accRes.data.accounts)
+      } else {
+        toast.error(res.error || 'Sync failed')
+      }
+    } catch {
+      toast.error('Sync failed')
+    } finally {
+      setSyncingId(null)
+    }
+  }
+
+  const handleIngest = async (fileId: string) => {
+    setIngestingId(fileId)
+    try {
+      const res = await api.ingestStorageFile(fileId)
+      if (res.success) {
+        toast.success('File ingested to memory')
+        setFiles((prev) => prev.map((f) => f.id === fileId ? { ...f, isIngested: true } : f))
+      } else {
+        toast.error(res.error || 'Ingest failed')
+      }
+    } catch {
+      toast.error('Ingest failed')
+    } finally {
+      setIngestingId(null)
+    }
+  }
+
+  const handleAddAccount = async () => {
+    if (!newProvider || !newName.trim()) return
+    setIsAdding(true)
+    try {
+      const res = await api.addStorageAccount({
+        provider: newProvider,
+        name: newName.trim(),
+        accessToken: newToken || 'demo-token',
+      })
+      if (res.success && res.data) {
+        setAccounts((prev) => [...prev, res.data])
+        toast.success('Storage account connected')
+        setShowAddDialog(false)
+        setNewProvider('')
+        setNewName('')
+        setNewToken('')
+      } else {
+        toast.error(res.error || 'Failed to add storage account')
+      }
+    } catch {
+      toast.error('Failed to add storage account')
+    } finally {
+      setIsAdding(false)
+    }
+  }
+
+  const formatSize = (bytes: number) => {
+    if (bytes === 0) return '0 B'
+    const k = 1024
+    const sizes = ['B', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+  }
+
+  const getProviderEmoji = (provider: string) => {
+    return STORAGE_PROVIDERS.find((p) => p.value === provider)?.icon || '📁'
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-6xl mx-auto">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <Cloud className="w-5 h-5 text-primary" />
+            Storage Hub
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Browse and ingest cloud storage files into memory</p>
+        </div>
+        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <Plus className="w-4 h-4 mr-1.5" />
+              Add Storage
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Connect Storage</DialogTitle>
+              <DialogDescription>Link a cloud storage provider to browse and ingest files</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Provider</Label>
+                <Select value={newProvider} onValueChange={setNewProvider}>
+                  <SelectTrigger><SelectValue placeholder="Select provider" /></SelectTrigger>
+                  <SelectContent>
+                    {STORAGE_PROVIDERS.map((p) => (
+                      <SelectItem key={p.value} value={p.value}>
+                        {p.icon} {p.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Account Name</Label>
+                <Input placeholder="e.g., My Google Drive" value={newName} onChange={(e) => setNewName(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Access Token</Label>
+                <Input placeholder="OAuth token or API key" value={newToken} onChange={(e) => setNewToken(e.target.value)} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setShowAddDialog(false)}>Cancel</Button>
+              <Button size="sm" onClick={handleAddAccount} disabled={!newProvider || !newName.trim() || isAdding}>
+                {isAdding ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : null}
+                Connect
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Storage Accounts */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {accounts.length > 0 ? accounts.map((account, i) => (
+          <motion.div
+            key={account.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+          >
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{getProviderEmoji(account.provider)}</span>
+                    <div>
+                      <p className="text-sm font-medium">{account.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{account.provider}</p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className={cn(
+                    'text-[10px] h-5',
+                    account.isEnabled ? 'border-emerald-500/30 text-emerald-500' : 'border-muted-foreground/30 text-muted-foreground'
+                  )}>
+                    {account.isEnabled ? 'Active' : 'Disabled'}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-muted-foreground">
+                    {account.lastSyncedAt
+                      ? `Synced ${formatDistanceToNow(new Date(account.lastSyncedAt), { addSuffix: true })}`
+                      : 'Never synced'}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-[10px]"
+                    onClick={() => handleSync(account.id)}
+                    disabled={syncingId === account.id}
+                  >
+                    {syncingId === account.id ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-3 h-3 mr-1" />
+                    )}
+                    Sync
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )) : (
+          <Card className="border-dashed col-span-full">
+            <CardContent className="p-8 text-center">
+              <Cloud className="w-10 h-10 mx-auto mb-3 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">No storage accounts connected</p>
+              <p className="text-xs text-muted-foreground mt-1">Click &quot;Add Storage&quot; to connect your first cloud provider</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Files */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <FileSearch className="w-4 h-4" />
+            Files
+            {files.length > 0 && <Badge variant="secondary" className="text-[10px] h-5">{files.length}</Badge>}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {files.length > 0 ? (
+            <div className="space-y-1 max-h-96 overflow-y-auto">
+              {/* Header */}
+              <div className="grid grid-cols-12 gap-2 px-3 py-2 text-[10px] text-muted-foreground uppercase tracking-wider font-medium border-b border-border">
+                <div className="col-span-4">Name</div>
+                <div className="col-span-2">Type</div>
+                <div className="col-span-1">Size</div>
+                <div className="col-span-2">Provider</div>
+                <div className="col-span-1">Modified</div>
+                <div className="col-span-2 text-right">Actions</div>
+              </div>
+              {files.map((file, i) => (
+                <motion.div
+                  key={file.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: i * 0.02 }}
+                  className="grid grid-cols-12 gap-2 px-3 py-2.5 rounded-lg hover:bg-accent/30 transition-colors items-center border-b border-border/50 last:border-0"
+                >
+                  <div className="col-span-4 text-sm font-medium truncate">{file.name}</div>
+                  <div className="col-span-2">
+                    <Badge variant="outline" className="text-[10px] h-5">{file.mimeType?.split('/').pop() || 'file'}</Badge>
+                  </div>
+                  <div className="col-span-1 text-xs text-muted-foreground">{formatSize(file.size || 0)}</div>
+                  <div className="col-span-2 text-xs text-muted-foreground">{file.storageAccount?.provider || '—'}</div>
+                  <div className="col-span-1 text-[10px] text-muted-foreground">
+                    {file.lastModified ? formatDistanceToNow(new Date(file.lastModified), { addSuffix: true }) : '—'}
+                  </div>
+                  <div className="col-span-2 flex gap-1 justify-end">
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                      <Download className="w-3 h-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn("h-6 text-[10px] px-2", file.isIngested && "text-emerald-500")}
+                      onClick={() => handleIngest(file.id)}
+                      disabled={ingestingId === file.id || file.isIngested}
+                    >
+                      {ingestingId === file.id ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : file.isIngested ? (
+                        <CheckCircle2 className="w-3 h-3 mr-0.5" />
+                      ) : (
+                        <Brain className="w-3 h-3 mr-0.5" />
+                      )}
+                      {file.isIngested ? 'In Memory' : 'Ingest'}
+                    </Button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-8 text-center">
+              <HardDrive className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">No files found</p>
+              <p className="text-xs text-muted-foreground mt-1">Sync a storage account to browse files</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── v3.0.0 — Email Hub View ─────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const EMAIL_PROVIDERS = [
+  { value: 'gmail', label: 'Gmail', icon: '📧' },
+  { value: 'imap', label: 'IMAP', icon: '📬' },
+  { value: 'outlook', label: 'Outlook', icon: '📨' },
+]
+
+function EmailHubView() {
+  const [accounts, setAccounts] = useState<any[]>([])
+  const [messages, setMessages] = useState<any[]>([])
+  const [summary, setSummary] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [syncingId, setSyncingId] = useState<string | null>(null)
+  const [ingestingId, setIngestingId] = useState<string | null>(null)
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [newProvider, setNewProvider] = useState('')
+  const [newEmail, setNewEmail] = useState('')
+  const [newToken, setNewToken] = useState('')
+  const [isAdding, setIsAdding] = useState(false)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        const [accRes, msgRes, sumRes] = await Promise.all([
+          api.getEmailAccounts(),
+          api.getEmailMessages('limit=30'),
+          api.getEmailSummary(),
+        ])
+        if (accRes.success && accRes.data?.accounts) setAccounts(accRes.data.accounts)
+        if (msgRes.success && msgRes.data?.messages) setMessages(msgRes.data.messages)
+        if (sumRes.success && sumRes.data?.summary) setSummary(sumRes.data.summary)
+      } catch (err) {
+        console.error('Failed to fetch email data:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  const handleSync = async (accountId: string) => {
+    setSyncingId(accountId)
+    try {
+      const res = await api.syncEmail(accountId)
+      if (res.success) {
+        toast.success('Email sync started')
+        const msgRes = await api.getEmailMessages('limit=30')
+        if (msgRes.success && msgRes.data?.messages) setMessages(msgRes.data.messages)
+        const accRes = await api.getEmailAccounts()
+        if (accRes.success && accRes.data?.accounts) setAccounts(accRes.data.accounts)
+      } else {
+        toast.error(res.error || 'Sync failed')
+      }
+    } catch {
+      toast.error('Sync failed')
+    } finally {
+      setSyncingId(null)
+    }
+  }
+
+  const handleIngest = async (messageId: string) => {
+    setIngestingId(messageId)
+    try {
+      const res = await api.ingestEmail(messageId)
+      if (res.success) {
+        toast.success('Email ingested to memory')
+        setMessages((prev) => prev.map((m) => m.id === messageId ? { ...m, isIngested: true } : m))
+      } else {
+        toast.error(res.error || 'Ingest failed')
+      }
+    } catch {
+      toast.error('Ingest failed')
+    } finally {
+      setIngestingId(null)
+    }
+  }
+
+  const handleAddAccount = async () => {
+    if (!newProvider || !newEmail.trim()) return
+    setIsAdding(true)
+    try {
+      const res = await api.addEmailAccount({
+        provider: newProvider,
+        email: newEmail.trim(),
+        accessToken: newToken || 'demo-token',
+      })
+      if (res.success && res.data) {
+        setAccounts((prev) => [...prev, res.data])
+        toast.success('Email account connected')
+        setShowAddDialog(false)
+        setNewProvider('')
+        setNewEmail('')
+        setNewToken('')
+      } else {
+        toast.error(res.error || 'Failed to add email account')
+      }
+    } catch {
+      toast.error('Failed to add email account')
+    } finally {
+      setIsAdding(false)
+    }
+  }
+
+  const getProviderEmoji = (provider: string) => {
+    return EMAIL_PROVIDERS.find((p) => p.value === provider)?.icon || '📬'
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-6xl mx-auto">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <Mail className="w-5 h-5 text-primary" />
+            Email Hub
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Connect email accounts and ingest messages to memory</p>
+        </div>
+        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <Plus className="w-4 h-4 mr-1.5" />
+              Add Email
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Connect Email</DialogTitle>
+              <DialogDescription>Link an email account to browse and ingest messages</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Provider</Label>
+                <Select value={newProvider} onValueChange={setNewProvider}>
+                  <SelectTrigger><SelectValue placeholder="Select provider" /></SelectTrigger>
+                  <SelectContent>
+                    {EMAIL_PROVIDERS.map((p) => (
+                      <SelectItem key={p.value} value={p.value}>
+                        {p.icon} {p.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Email Address</Label>
+                <Input placeholder="you@example.com" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Access Token</Label>
+                <Input placeholder="OAuth token or app password" value={newToken} onChange={(e) => setNewToken(e.target.value)} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setShowAddDialog(false)}>Cancel</Button>
+              <Button size="sm" onClick={handleAddAccount} disabled={!newProvider || !newEmail.trim() || isAdding}>
+                {isAdding ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : null}
+                Connect
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Email Accounts */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {accounts.length > 0 ? accounts.map((account, i) => (
+          <motion.div
+            key={account.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+          >
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{getProviderEmoji(account.provider)}</span>
+                    <div>
+                      <p className="text-sm font-medium">{account.email}</p>
+                      <p className="text-[10px] text-muted-foreground">{account.provider}</p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className={cn(
+                    'text-[10px] h-5',
+                    account.isEnabled ? 'border-emerald-500/30 text-emerald-500' : 'border-muted-foreground/30 text-muted-foreground'
+                  )}>
+                    {account.isEnabled ? 'Active' : 'Disabled'}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-muted-foreground">
+                    {account.lastSyncedAt
+                      ? `Synced ${formatDistanceToNow(new Date(account.lastSyncedAt), { addSuffix: true })}`
+                      : 'Never synced'}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-[10px]"
+                    onClick={() => handleSync(account.id)}
+                    disabled={syncingId === account.id}
+                  >
+                    {syncingId === account.id ? (
+                      <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-3 h-3 mr-1" />
+                    )}
+                    Sync
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )) : (
+          <Card className="border-dashed col-span-full">
+            <CardContent className="p-8 text-center">
+              <Mail className="w-10 h-10 mx-auto mb-3 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">No email accounts connected</p>
+              <p className="text-xs text-muted-foreground mt-1">Click &quot;Add Email&quot; to connect your first account</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* AI Summary */}
+      {summary && (
+        <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <p className="text-sm font-medium">AI Email Summary</p>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">{summary}</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Messages */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <Inbox className="w-4 h-4" />
+            Messages
+            {messages.length > 0 && <Badge variant="secondary" className="text-[10px] h-5">{messages.length}</Badge>}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {messages.length > 0 ? (
+            <div className="space-y-1 max-h-96 overflow-y-auto">
+              {messages.map((msg, i) => (
+                <motion.div
+                  key={msg.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: i * 0.02 }}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/30 transition-colors border-b border-border/50 last:border-0"
+                >
+                  <div className="shrink-0">
+                    {msg.isStarred ? (
+                      <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+                    ) : (
+                      <Circle className="w-4 h-4 text-muted-foreground/30" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium truncate">{msg.fromName || msg.fromAddr}</span>
+                      <span className="text-[10px] text-muted-foreground shrink-0">
+                        {formatDistanceToNow(new Date(msg.date), { addSuffix: true })}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{msg.subject || '(No subject)'}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {msg.isIngested && (
+                      <Badge variant="outline" className="text-[9px] h-4 border-emerald-500/30 text-emerald-500">In Memory</Badge>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-[10px] px-2"
+                      onClick={() => handleIngest(msg.id)}
+                      disabled={ingestingId === msg.id || msg.isIngested}
+                    >
+                      {ingestingId === msg.id ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Brain className="w-3 h-3 mr-0.5" />
+                      )}
+                      {msg.isIngested ? 'Done' : 'Ingest'}
+                    </Button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-8 text-center">
+              <Mail className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">No messages found</p>
+              <p className="text-xs text-muted-foreground mt-1">Sync an email account to browse messages</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── v3.0.0 — Integrations View ──────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const INTEGRATION_PROVIDERS = [
+  { value: 'composio', label: 'Composio', icon: '🔗', desc: 'Connect 200+ apps via Composio' },
+  { value: 'mcp_client', label: 'MCP Client', icon: '🔌', desc: 'Custom MCP client integration' },
+  { value: 'custom', label: 'Custom', icon: '⚙️', desc: 'Custom integration via API' },
+]
+
+function IntegrationsView() {
+  const [integrations, setIntegrations] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [newProvider, setNewProvider] = useState('')
+  const [newName, setNewName] = useState('')
+  const [newConfig, setNewConfig] = useState('')
+  const [isAdding, setIsAdding] = useState(false)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        const res = await api.getIntegrations()
+        if (res.success && res.data?.integrations) setIntegrations(res.data.integrations)
+      } catch (err) {
+        console.error('Failed to fetch integrations:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  const handleToggle = async (id: string, currentEnabled: boolean) => {
+    // Optimistic update
+    setIntegrations((prev) => prev.map((i) => i.id === id ? { ...i, isEnabled: !currentEnabled } : i))
+    try {
+      const res = await api.updateIntegration(id, { isEnabled: !currentEnabled })
+      if (!res.success) {
+        setIntegrations((prev) => prev.map((i) => i.id === id ? { ...i, isEnabled: currentEnabled } : i))
+        toast.error('Failed to update integration')
+      } else {
+        toast.success(currentEnabled ? 'Integration disabled' : 'Integration enabled')
+      }
+    } catch {
+      setIntegrations((prev) => prev.map((i) => i.id === id ? { ...i, isEnabled: currentEnabled } : i))
+      toast.error('Failed to update integration')
+    }
+  }
+
+  const handleAdd = async () => {
+    if (!newProvider || !newName.trim()) return
+    setIsAdding(true)
+    try {
+      const res = await api.addIntegration({
+        provider: newProvider,
+        name: newName.trim(),
+        config: newConfig || '{}',
+      })
+      if (res.success && res.data) {
+        setIntegrations((prev) => [...prev, res.data])
+        toast.success('Integration added')
+        setShowAddDialog(false)
+        setNewProvider('')
+        setNewName('')
+        setNewConfig('')
+      } else {
+        toast.error(res.error || 'Failed to add integration')
+      }
+    } catch {
+      toast.error('Failed to add integration')
+    } finally {
+      setIsAdding(false)
+    }
+  }
+
+  const getProviderInfo = (provider: string) => {
+    return INTEGRATION_PROVIDERS.find((p) => p.value === provider) || { icon: '⚙️', label: provider, desc: '' }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-4xl mx-auto">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <Puzzle className="w-5 h-5 text-primary" />
+            Integrations
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage connected services and tools</p>
+        </div>
+        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <Plus className="w-4 h-4 mr-1.5" />
+              Add Integration
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Integration</DialogTitle>
+              <DialogDescription>Connect a third-party service or tool</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Provider</Label>
+                <Select value={newProvider} onValueChange={setNewProvider}>
+                  <SelectTrigger><SelectValue placeholder="Select provider" /></SelectTrigger>
+                  <SelectContent>
+                    {INTEGRATION_PROVIDERS.map((p) => (
+                      <SelectItem key={p.value} value={p.value}>
+                        {p.icon} {p.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Name</Label>
+                <Input placeholder="e.g., My Composio Connection" value={newName} onChange={(e) => setNewName(e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Configuration (JSON)</Label>
+                <Textarea placeholder='{"apiKey": "...", "region": "us"}' value={newConfig} onChange={(e) => setNewConfig(e.target.value)} rows={3} className="font-mono text-xs" />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setShowAddDialog(false)}>Cancel</Button>
+              <Button size="sm" onClick={handleAdd} disabled={!newProvider || !newName.trim() || isAdding}>
+                {isAdding ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : null}
+                Add
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Available Integration Types */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {INTEGRATION_PROVIDERS.map((provider) => (
+          <Card key={provider.value} className="border-dashed hover:border-primary/30 transition-colors">
+            <CardContent className="p-4 text-center">
+              <span className="text-2xl">{provider.icon}</span>
+              <p className="text-sm font-medium mt-2">{provider.label}</p>
+              <p className="text-[10px] text-muted-foreground">{provider.desc}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Connected Integrations */}
+      <div className="space-y-3">
+        {integrations.length > 0 ? integrations.map((integration, i) => {
+          const providerInfo = getProviderInfo(integration.provider)
+          return (
+            <motion.div
+              key={integration.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+            >
+              <Card className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{providerInfo.icon}</span>
+                      <div>
+                        <p className="text-sm font-medium">{integration.name}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {integration.provider}
+                          {integration.lastSyncedAt && ` — Synced ${formatDistanceToNow(new Date(integration.lastSyncedAt), { addSuffix: true })}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge variant="outline" className={cn(
+                        'text-[10px] h-5',
+                        integration.isEnabled ? 'border-emerald-500/30 text-emerald-500' : 'border-muted-foreground/30 text-muted-foreground'
+                      )}>
+                        {integration.isEnabled ? 'Enabled' : 'Disabled'}
+                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Label className="text-[10px] text-muted-foreground">
+                          {integration.isEnabled ? 'On' : 'Off'}
+                        </Label>
+                        <Switch
+                          checked={integration.isEnabled}
+                          onCheckedChange={() => handleToggle(integration.id, integration.isEnabled)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )
+        }) : (
+          <Card className="border-dashed">
+            <CardContent className="p-8 text-center">
+              <Puzzle className="w-10 h-10 mx-auto mb-3 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">No integrations yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Click &quot;Add Integration&quot; to connect your first service</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── v3.0.0 — Temporal Graph View ────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const ENTITY_TYPES = [
+  { value: 'person', label: 'Person', color: 'bg-violet-500/10 text-violet-500 border-violet-500/30' },
+  { value: 'project', label: 'Project', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30' },
+  { value: 'concept', label: 'Concept', color: 'bg-amber-500/10 text-amber-500 border-amber-500/30' },
+  { value: 'topic', label: 'Topic', color: 'bg-rose-500/10 text-rose-500 border-rose-500/30' },
+  { value: 'organization', label: 'Organization', color: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/30' },
+  { value: 'tool', label: 'Tool', color: 'bg-orange-500/10 text-orange-500 border-orange-500/30' },
+  { value: 'event', label: 'Event', color: 'bg-pink-500/10 text-pink-500 border-pink-500/30' },
+]
+
+function TemporalGraphView() {
+  const [entities, setEntities] = useState<any[]>([])
+  const [relations, setRelations] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [timeSlider, setTimeSlider] = useState(100) // 0-100, 100 = now
+  const [selectedEntity, setSelectedEntity] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<'entities' | 'graph'>('entities')
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        const [entRes, graphRes] = await Promise.all([
+          api.getEntities('limit=100'),
+          api.getTemporalGraph(),
+        ])
+        if (entRes.success && entRes.data?.entities) setEntities(entRes.data.entities)
+        if (graphRes.success && graphRes.data?.relations) setRelations(graphRes.data.relations)
+      } catch (err) {
+        console.error('Failed to fetch temporal graph data:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  // Filter entities based on time slider
+  const filteredEntities = useMemo(() => {
+    if (timeSlider >= 100) return entities
+    const cutoffDate = new Date()
+    cutoffDate.setDate(cutoffDate.getDate() - Math.floor((100 - timeSlider) * 3.65))
+    return entities.filter((e) => {
+      if (!e.createdAt) return true
+      return new Date(e.createdAt) <= cutoffDate
+    })
+  }, [entities, timeSlider])
+
+  const getEntityTypeStyle = (type: string) => {
+    return ENTITY_TYPES.find((t) => t.value === type)?.color || 'bg-muted text-muted-foreground border-muted'
+  }
+
+  const getEntityTypeLabel = (type: string) => {
+    return ENTITY_TYPES.find((t) => t.value === type)?.label || type
+  }
+
+  const sliderDateLabel = useMemo(() => {
+    if (timeSlider >= 100) return 'Now'
+    const d = new Date()
+    d.setDate(d.getDate() - Math.floor((100 - timeSlider) * 3.65))
+    return d.toLocaleDateString()
+  }, [timeSlider])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-6xl mx-auto">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <History className="w-5 h-5 text-primary" />
+            Temporal Graph
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Visualize your knowledge graph across time</p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant={viewMode === 'entities' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('entities')}
+          >
+            <Database className="w-3.5 h-3.5 mr-1.5" />
+            Entities
+          </Button>
+          <Button
+            variant={viewMode === 'graph' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('graph')}
+          >
+            <Network className="w-3.5 h-3.5 mr-1.5" />
+            Graph
+          </Button>
+        </div>
+      </div>
+
+      {/* Time Travel Slider */}
+      <Card className="border-primary/20">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 shrink-0">
+              <Clock className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium">Time Travel</span>
+            </div>
+            <div className="flex-1">
+              <Slider
+                value={[timeSlider]}
+                onValueChange={(v) => setTimeSlider(v[0])}
+                max={100}
+                min={0}
+                step={1}
+                className="w-full"
+              />
+            </div>
+            <Badge variant="outline" className="text-xs h-6 min-w-[80px] justify-center">
+              {sliderDateLabel}
+            </Badge>
+          </div>
+          <div className="flex justify-between mt-1 px-1">
+            <span className="text-[9px] text-muted-foreground">1 year ago</span>
+            <span className="text-[9px] text-muted-foreground">6 months</span>
+            <span className="text-[9px] text-muted-foreground">Now</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3">
+        <Card>
+          <CardContent className="p-3 text-center">
+            <p className="text-2xl font-bold">{filteredEntities.length}</p>
+            <p className="text-[10px] text-muted-foreground">Entities</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 text-center">
+            <p className="text-2xl font-bold">{relations.length}</p>
+            <p className="text-[10px] text-muted-foreground">Relations</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 text-center">
+            <p className="text-2xl font-bold">{new Set(filteredEntities.map((e: any) => e.type)).size}</p>
+            <p className="text-[10px] text-muted-foreground">Types</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {viewMode === 'entities' ? (
+        /* Entity List */
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Database className="w-4 h-4" />
+              Entities
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {filteredEntities.length > 0 ? (
+              <div className="space-y-2 max-h-[500px] overflow-y-auto">
+                {filteredEntities.map((entity, i) => (
+                  <motion.div
+                    key={entity.id}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.02 }}
+                    className={cn(
+                      "flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-accent/30 transition-colors cursor-pointer",
+                      selectedEntity === entity.id && "border-primary/30 bg-primary/5"
+                    )}
+                    onClick={() => setSelectedEntity(selectedEntity === entity.id ? null : entity.id)}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium">{entity.name}</p>
+                        <Badge variant="outline" className={cn('text-[9px] h-4', getEntityTypeStyle(entity.type))}>
+                          {getEntityTypeLabel(entity.type)}
+                        </Badge>
+                      </div>
+                      {entity.description && (
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{entity.description}</p>
+                      )}
+                    </div>
+                    {entity.confidence < 1 && (
+                      <span className="text-[9px] text-muted-foreground">{Math.round(entity.confidence * 100)}%</span>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-8 text-center">
+                <Network className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
+                <p className="text-sm text-muted-foreground">No entities at this point in time</p>
+                <p className="text-xs text-muted-foreground mt-1">Try moving the time slider to a different position</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        /* Graph Visualization (simplified) */
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex flex-wrap gap-3 justify-center items-center min-h-[300px]">
+              {filteredEntities.map((entity) => {
+                const angle = (filteredEntities.indexOf(entity) / filteredEntities.length) * 2 * Math.PI
+                const radius = 120
+                const x = Math.cos(angle) * radius
+                const y = Math.sin(angle) * radius
+                return (
+                  <motion.div
+                    key={entity.id}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1, x, y }}
+                    className="flex flex-col items-center"
+                  >
+                    <div className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold border-2",
+                      getEntityTypeStyle(entity.type)
+                    )}>
+                      {entity.name.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-[9px] text-muted-foreground mt-1 max-w-[60px] truncate text-center">{entity.name}</span>
+                  </motion.div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ─── v3.0.0 — Agent Hub View ─────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function AgentHubView() {
+  const [agents, setAgents] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [systemPrompt, setSystemPrompt] = useState('')
+  const [mcpEnabled, setMcpEnabled] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        const res = await api.getAgents()
+        if (res.success && res.data?.agents) setAgents(res.data.agents)
+      } catch (err) {
+        console.error('Failed to fetch agents:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  const resetForm = () => {
+    setName('')
+    setDescription('')
+    setSystemPrompt('')
+    setMcpEnabled(false)
+    setShowForm(false)
+    setEditingId(null)
+  }
+
+  const handleSubmit = async () => {
+    if (!name.trim()) return
+    setIsSubmitting(true)
+    try {
+      if (editingId) {
+        const res = await api.updateAgent(editingId, {
+          name: name.trim(),
+          description: description.trim(),
+          systemPrompt: systemPrompt.trim(),
+          mcpEnabled,
+        })
+        if (res.success) {
+          setAgents((prev) => prev.map((a) => a.id === editingId ? { ...a, name: name.trim(), description, systemPrompt, mcpEnabled } : a))
+          toast.success('Agent updated')
+          resetForm()
+        } else {
+          toast.error(res.error || 'Failed to update agent')
+        }
+      } else {
+        const res = await api.createAgent({
+          name: name.trim(),
+          description: description.trim(),
+          systemPrompt: systemPrompt.trim(),
+          mcpEnabled,
+        })
+        if (res.success && res.data) {
+          setAgents((prev) => [...prev, res.data])
+          toast.success('Agent created')
+          resetForm()
+        } else {
+          toast.error(res.error || 'Failed to create agent')
+        }
+      }
+    } catch {
+      toast.error('Failed to save agent')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleEdit = (agent: any) => {
+    setEditingId(agent.id)
+    setName(agent.name)
+    setDescription(agent.description || '')
+    setSystemPrompt(agent.systemPrompt || '')
+    setMcpEnabled(agent.mcpEnabled || false)
+    setShowForm(true)
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await api.deleteAgent(id)
+      if (res.success) {
+        setAgents((prev) => prev.filter((a) => a.id !== id))
+        toast.success('Agent deleted')
+      } else {
+        toast.error(res.error || 'Failed to delete agent')
+      }
+    } catch {
+      toast.error('Failed to delete agent')
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-4xl mx-auto">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold flex items-center gap-2">
+            <Bot className="w-5 h-5 text-primary" />
+            Agent Hub
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Manage AI agent profiles and MCP access</p>
+        </div>
+        <Button size="sm" onClick={() => { resetForm(); setShowForm(!showForm) }}>
+          <Plus className="w-4 h-4 mr-1.5" />
+          New Agent
+        </Button>
+      </div>
+
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{editingId ? 'Edit Agent' : 'Create Agent'}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Input placeholder="Agent name" value={name} onChange={(e) => setName(e.target.value)} />
+                <Input placeholder="Short description" value={description} onChange={(e) => setDescription(e.target.value)} />
+                <Textarea
+                  placeholder="System prompt — define the agent's personality and instructions..."
+                  value={systemPrompt}
+                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  rows={4}
+                />
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-2">
+                    <Plug className="w-4 h-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">MCP Access</p>
+                      <p className="text-[10px] text-muted-foreground">Allow this agent to use MCP tools</p>
+                    </div>
+                  </div>
+                  <Switch checked={mcpEnabled} onCheckedChange={setMcpEnabled} />
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleSubmit} disabled={!name.trim() || isSubmitting}>
+                    {isSubmitting ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : null}
+                    {editingId ? 'Update Agent' : 'Create Agent'}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={resetForm}>Cancel</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Agent Profiles */}
+      <div className="space-y-3">
+        {agents.length > 0 ? agents.map((agent, i) => {
+          const capabilities = agent.capabilities ? (typeof agent.capabilities === 'string' ? JSON.parse(agent.capabilities) : agent.capabilities) : {}
+          const capKeys = Object.keys(capabilities)
+          return (
+            <motion.div
+              key={agent.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }}
+            >
+              <Card className="group hover:shadow-md transition-shadow">
+                <CardContent className="p-4 md:p-5">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                      <Bot className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-medium text-sm">{agent.name}</h3>
+                        {agent.mcpEnabled && (
+                          <Badge variant="outline" className="text-[9px] h-4 border-emerald-500/30 text-emerald-500">
+                            <Plug className="w-2.5 h-2.5 mr-0.5" />
+                            MCP
+                          </Badge>
+                        )}
+                        {agent.lastActiveAt && (
+                          <Badge variant="outline" className="text-[9px] h-4">
+                            Active {formatDistanceToNow(new Date(agent.lastActiveAt), { addSuffix: true })}
+                          </Badge>
+                        )}
+                      </div>
+                      {agent.description && (
+                        <p className="text-xs text-muted-foreground mb-2">{agent.description}</p>
+                      )}
+                      {capKeys.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {capKeys.map((key) => (
+                            <Badge key={key} variant="secondary" className="text-[9px] h-4">
+                              {key}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-[10px] text-muted-foreground/60">
+                          Created {formatDistanceToNow(new Date(agent.createdAt), { addSuffix: true })}
+                        </span>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => handleEdit(agent)}>
+                            <Edit3 className="w-3 h-3 mr-0.5" />
+                            Edit
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-6 text-[10px] text-destructive hover:text-destructive">
+                                <Trash2 className="w-3 h-3 mr-0.5" />
+                                Delete
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Agent</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete &quot;{agent.name}&quot;? This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(agent.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )
+        }) : (
+          <Card className="border-dashed">
+            <CardContent className="p-8 text-center">
+              <Bot className="w-10 h-10 mx-auto mb-3 text-muted-foreground/30" />
+              <p className="text-sm text-muted-foreground">No agents yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Click &quot;New Agent&quot; to create your first AI agent profile</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── Decisions View ──────────────────────────────────────────────────────────
 
 function DecisionsView() {
@@ -378,7 +1822,6 @@ function DecisionsView() {
   const [alternatives, setAlternatives] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Fetch decisions on mount
   useEffect(() => {
     const fetchDecisions = async () => {
       setIsLoading(true)
@@ -863,7 +2306,6 @@ function SettingsView() {
                         const res = await api.resetAllData()
                         if (res.success) {
                           toast.success('All data has been reset')
-                          // Clear local stores
                           setNotes([])
                           setDecisions([])
                           setApiKeys([])
@@ -1057,6 +2499,16 @@ export default function HomePage() {
         return <CanvasFullView />
       case 'templates':
         return <TemplatesFullView />
+      case 'storage':
+        return <StorageHubView />
+      case 'email':
+        return <EmailHubView />
+      case 'integrations':
+        return <IntegrationsView />
+      case 'temporal':
+        return <TemporalGraphView />
+      case 'agents':
+        return <AgentHubView />
       case 'decisions':
         return <DecisionsView />
       case 'settings':
