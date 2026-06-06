@@ -1,16 +1,22 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Memorix AI Memory',
+    name: 'Memorix — Universal AI Memory Hub',
     short_name: 'Memorix',
-    description: 'Personal AI Memory Infrastructure',
+    description: 'The central memory hub for AI agents and humans. Semantic memory, RAG, MCP, multi-cloud storage, email, and more.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#0f172a',
-    theme_color: '#14b8a6',
+    background_color: '#09090b',
+    theme_color: '#8b5cf6',
+    orientation: 'any',
+    scope: '/',
     icons: [
-      { src: '/logo.svg', sizes: 'any', type: 'image/svg+xml' },
+      { src: '/logo.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+      { src: '/logo.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'maskable' },
     ],
+    categories: ['productivity', 'utilities', 'business'],
+    screenshots: [],
+    prefer_related_applications: false,
   }
 }

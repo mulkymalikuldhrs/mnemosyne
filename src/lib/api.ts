@@ -168,4 +168,54 @@ export const api = {
     apiFetch<any>(`/daily-notes/${date}`),
   saveDailyNote: (date: string, content: string) =>
     apiFetch<any>('/daily-notes', { method: 'POST', body: JSON.stringify({ date, content }) }),
+
+  // ─── v3.0.0 — Storage Hub ───
+  getStorageAccounts: () =>
+    apiFetch<any>('/storage/accounts'),
+  getStorageFiles: (params?: string) =>
+    apiFetch<any>(`/storage/files${params ? `?${params}` : ''}`),
+  syncStorage: (accountId: string) =>
+    apiFetch<any>(`/storage/sync`, { method: 'POST', body: JSON.stringify({ accountId }) }),
+  ingestStorageFile: (fileId: string) =>
+    apiFetch<any>(`/storage/ingest/${fileId}`, { method: 'POST' }),
+  addStorageAccount: (data: { provider: string; name: string; accessToken: string; refreshToken?: string; folderPath?: string }) =>
+    apiFetch<any>('/storage/accounts', { method: 'POST', body: JSON.stringify(data) }),
+
+  // ─── v3.0.0 — Email Hub ───
+  getEmailAccounts: () =>
+    apiFetch<any>('/email/accounts'),
+  getEmailMessages: (params?: string) =>
+    apiFetch<any>(`/email/messages${params ? `?${params}` : ''}`),
+  syncEmail: (accountId: string) =>
+    apiFetch<any>('/email/sync', { method: 'POST', body: JSON.stringify({ accountId }) }),
+  getEmailSummary: () =>
+    apiFetch<any>('/email/summary'),
+  ingestEmail: (messageId: string) =>
+    apiFetch<any>(`/email/ingest/${messageId}`, { method: 'POST' }),
+  addEmailAccount: (data: { provider: string; email: string; accessToken: string; refreshToken?: string }) =>
+    apiFetch<any>('/email/accounts', { method: 'POST', body: JSON.stringify(data) }),
+
+  // ─── v3.0.0 — Integrations ───
+  getIntegrations: () =>
+    apiFetch<any>('/integrations'),
+  addIntegration: (data: { provider: string; name: string; config: string }) =>
+    apiFetch<any>('/integrations', { method: 'POST', body: JSON.stringify(data) }),
+  updateIntegration: (id: string, data: any) =>
+    apiFetch<any>(`/integrations/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+
+  // ─── v3.0.0 — Temporal Graph ───
+  getEntities: (params?: string) =>
+    apiFetch<any>(`/entities${params ? `?${params}` : ''}`),
+  getTemporalGraph: (params?: string) =>
+    apiFetch<any>(`/graph/temporal${params ? `?${params}` : ''}`),
+
+  // ─── v3.0.0 — Agent Hub ───
+  getAgents: () =>
+    apiFetch<any>('/agents'),
+  createAgent: (data: { name: string; description?: string; systemPrompt?: string; capabilities?: string; mcpEnabled?: boolean }) =>
+    apiFetch<any>('/agents', { method: 'POST', body: JSON.stringify(data) }),
+  updateAgent: (id: string, data: any) =>
+    apiFetch<any>(`/agents/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteAgent: (id: string) =>
+    apiFetch<any>(`/agents/${id}`, { method: 'DELETE' }),
 }

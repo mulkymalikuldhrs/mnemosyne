@@ -19,6 +19,11 @@ import {
   FileCode2,
   Star,
   ChevronDown,
+  Cloud,
+  Mail,
+  Puzzle,
+  History,
+  Bot,
 } from 'lucide-react'
 import { useUIStore, useNotesStore, useFavoritesStore, type ActiveSection } from '@/lib/store'
 import { api } from '@/lib/api'
@@ -40,9 +45,14 @@ const navItems: { icon: React.ElementType; label: string; section: ActiveSection
   { icon: Calendar, label: 'Daily Notes', section: 'daily' },
   { icon: LayoutGrid, label: 'Canvas', section: 'canvas' },
   { icon: FileCode2, label: 'Templates', section: 'templates' },
+  { icon: Cloud, label: 'Storage', section: 'storage' },
+  { icon: Mail, label: 'Email', section: 'email' },
+  { icon: Puzzle, label: 'Integrations', section: 'integrations' },
+  { icon: History, label: 'Temporal Graph', section: 'temporal' },
+  { icon: Bot, label: 'Agents', section: 'agents' },
   { icon: GitBranch, label: 'Decisions', section: 'decisions' },
-  { icon: Plug, label: 'MCP Server', section: 'mcp' },
   { icon: Settings, label: 'Settings', section: 'settings' },
+  { icon: Plug, label: 'MCP Server', section: 'mcp' },
 ]
 
 export function Sidebar() {

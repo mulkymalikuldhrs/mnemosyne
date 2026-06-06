@@ -16,20 +16,38 @@ model User {
   password            String?   // Hashed with bcryptjs (null for OAuth users)
   avatarUrl           String?
   plan                String    @default("FREE") // FREE | PRO | ENTERPRISE
+  role                String    @default("user") // user | admin
+  bio                 String?
   supabaseProjectUrl  String?
   openrouterApiKey    String?   // User can supply their own OpenRouter API key
+  agentProfileId      String?   // Optional link to an active AgentProfile
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
-  notes         Note[]
-  conversations Conversation[]
-  decisions     Decision[]
-  apiKeys       ApiKey[]
-  mcpSessions   McpSession[]
-  dailynotes    DailyNote[]
-  templates     Template[]
-  favorites     Favorite[]
-  canvases      Canvas[]
+  notes               Note[]
+  conversations       Conversation[]
+  decisions           Decision[]
+  apiKeys             ApiKey[]
+  mcpSessions         McpSession[]
+  dailynotes          DailyNote[]
+  templates           Template[]
+  favorites           Favorite[]
+  canvases            Canvas[]
+
+  // ─── v3.0.0 Relations ───
+  cloudStorageAccounts CloudStorageAccount[]
+  cloudFiles           CloudFile[]
+  emailAccounts        EmailAccount[]
+  emailMessages        EmailMessage[]
+  integrations         Integration[]
+  memoryEntities       MemoryEntity[]
+  memoryRelations      MemoryRelation[]
+  agentProfiles        AgentProfile[]        @relation("AgentOwner")
+  activeAgentProfile   AgentProfile?         @relation("ActiveAgent", fields: [agentProfileId], references: [id])
+  subscriptions        Subscription[]
+  temporalSnapshots    TemporalSnapshot[]
+
+  @@index([role])
 }
 
 model Note {
@@ -50,6 +68,7 @@ model Note {
   favorites    Favorite[]
   wikiSources  WikiLink[]    @relation("WikiSource")
   wikiTargets  WikiLink[]    @relation("WikiTarget")
+  emailMessages EmailMessage[]
 
   @@index([userId])
   @@index([isArchived])
@@ -270,4 +289,237 @@ model SyncQueue {
 
   @@index([entityType, status])
   @@index([status])
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ─── Memorix v3.0.0 — Universal AI/Human Memory Hub Models ────────
+// ═══════════════════════════════════════════════════════════════════
+
+model CloudStorageAccount {
+  id            String    @id @default(cuid())
+  userId        String
+  provider      String    // google_drive | terabox | s3 | dropbox | onedrive | local
+  name          String
+  accessToken   String    // Encrypted
+  refreshToken  String    @default("") // Encrypted
+  folderPath    String    @default("/")
+  isEnabled     Boolean   @default(true)
+  lastSyncedAt  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  files    CloudFile[]
+
+  @@index([userId])
+  @@index([provider])
+}
+
+model CloudFile {
+  id               String    @id @default(cuid())
+  storageAccountId String
+  userId           String
+  providerFileId   String
+  name             String
+  mimeType         String    @default("")
+  size             Int       @default(0)
+  path             String    @default("")
+  webUrl           String?
+  thumbnailUrl     String?
+  isSynced         Boolean   @default(true)
+  lastModified     DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  storageAccount CloudStorageAccount @relation(fields: [storageAccountId], references: [id], onDelete: Cascade)
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([storageAccountId])
+  @@index([userId])
+  @@index([mimeType])
+  @@index([providerFileId])
+}
+
+model EmailAccount {
+  id            String    @id @default(cuid())
+  userId        String
+  provider      String    // gmail | imap | outlook
+  email         String
+  emailAddress  String    @default("")
+  displayName   String    @default("")
+  accessToken   String    // Encrypted
+  refreshToken  String    @default("") // Encrypted
+  imapHost      String?
+  imapPort      Int?
+  smtpHost      String?
+  smtpPort      Int?
+  isEnabled     Boolean   @default(true)
+  isSyncing     Boolean   @default(false)
+  syncCursor    String    @default("")
+  syncError     String    @default("")
+  lastSyncedAt  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages EmailMessage[]
+
+  @@index([userId])
+  @@index([provider])
+  @@unique([userId, email])
+}
+
+model EmailMessage {
+  id             String    @id @default(cuid())
+  emailAccountId String
+  userId         String
+  messageId      String
+  fromAddr       String
+  fromAddress    String    @default("")
+  fromName       String    @default("")
+  toAddr         String
+  toAddresses    String    @default("[]") // JSON array of { address, name }
+  subject        String    @default("")
+  bodyText       String    @default("")
+  bodyHtml       String    @default("")
+  snippet        String    @default("")
+  date           DateTime
+  isRead         Boolean   @default(false)
+  isStarred      Boolean   @default(false)
+  isIngested     Boolean   @default(false)
+  labels         String    @default("[]") // JSON array of label strings
+  noteId         String?   // Optional link to a Note if ingested
+  ingestedAt     DateTime?
+  createdAt      DateTime  @default(now())
+
+  emailAccount EmailAccount @relation(fields: [emailAccountId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  note         Note?        @relation(fields: [noteId], references: [id], onDelete: SetNull)
+
+  @@unique([emailAccountId, messageId])
+  @@index([emailAccountId])
+  @@index([userId])
+  @@index([messageId])
+  @@index([date])
+  @@index([isStarred])
+  @@index([isIngested])
+}
+
+model Integration {
+  id            String    @id @default(cuid())
+  userId        String
+  provider      String    // composio | mcp_client | custom
+  name          String
+  config        String    // JSON configuration
+  isEnabled     Boolean   @default(true)
+  lastSyncedAt  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([provider])
+}
+
+model MemoryEntity {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  type        String    // person | project | concept | topic | organization | tool | event
+  description String    @default("")
+  properties  String    @default("{}") // JSON object with entity-specific attributes
+  validFrom   DateTime?
+  validTo     DateTime?
+  confidence  Float     @default(1.0)
+  source      String    @default("")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceRelations   MemoryRelation[]  @relation("SourceEntity")
+  targetRelations   MemoryRelation[]  @relation("TargetEntity")
+
+  @@index([userId])
+  @@index([type])
+  @@index([name])
+}
+
+model MemoryRelation {
+  id              String    @id @default(cuid())
+  userId          String
+  sourceEntityId  String
+  targetEntityId  String
+  relationType    String
+  properties      String    @default("{}") // JSON object with relation-specific attributes
+  validFrom       DateTime?
+  validTo         DateTime?
+  confidence      Float     @default(1.0)
+  source          String    @default("")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceEntity  MemoryEntity  @relation("SourceEntity", fields: [sourceEntityId], references: [id], onDelete: Cascade)
+  targetEntity  MemoryEntity  @relation("TargetEntity", fields: [targetEntityId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sourceEntityId])
+  @@index([targetEntityId])
+  @@index([relationType])
+}
+
+model AgentProfile {
+  id           String    @id @default(cuid())
+  userId       String
+  name         String
+  description  String    @default("")
+  systemPrompt String    @default("")
+  capabilities String    @default("{}") // JSON object describing agent capabilities
+  mcpEnabled   Boolean   @default(false)
+  lastActiveAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  user            User   @relation("AgentOwner", fields: [userId], references: [id], onDelete: Cascade)
+  activeForUsers  User[] @relation("ActiveAgent")
+
+  @@index([userId])
+  @@index([mcpEnabled])
+}
+
+model Subscription {
+  id                  String    @id @default(cuid())
+  userId              String
+  plan                String    @default("free") // free | pro | enterprise | iaas
+  status              String    @default("active") // active | past_due | canceled
+  stripeCustomerId    String?
+  stripePriceId       String?
+  currentPeriodStart  DateTime?
+  currentPeriodEnd    DateTime?
+  cancelAtPeriodEnd   Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([stripeCustomerId])
+}
+
+model TemporalSnapshot {
+  id           String   @id @default(cuid())
+  userId       String
+  snapshotDate DateTime // The point-in-time this snapshot represents
+  entities     String   @default("[]") // JSON array of entity states at this time
+  relations    String   @default("[]") // JSON array of relation states at this time
+  metadata     String   @default("{}") // JSON metadata about the snapshot
+  source       String   @default("auto") // auto | manual | rebuild
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([snapshotDate])
 }

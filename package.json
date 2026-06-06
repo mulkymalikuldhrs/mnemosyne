@@ -1,8 +1,8 @@
 {
   "name": "@memorix/memory",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": false,
-  "description": "Memorix — Personal AI Memory Infrastructure. Semantic memory-aware SaaS with RAG, AI chat, and MCP server.",
+  "description": "Memorix v3 — Universal AI/Human Memory Hub. Semantic memory, RAG, MCP, multi-cloud storage, email, temporal knowledge graph, PWA. SaaS/IaaS ready.",
   "author": "Mulky Malikul Dhaher <mulkymalikuldhaher@email.com>",
   "license": "MIT",
   "homepage": "https://github.com/mulkymalikuldhrs/memorix#readme",
