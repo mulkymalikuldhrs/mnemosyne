@@ -40,6 +40,8 @@
     "node_modules",
     "examples",
     "skills",
+    "mini-services",
+    "mcp-server",
     "src/lib/__tests__",
     "**/*.test.ts",
     "**/*.test.tsx"

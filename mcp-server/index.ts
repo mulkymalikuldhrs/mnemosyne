@@ -484,7 +484,7 @@ async function vectorSearch(
   if (chunks.length === 0) return [];
 
   // Score each chunk
-  const scored = [];
+  const scored: { noteId: string; title: string; content: string; score: number }[] = [];
   for (const chunk of chunks) {
     try {
       const chunkEmbedding = JSON.parse(chunk.embedding);

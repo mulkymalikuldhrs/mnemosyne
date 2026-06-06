@@ -4,14 +4,14 @@
 
 **Mulky Malikul Dhaher**
 
-- Email: mulkymalikuldhaher@email.com
-- GitHub: [@mulkymalikuldhaher](https://github.com/mulkymalikuldhaher)
+- Email: mulkymalikudhr@mail.com
+- GitHub: [@mulkymalikuldhrs](https://github.com/mulkymalikuldhrs)
 
 ## Project
 
 **Memorix AI Memory** — Personal AI Memory Infrastructure
 
-A modular autonomous robotics operating system designed to build, control, and manage amphibious robots (tricopter drones, rovers, USVs) with integrated AI. Built with Next.js 16, Tauri v2, Capacitor, and TypeScript.
+A personal AI memory infrastructure that transforms how you capture, connect, and recall knowledge. Built with Next.js 16, TypeScript, and Prisma.
 
 ## Contributing
 
