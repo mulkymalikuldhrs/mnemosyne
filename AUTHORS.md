@@ -1,17 +1,17 @@
-# Memorix AI Memory — Authors
+# Memorix — Authors
 
 ## Creator & Lead Developer
 
 **Mulky Malikul Dhaher**
 
-- Email: mulkymalikudhr@mail.com
+- Email: mulkymalikuldhaher@email.com
 - GitHub: [@mulkymalikuldhrs](https://github.com/mulkymalikuldhrs)
 
 ## Project
 
-**Memorix AI Memory** — Personal AI Memory Infrastructure
+**Memorix** — The Biggest Free Multi-LLM Hub
 
-A personal AI memory infrastructure that transforms how you capture, connect, and recall knowledge. Built with Next.js 16, TypeScript, and Prisma.
+A unified platform providing free access to 500+ AI models via Puter.js, BYOK support, built-in AI Agent with 7 tools, semantic memory, RAG, MCP server, and multi-cloud storage. Built with Next.js 16, TypeScript, and Prisma.
 
 ## Contributing
 

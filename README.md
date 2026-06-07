@@ -2,18 +2,19 @@
 
 # 🧠 Memorix
 
-### Personal AI Memory Infrastructure
+### The Biggest Free Multi-LLM Hub
 
-**Own Your AI Memory**
+**500+ AI Models · Zero API Key · Bring Your Own Key · Built-in Agent**
 
-[![Version](https://img.shields.io/badge/version-2.0.0-purple.svg)](https://github.com/mulkymalikuldhrs/memorix)
+[![Version](https://img.shields.io/badge/version-4.0.0-purple.svg)](https://github.com/mulkymalikuldhrs/memorix)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://typescriptlang.org)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-orange.svg)](https://modelcontextprotocol.io)
-[![Docker](https://img.shields.io/badge/Docker-Ready-cyan.svg)](https://docker.com)
+[![Puter.js](https://img.shields.io/badge/Puter.js-500%2B%20Models-ff69b4.svg)](https://puter.com)
+[![PWA](https://img.shields.io/badge/PWA-Ready-cyan.svg)](https://web.dev/progressive-web-apps/)
 
-[Report Bug](https://github.com/mulkymalikuldhrs/memorix/issues) · [Request Feature](https://github.com/mulkymalikuldhrs/memorix/issues) · [API Docs](#api-documentation)
+[Report Bug](https://github.com/mulkymalikuldhrs/memorix/issues) · [Request Feature](https://github.com/mulkymalikuldhrs/memorix/issues) · [API Docs](API.md) · [Architecture](ARCHITECTURE.md)
 
 </div>
 
@@ -21,64 +22,69 @@
 
 ## Overview
 
-Memorix is a personal AI memory infrastructure that transforms how you capture, connect, and recall knowledge. Think of it as your **second brain** — powered by semantic search, AI-driven insights, and a universal MCP server that connects your memory to any AI assistant.
+Memorix is the world's biggest free multi-LLM hub — a single platform that gives you **free access to 500+ AI models** via Puter.js with zero API keys, alongside BYOK (Bring Your Own Key) support for every major provider. It includes a built-in AI Agent with 7 tools, semantic memory, RAG, an MCP server, and multi-cloud storage — all in one portable Next.js application.
+
+**No backend needed.** Puter.js handles authentication and billing on the client side (user-pays model), so you get GPT-5.5 Pro, Claude Opus 4.8, Gemini 3.1 Pro, and hundreds more — completely free for developers.
 
 ### Key Features
 
 | Feature | Description |
 |---------|-------------|
-| 🧠 **Semantic Memory** | Store notes as vector-embedded chunks with automatic chunking and indexing for intelligent retrieval |
-| 🔍 **AI Recall** | Search your memories with natural language — semantic search finds relevant notes even without exact keyword matches |
-| 🔗 **Related Notes** | Automatically discover connections between your notes through tag overlap, shared concepts, and relation scoring |
-| 📊 **Decision Intelligence** | Track decisions with context, reasoning, and outcomes — learn from your past choices over time |
-| 🧬 **Memory Evolution** | Detect emerging topics, fading interests, knowledge clusters, and temporal patterns in your memory graph |
-| 💬 **AI Chat with Memory** | RAG-powered chat that injects your memories into conversations for contextually aware AI responses |
-| 🔌 **MCP Server** | Connect your memory to Claude, Cursor, GPT, and any MCP-compatible AI assistant via JSON-RPC 2.0 |
+| 🤖 **Multi-LLM via Puter.js (FREE)** | 500+ models from OpenAI, Anthropic, Google, DeepSeek, xAI, Meta, Mistral, Alibaba — zero API key required |
+| 🔑 **BYOK Support** | Bring your own API keys for OpenAI, Anthropic, Google, DeepSeek, OpenRouter, Ollama, or any OpenAI-compatible endpoint |
+| 🧠 **AI Agent** | Built-in agent with 7 tools: memory search, save, update, delete, insights, web search, decision tracking |
+| 💾 **Semantic Memory** | Vector-embedded notes with automatic chunking, embedding, and intelligent retrieval |
+| 🔌 **MCP Server** | Connect to Claude Desktop, Cursor, and any MCP-compatible client via JSON-RPC 2.0 |
+| 📚 **RAG** | Retrieval-Augmented Generation injects your memories into LLM conversations |
+| ☁️ **Multi-Cloud Storage** | Google Drive, TeraBox, S3, Puter.js FS, and local storage with file ingestion |
+| 📱 **PWA** | Install as a Progressive Web App for offline-capable, native-like experience |
+| 🏢 **SaaS/IaaS Ready** | Middle-provider architecture — wrap Memorix as your own LLM API service |
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      Memorix Architecture                    │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐   │
-│  │   Web UI     │    │  MCP Server  │    │  AI Assist   │   │
-│  │  (Next.js)   │    │  (Stdio/SSE) │    │  (Claude etc)│   │
-│  └──────┬───────┘    └──────┬───────┘    └──────┬───────┘   │
-│         │                   │                   │            │
-│         ▼                   ▼                   ▼            │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │                    REST API Layer                     │    │
-│  │  ┌─────┐ ┌──────┐ ┌──────┐ ┌────────┐ ┌─────────┐  │    │
-│  │  │Notes│ │ Chat │ │Search│ │Decisions│ │Settings │  │    │
-│  │  └──┬──┘ └──┬───┘ └──┬───┘ └───┬────┘ └────┬────┘  │    │
-│  └─────┼───────┼────────┼────────┼───────────┼────────┘    │
-│         │       │        │        │           │              │
-│         ▼       ▼        ▼        ▼           ▼              │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │                 AI Memory Engine                      │    │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────┐ │    │
-│  │  │ Chunker  │ │ Embedder │ │  Memory  │ │  LLM   │ │    │
-│  │  │ (Split)  │ │ (Vector) │ │ (Search) │ │ (RAG)  │ │    │
-│  │  └──────────┘ └──────────┘ └──────────┘ └────────┘ │    │
-│  └──────────────────────┬──────────────────────────────┘    │
-│                          │                                   │
-│                          ▼                                   │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │              SQLite + Prisma ORM                      │    │
-│  │  ┌──────┐ ┌───────┐ ┌──────────┐ ┌──────────────┐  │    │
-│  │  │ Notes│ │ Chunks│ │MemLinks  │ │Conversations │  │    │
-│  │  │      │ │(Vecs) │ │(Graph)   │ │(Messages)    │  │    │
-│  │  └──────┘ └───────┘ └──────────┘ └──────────────┘  │    │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐            │    │
-│  │  │Decisions │ │ ApiKeys  │ │Sessions  │            │    │
-│  │  └──────────┘ └──────────┘ └──────────┘            │    │
-│  └─────────────────────────────────────────────────────┘    │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                     Memorix v4.0 — Multi-LLM Hub                     │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐            │
+│  │   Web UI     │   │  MCP Clients │   │ API Consumers │            │
+│  │  (PWA/React) │   │(Claude/Cursor)│   │  (SaaS/IaaS) │            │
+│  └──────┬───────┘   └──────┬───────┘   └──────┬───────┘            │
+│         │                  │                   │                     │
+│         ▼                  ▼                   ▼                     │
+│  ┌──────────────────────────────────────────────────────┐           │
+│  │                  REST API + SSE + MCP                  │           │
+│  │  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────────┐  │           │
+│  │  │ LLM  │ │Agent │ │Notes │ │Memory│ │ Storage  │  │           │
+│  │  └──┬───┘ └──┬───┘ └──┬───┘ └──┬───┘ └────┬─────┘  │           │
+│  └─────┼────────┼────────┼────────┼───────────┼─────────┘           │
+│        │        │        │        │           │                      │
+│        ▼        ▼        ▼        ▼           ▼                      │
+│  ┌──────────────────────────────────────────────────────┐           │
+│  │                   Core Services                        │           │
+│  │  ┌───────────┐ ┌───────────┐ ┌─────────────────────┐│           │
+│  │  │LLM Router │ │  Agent    │ │   Memory Engine     ││           │
+│  │  │(Auto-Route)│ │  Engine   │ │Chunk·Embed·Search  ││           │
+│  │  └─────┬─────┘ └───────────┘ │RAG·Patterns·Graph  ││           │
+│  │        │                      └─────────────────────┘│           │
+│  │  ┌─────▼─────────────────────────────────────────┐   │           │
+│  │  │              Provider Layer                     │   │           │
+│  │  │  Puter.js FREE ── BYOK Keys ── Local/Ollama   │   │           │
+│  │  │  500+ models     OpenAI/Gl/DS/OR   localhost   │   │           │
+│  │  └────────────────────────────────────────────────┘   │           │
+│  └──────────────────────────────────────────────────────┘           │
+│        │                                                             │
+│        ▼                                                             │
+│  ┌──────────────────────────────────────────────────────┐           │
+│  │             SQLite + Prisma ORM + Puter.js Cloud      │           │
+│  │  Notes · Chunks(Vectors) · Links · Conversations     │           │
+│  │  Decisions · ApiKeys · Sessions · StorageAccounts     │           │
+│  └──────────────────────────────────────────────────────┘           │
+│                                                                      │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -87,8 +93,7 @@ Memorix is a personal AI memory infrastructure that transforms how you capture, 
 
 ### Prerequisites
 
-- **Bun** >= 1.0 ([install](https://bun.sh))
-- **Node.js** >= 20 (for Next.js 16)
+- **Bun** >= 1.0 ([install](https://bun.sh)) or **Node.js** >= 20
 - **Git** for version control
 
 ### 3-Step Setup
@@ -98,23 +103,19 @@ Memorix is a personal AI memory infrastructure that transforms how you capture, 
 git clone https://github.com/mulkymalikuldhrs/memorix.git
 cd memorix
 
-# 2. Install dependencies and set up environment
+# 2. Install dependencies
 bun install
-cp .env.example .env
-# Edit .env with your configuration
 
-# 3. Initialize database and start
+# 3. Initialize and start
+cp .env.example .env
 bun run db:push
 bun run db:generate
 bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser. Log in with the demo account:
+Open [http://localhost:3000](http://localhost:3000) — you now have access to 500+ free LLM models.
 
-- **Email:** `demo@memorix.ai`
-- **Password:** `demo123`
-
-> ⚠️ **Security Warning:** Change the demo password immediately after first login in any shared or public environment. The demo credentials are only for local development.
+> No API keys needed for basic usage. Puter.js handles model access client-side (user-pays model).
 
 ### Available Scripts
 
@@ -136,9 +137,88 @@ Open [http://localhost:3000](http://localhost:3000) in your browser. Log in with
 
 ---
 
+## Free Models
+
+All models below are available **completely free** via Puter.js. No API key, no credit card — just start chatting.
+
+| Model | Provider | Context Window | Capabilities |
+|-------|----------|---------------|-------------|
+| **GPT-5.5 Pro** | OpenAI | 200K | Chat, Vision, Code, Reasoning, Tool Use, Streaming |
+| **GPT-5.4** | OpenAI | 200K | Chat, Vision, Code, Reasoning, Tool Use, Streaming |
+| **GPT-5.4 Mini** | OpenAI | 128K | Chat, Code, Tool Use, Streaming |
+| **GPT-5.4 Nano** | OpenAI | 128K | Chat, Code, Tool Use, Streaming |
+| **GPT-4o** | OpenAI | 128K | Chat, Vision, Code, Tool Use, Streaming |
+| **O3** | OpenAI | 200K | Chat, Reasoning, Code, Streaming |
+| **Claude Opus 4.8** | Anthropic | 200K | Chat, Vision, Code, Reasoning, Tool Use, Streaming |
+| **Claude Opus 4.8 Fast** | Anthropic | 200K | Chat, Vision, Code, Reasoning, Tool Use, Streaming |
+| **Claude Sonnet 4.6** | Anthropic | 200K | Chat, Vision, Code, Reasoning, Tool Use, Streaming |
+| **Gemini 3.1 Pro** | Google | 2M | Chat, Vision, Code, Reasoning, Tool Use, Streaming |
+| **Gemini 3.1 Flash** | Google | 1M | Chat, Vision, Code, Tool Use, Streaming |
+| **DeepSeek R1** | DeepSeek | 128K | Chat, Reasoning, Code, Streaming |
+| **Grok 3** | xAI | 128K | Chat, Code, Reasoning, Streaming |
+| **Llama 4 Maverick** | Meta | 128K | Chat, Code, Streaming |
+| **Mistral Large** | Mistral | 128K | Chat, Code, Tool Use, Streaming |
+| **Qwen 3.7 Plus** | Alibaba | 128K | Chat, Code, Reasoning, Streaming |
+
+> **Note:** 500+ additional models are available through Puter.js beyond the curated list above. Use the Model Registry API to discover them all.
+
+---
+
+## BYOK — Bring Your Own Key
+
+Have your own API keys? Memorix supports direct connections to all major providers:
+
+| Provider | Models | Authentication |
+|----------|--------|---------------|
+| **OpenAI** | GPT-4o, GPT-4o Mini, O3, etc. | API Key (`sk-...`) |
+| **Anthropic** | Claude Opus, Sonnet, Haiku | API Key (`sk-ant-...`) |
+| **Google** | Gemini Pro, Flash | API Key |
+| **DeepSeek** | DeepSeek Chat, R1 | API Key |
+| **OpenRouter** | 100+ models via one key | API Key |
+| **Ollama** | Llama, Mistral, CodeLlama, etc. | Local (`http://localhost:11434`) |
+| **Custom** | Any OpenAI-compatible API | API Key + Base URL |
+
+### Using BYOK
+
+```bash
+# Via API
+curl -X POST http://localhost:3000/api/llm/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "byok/openai-gpt-4o",
+    "provider": "openai",
+    "apiKey": "sk-your-key-here",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+The LLM Router automatically falls back: **Puter.js (free) → BYOK (if key provided)**.
+
+---
+
+## AI Agent
+
+Memorix includes a built-in AI Agent that can use any LLM from the pool and execute 7 built-in tools:
+
+| Tool | Description |
+|------|-------------|
+| `memory_search` | Semantic search across your notes and memories |
+| `memory_save` | Save new notes to your knowledge base |
+| `memory_update` | Update existing notes |
+| `memory_delete` | Delete notes from your knowledge base |
+| `memory_insights` | Get AI-powered insights about memory patterns and connections |
+| `web_search` | Search the web for current information |
+| `decision_track` | Track decisions with context, reasoning, and outcomes |
+
+The agent uses an **agentic execution loop**: it calls the LLM, if the LLM returns tool calls it executes them and feeds results back, continuing until the LLM provides a final answer (up to configurable `maxIterations`).
+
+> See [AGENTS.md](AGENTS.md) for full agent documentation.
+
+---
+
 ## MCP Server Setup
 
-The Memorix MCP (Model Context Protocol) server allows AI assistants to interact with your memory via JSON-RPC 2.0 over stdio transport.
+Connect Memorix to any MCP-compatible AI assistant via JSON-RPC 2.0 over stdio transport.
 
 ### Claude Desktop
 
@@ -182,114 +262,35 @@ Add to your `.cursor/mcp.json`:
 
 | Tool | Description |
 |------|-------------|
-| `memorix_search` | Search your memory with keyword + tag + content scoring |
-| `memorix_add_note` | Add a note to your memory (auto-creates relations) |
-| `memorix_get_note` | Get a specific note with full content and metadata |
+| `memorix_search` | Semantic + keyword search across notes |
+| `memorix_add_note` | Add a note (auto-creates relations) |
+| `memorix_get_note` | Get a specific note with full content |
 | `memorix_list_notes` | List all notes with pagination |
-| `memorix_chat` | Chat with your memory (multi-turn conversations) |
+| `memorix_chat` | Chat with your memory (RAG-powered) |
 | `memorix_get_related` | Get related notes with relation scores |
-| `memorix_detect_patterns` | Detect patterns: tag frequency, keyword trends, clusters |
+| `memorix_detect_patterns` | Detect tag frequency, keyword trends, clusters |
 | `memorix_add_decision` | Record a decision with context and reasoning |
 
 ---
 
 ## API Documentation
 
-All API endpoints require authentication via NextAuth.js session, except where noted.
-
-### Authentication
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET/POST | `/api/auth/[...nextauth]` | No | NextAuth.js handler |
-| POST | `/api/auth/register` | No | Register new account (email, password, name) |
-
-### Notes
+Memorix exposes a comprehensive REST API for programmatic access. Key endpoints:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/notes` | List notes (paginated, searchable, filterable by tags/archived) |
-| POST | `/api/notes` | Create note + trigger background memory storage |
-| GET | `/api/notes/[id]` | Get note with chunks and related notes |
-| PUT | `/api/notes/[id]` | Update note + re-index memory |
-| DELETE | `/api/notes/[id]` | Delete note + cleanup memory |
+| POST | `/api/llm/chat` | Universal chat (auto-routes to Puter.js or BYOK) |
+| POST | `/api/llm/agent` | AI agent execution with tools |
+| POST | `/api/llm/compare` | Multi-model comparison |
+| GET | `/api/llm/models` | Model registry (all available models) |
+| POST | `/api/llm/web-search` | Web search via z-ai-web-dev-sdk |
+| GET | `/api/notes` | List notes (paginated, searchable) |
+| POST | `/api/notes` | Create note + memory storage |
+| GET | `/api/search` | Semantic search |
+| POST | `/api/chat` | Chat with memory context |
+| POST | `/api/mcp/transport` | MCP JSON-RPC 2.0 transport |
 
-### Chat
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/chat` | List conversations |
-| POST | `/api/chat` | Send message + get AI response with memory context |
-| GET | `/api/chat/[conversationId]` | Get conversation messages |
-| DELETE | `/api/chat/[conversationId]` | Delete conversation |
-
-### Search & Memory
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/search` | Semantic search across all notes |
-| GET | `/api/memory` | Get memory context for a query |
-| POST | `/api/memory` | Force re-index all notes |
-| GET | `/api/memory/related/[noteId]` | Get related notes for a specific note |
-| GET | `/api/memory/patterns` | Detect and return patterns in user's memory |
-
-### Decisions
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/decisions` | List decisions (paginated) |
-| POST | `/api/decisions` | Create a new decision |
-
-### Settings & API Keys
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/settings` | Get user settings (plan, API key status) |
-| PUT | `/api/settings` | Update settings (openrouterApiKey, supabaseProjectUrl) |
-| GET | `/api/api-keys` | List API keys (masked) |
-| POST | `/api/api-keys` | Generate new API key (`mx_` prefix) |
-
-### Health
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/health` | No | Health check (status, timestamp, version) |
-
-### Common Query Parameters
-
-| Parameter | Endpoints | Description |
-|-----------|-----------|-------------|
-| `page` | List endpoints | Page number (default: 1) |
-| `limit` | List endpoints | Items per page (default: 20) |
-| `q` | Notes, Search | Search query string |
-| `tags` | Notes | Filter by comma-separated tags |
-| `archived` | Notes | Include archived notes (boolean) |
-
-### Response Format
-
-All API responses follow a consistent format:
-
-```json
-{
-  "success": true,
-  "data": { },
-  "pagination": {
-    "page": 1,
-    "limit": 20,
-    "total": 42,
-    "totalPages": 3
-  }
-}
-```
-
-Error responses:
-
-```json
-{
-  "success": false,
-  "error": "Description of what went wrong"
-}
-```
+> See [API.md](API.md) for the complete API reference.
 
 ---
 
@@ -303,12 +304,12 @@ Error responses:
 | Database | Prisma ORM (SQLite) | 6 |
 | State | Zustand + TanStack Query | 5 / 5 |
 | Auth | NextAuth.js | 4 |
+| Free LLM | Puter.js SDK | 2.5 |
 | AI SDK | z-ai-web-dev-sdk | latest |
 | Animations | Framer Motion | 12 |
 | MCP | JSON-RPC 2.0 over Stdio | — |
 | Testing | Vitest | 4 |
 | Container | Docker + Docker Compose | — |
-| CI/CD | GitHub Actions | — |
 
 ---
 
@@ -325,6 +326,7 @@ memorix/
 │   ├── app/                         # Next.js App Router
 │   │   ├── api/                     # REST API endpoints
 │   │   │   ├── auth/                # Authentication (NextAuth + register)
+│   │   │   ├── llm/                 # Multi-LLM API (chat, agent, compare, models, web-search)
 │   │   │   ├── notes/               # Notes CRUD + memory storage
 │   │   │   ├── chat/                # AI chat with memory context
 │   │   │   ├── search/              # Semantic search
@@ -332,49 +334,95 @@ memorix/
 │   │   │   ├── decisions/           # Decision tracking
 │   │   │   ├── settings/            # User settings
 │   │   │   ├── api-keys/            # API key management
+│   │   │   ├── storage/             # Multi-cloud storage (accounts, files, sync, ingest)
+│   │   │   ├── agents/              # Agent configuration
+│   │   │   ├── entities/            # Entity management
+│   │   │   ├── graph/               # Knowledge graph + temporal
+│   │   │   ├── canvas/              # Canvas views
+│   │   │   ├── daily-notes/         # Daily note entries
+│   │   │   ├── email/               # Email integration
+│   │   │   ├── templates/           # Note templates
+│   │   │   ├── integrations/        # Third-party integrations
+│   │   │   ├── smart-tags/          # Smart tag suggestions
+│   │   │   ├── favorites/           # Favorite notes
+│   │   │   ├── wiki-links/          # Wiki-style link resolution
+│   │   │   ├── subscription/        # Subscription management
+│   │   │   ├── ai-memory/           # AI memory CRUD
 │   │   │   └── health/              # Health check
 │   │   ├── layout.tsx               # Root layout
-│   │   ├── page.tsx                 # Main dashboard (7 views)
+│   │   ├── page.tsx                 # Main dashboard
 │   │   └── globals.css              # Custom theme (oklch color system)
 │   ├── components/                  # React components
-│   │   ├── ui/                      # shadcn/ui components (20+)
+│   │   ├── ui/                      # shadcn/ui components (40+)
 │   │   ├── layout/                  # Sidebar, Header, AppLayout
-│   │   ├── notes/                   # NoteEditor, NoteCard, NotesList
+│   │   ├── llm/                     # LLM Marketplace, Agent Chat
+│   │   ├── notes/                   # NoteEditor, NoteCard, NotesList, SmartTags
 │   │   ├── chat/                    # ChatPanel, MessageBubble
 │   │   ├── memory/                  # MemoryInsights, RelatedNotesPanel
 │   │   ├── search/                  # SemanticSearch
-│   │   └── providers.tsx            # QueryClient + Theme + Tooltip providers
+│   │   ├── editor/                  # RichEditor (TipTap)
+│   │   ├── graph/                   # KnowledgeGraph (D3)
+│   │   ├── canvas/                  # CanvasView
+│   │   ├── daily/                   # DailyNotes
+│   │   ├── templates/               # TemplatesView
+│   │   ├── providers.tsx            # QueryClient + Theme + Tooltip providers
+│   │   ├── pwa-register.tsx         # PWA service worker registration
+│   │   ├── keyboard-shortcuts.tsx   # Global keyboard shortcuts
+│   │   └── quick-switcher.tsx       # Cmd+K quick switcher
 │   ├── lib/                         # Shared utilities
+│   │   ├── llm/                     # Multi-LLM Layer
+│   │   │   ├── index.ts             # LLM Router (auto-routing)
+│   │   │   ├── providers.ts         # Model registry (20+ curated models)
+│   │   │   ├── puter-provider.ts    # Puter.js integration (FREE)
+│   │   │   └── byok-provider.ts     # BYOK integration (7 providers)
+│   │   ├── agent/                   # AI Agent System
+│   │   │   └── index.ts             # AgentEngine + 7 built-in tools
+│   │   ├── storage/                 # Multi-Cloud Storage
+│   │   │   ├── index.ts             # StorageManager (orchestrator)
+│   │   │   ├── google-drive.ts      # Google Drive provider
+│   │   │   ├── terabox.ts           # TeraBox provider
+│   │   │   ├── s3-compatible.ts     # S3-compatible provider
+│   │   │   ├── local.ts             # Local filesystem provider
+│   │   │   └── types.ts             # Storage type definitions
+│   │   ├── email/                   # Email Integration
+│   │   │   ├── index.ts             # EmailManager
+│   │   │   ├── gmail.ts             # Gmail provider
+│   │   │   ├── imap.ts              # IMAP provider
+│   │   │   └── types.ts             # Email types
 │   │   ├── auth.ts                  # NextAuth configuration
 │   │   ├── db.ts                    # Prisma client singleton
 │   │   ├── env.ts                   # Zod environment validation
-│   │   ├── store.ts                 # Zustand stores (UI, Notes, Chat, Memory, Decisions)
+│   │   ├── store.ts                 # Zustand stores
 │   │   ├── api-utils.ts             # Shared API response helpers
 │   │   ├── rate-limit.ts            # In-memory rate limiter
 │   │   ├── error-reporter.ts        # Structured error reporting
 │   │   ├── query-client.ts          # TanStack Query client
+│   │   ├── ai-memory.ts             # AI memory service
+│   │   ├── wiki-links.ts            # Wiki link resolution
+│   │   ├── api.ts                   # API client utilities
+│   │   ├── types.ts                 # Shared type definitions
 │   │   └── utils.ts                 # cn() utility
 │   └── middleware.ts                # Security headers, rate limiting, CORS
 ├── mcp-server/                      # Standalone MCP server
 │   ├── index.ts                     # JSON-RPC 2.0 server (8 tools)
-│   ├── package.json                 # Independent Bun project
-│   ├── tsconfig.json                # TypeScript config
-│   ├── prisma/
-│   │   └── schema.prisma            # MCP-specific database schema
-│   └── README.md                    # MCP server documentation
+│   ├── cli.js                       # CLI entry point for npx memorix-mcp
+│   ├── package.json                 # Independent npm package
+│   └── tsconfig.json                # TypeScript config
 ├── prisma/
-│   ├── schema.prisma                # Main database schema (9 models)
+│   ├── schema.prisma                # Main database schema (15+ models)
 │   └── seed.ts                      # Demo data seeder
-├── .github/
-│   └── workflows/
-│       └── ci.yml                   # CI pipeline (lint, typecheck, test, build)
+├── public/
+│   ├── logo.svg                     # Memorix logo
+│   ├── sw.js                        # Service worker
+│   └── fonts/                       # Inter font
 ├── Dockerfile                       # Multi-stage Docker build
-├── Dockerfile.mcp                   # MCP server Docker build
 ├── docker-compose.yml               # App + MCP services
 ├── .env.example                     # Environment template
-├── .gitignore                       # Git ignore rules
 ├── LICENSE                          # MIT License
 ├── README.md                        # This file
+├── ARCHITECTURE.md                  # Architecture documentation
+├── AGENTS.md                        # AI Agent documentation
+├── API.md                           # API reference
 ├── next.config.ts                   # Next.js config (standalone output)
 ├── package.json                     # Project manifest
 ├── tsconfig.json                    # TypeScript config
@@ -387,8 +435,6 @@ memorix/
 ## Deployment
 
 ### Docker (Recommended)
-
-The easiest way to deploy Memorix is with Docker Compose:
 
 ```bash
 # Clone the repository
@@ -412,6 +458,18 @@ This starts two services:
 
 Data is persisted in a Docker volume (`memorix-data`).
 
+### Vercel
+
+Memorix can be deployed to Vercel with some adjustments:
+
+1. Fork the repository
+2. Connect to Vercel
+3. Set environment variables in Vercel dashboard
+4. Switch from SQLite to PostgreSQL (update `prisma/schema.prisma` datasource)
+5. Deploy
+
+> **Note:** SQLite is not supported on Vercel. Migrate to PostgreSQL or use Turso.
+
 ### Manual Deployment
 
 ```bash
@@ -429,45 +487,24 @@ NODE_ENV=production \
 bun run start
 ```
 
-### Vercel
-
-Memorix can be deployed to Vercel with some adjustments:
-
-1. Fork the repository
-2. Connect to Vercel
-3. Set environment variables in Vercel dashboard
-4. Switch from SQLite to a PostgreSQL database (update `prisma/schema.prisma` datasource)
-5. Deploy
-
-> **Note:** SQLite is not supported on Vercel. You'll need to migrate to PostgreSQL or use a managed SQLite service like Turso.
-
-### Environment Variables for Production
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | SQLite path or PostgreSQL connection string |
-| `NEXTAUTH_SECRET` | Yes | Secret for JWT signing (generate with `openssl rand -base64 32`) |
-| `NEXTAUTH_URL` | Yes | Your public URL (e.g., `https://memorix.example.com`) |
-| `OPENROUTER_API_KEY` | No | OpenRouter API key for LLM chat |
-| `EMBEDDING_API_URL` | No | External embedding API URL |
-| `MEMORIX_API_KEY` | No | API key for MCP server authentication |
-
 ---
 
 ## Environment Variables
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `DATABASE_URL` | Yes | `file:./dev.db` | SQLite database path |
-| `NEXTAUTH_SECRET` | Yes | `change-me-in-production` | JWT session secret |
+| `DATABASE_URL` | Yes | `file:./dev.db` | SQLite path or PostgreSQL connection string |
+| `NEXTAUTH_SECRET` | Yes | `change-me-in-production` | JWT session secret (`openssl rand -base64 32`) |
 | `NEXTAUTH_URL` | Yes | `http://localhost:3000` | Public URL for auth callbacks |
-| `OPENROUTER_API_KEY` | No | — | OpenRouter API key for AI chat |
+| `OPENROUTER_API_KEY` | No | — | OpenRouter API key for additional LLM access |
+| `MEMORIX_API_KEY` | No | — | API key for MCP server authentication |
+| `MCP_SERVER_PORT` | No | `4000` | MCP server port |
 | `UPSTASH_REDIS_URL` | No | — | Redis URL for production rate limiting |
 | `UPSTASH_REDIS_TOKEN` | No | — | Redis token for production rate limiting |
-| `MCP_SERVER_PORT` | No | `4000` | MCP server port |
 | `EMBEDDING_MODEL` | No | `nomic-embed-text` | Embedding model name |
 | `EMBEDDING_DIMENSION` | No | `768` | Embedding vector dimension |
 | `EMBEDDING_API_URL` | No | — | External embedding API URL |
+| `EMBEDDING_API_KEY` | No | — | External embedding API key |
 
 ---
 
@@ -550,7 +587,7 @@ SOFTWARE.
 
 <div align="center">
 
-**Own Your AI Memory** 🧠
+**The Biggest Free Multi-LLM Hub** 🧠
 
 *Built with ❤️ in Aceh, Indonesia*
 

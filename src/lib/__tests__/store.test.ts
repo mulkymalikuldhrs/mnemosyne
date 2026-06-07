@@ -1,149 +1,125 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useDashboardStore, useNotificationStore } from '../store'
+import { useUIStore, useNotesStore } from '../store'
 
-describe('Dashboard Store', () => {
+describe('UI Store', () => {
   beforeEach(() => {
-    // Reset stores to initial state
-    useDashboardStore.setState({
-      activeTab: 'overview',
+    useUIStore.setState({
+      activeSection: 'dashboard',
       sidebarCollapsed: false,
     })
   })
 
   it('should have correct initial state', () => {
-    const state = useDashboardStore.getState()
-    expect(state.activeTab).toBe('overview')
+    const state = useUIStore.getState()
+    expect(state.activeSection).toBe('dashboard')
     expect(state.sidebarCollapsed).toBe(false)
   })
 
-  it('should set active tab', () => {
-    useDashboardStore.getState().setActiveTab('hardware')
-    expect(useDashboardStore.getState().activeTab).toBe('hardware')
+  it('should set active section', () => {
+    useUIStore.getState().setActiveSection('notes')
+    expect(useUIStore.getState().activeSection).toBe('notes')
   })
 
-  it('should set active tab to different values', () => {
-    const tabs = ['overview', 'hardware', 'telemetry', 'missions', 'agents', 'power']
-    for (const tab of tabs) {
-      useDashboardStore.getState().setActiveTab(tab)
-      expect(useDashboardStore.getState().activeTab).toBe(tab)
+  it('should set active section to different values', () => {
+    const sections = ['dashboard', 'notes', 'chat', 'search', 'decisions', 'settings', 'mcp', 'graph', 'llm-marketplace', 'agent-chat', 'api-hub']
+    for (const section of sections) {
+      useUIStore.getState().setActiveSection(section)
+      expect(useUIStore.getState().activeSection).toBe(section)
     }
   })
 
   it('should toggle sidebar from false to true', () => {
-    expect(useDashboardStore.getState().sidebarCollapsed).toBe(false)
-    useDashboardStore.getState().toggleSidebar()
-    expect(useDashboardStore.getState().sidebarCollapsed).toBe(true)
+    expect(useUIStore.getState().sidebarCollapsed).toBe(false)
+    useUIStore.getState().toggleSidebar()
+    expect(useUIStore.getState().sidebarCollapsed).toBe(true)
   })
 
   it('should toggle sidebar back from true to false', () => {
-    useDashboardStore.getState().toggleSidebar()
-    expect(useDashboardStore.getState().sidebarCollapsed).toBe(true)
-    useDashboardStore.getState().toggleSidebar()
-    expect(useDashboardStore.getState().sidebarCollapsed).toBe(false)
+    useUIStore.getState().toggleSidebar()
+    expect(useUIStore.getState().sidebarCollapsed).toBe(true)
+    useUIStore.getState().toggleSidebar()
+    expect(useUIStore.getState().sidebarCollapsed).toBe(false)
   })
 
-  it('should handle multiple rapid tab changes', () => {
-    useDashboardStore.getState().setActiveTab('a')
-    useDashboardStore.getState().setActiveTab('b')
-    useDashboardStore.getState().setActiveTab('c')
-    expect(useDashboardStore.getState().activeTab).toBe('c')
+  it('should handle multiple rapid section changes', () => {
+    useUIStore.getState().setActiveSection('notes')
+    useUIStore.getState().setActiveSection('chat')
+    useUIStore.getState().setActiveSection('search')
+    expect(useUIStore.getState().activeSection).toBe('search')
   })
 
-  it('should handle setting same tab value', () => {
-    useDashboardStore.getState().setActiveTab('overview')
-    useDashboardStore.getState().setActiveTab('overview')
-    expect(useDashboardStore.getState().activeTab).toBe('overview')
+  it('should handle setting same section value', () => {
+    useUIStore.getState().setActiveSection('dashboard')
+    useUIStore.getState().setActiveSection('dashboard')
+    expect(useUIStore.getState().activeSection).toBe('dashboard')
   })
 
-  it('should maintain independent state for tab and sidebar', () => {
-    useDashboardStore.getState().setActiveTab('agents')
-    useDashboardStore.getState().toggleSidebar()
-    const state = useDashboardStore.getState()
-    expect(state.activeTab).toBe('agents')
+  it('should maintain independent state for section and sidebar', () => {
+    useUIStore.getState().setActiveSection('llm-marketplace')
+    useUIStore.getState().toggleSidebar()
+    const state = useUIStore.getState()
+    expect(state.activeSection).toBe('llm-marketplace')
     expect(state.sidebarCollapsed).toBe(true)
   })
 })
 
-describe('Notification Store', () => {
+describe('Notes Store', () => {
   beforeEach(() => {
-    // Reset store to initial state
-    useNotificationStore.setState({
-      unreadAlerts: 0,
-      activeMissions: 0,
-      onlineDevices: 0,
-      systemHealth: 'unknown',
+    useNotesStore.setState({
+      notes: [],
+      selectedNoteId: null,
+      searchQuery: '',
     })
   })
 
   it('should have correct initial state', () => {
-    const state = useNotificationStore.getState()
-    expect(state.unreadAlerts).toBe(0)
-    expect(state.activeMissions).toBe(0)
-    expect(state.onlineDevices).toBe(0)
-    expect(state.systemHealth).toBe('unknown')
+    const state = useNotesStore.getState()
+    expect(state.notes).toEqual([])
+    expect(state.selectedNoteId).toBeNull()
+    expect(state.searchQuery).toBe('')
   })
 
-  it('should set unread alerts count', () => {
-    useNotificationStore.getState().setUnreadAlerts(5)
-    expect(useNotificationStore.getState().unreadAlerts).toBe(5)
+  it('should set search query', () => {
+    useNotesStore.getState().setSearchQuery('machine learning')
+    expect(useNotesStore.getState().searchQuery).toBe('machine learning')
   })
 
-  it('should set unread alerts to zero', () => {
-    useNotificationStore.getState().setUnreadAlerts(10)
-    useNotificationStore.getState().setUnreadAlerts(0)
-    expect(useNotificationStore.getState().unreadAlerts).toBe(0)
+  it('should set selected note id', () => {
+    useNotesStore.getState().setSelectedNoteId('note-123')
+    expect(useNotesStore.getState().selectedNoteId).toBe('note-123')
   })
 
-  it('should set active missions count', () => {
-    useNotificationStore.getState().setActiveMissions(3)
-    expect(useNotificationStore.getState().activeMissions).toBe(3)
+  it('should clear search query', () => {
+    useNotesStore.getState().setSearchQuery('test')
+    useNotesStore.getState().setSearchQuery('')
+    expect(useNotesStore.getState().searchQuery).toBe('')
   })
 
-  it('should set online devices count', () => {
-    useNotificationStore.getState().setOnlineDevices(7)
-    expect(useNotificationStore.getState().onlineDevices).toBe(7)
+  it('should set selected note id to null', () => {
+    useNotesStore.getState().setSelectedNoteId('note-123')
+    useNotesStore.getState().setSelectedNoteId(null)
+    expect(useNotesStore.getState().selectedNoteId).toBeNull()
   })
 
-  it('should set system health to healthy', () => {
-    useNotificationStore.getState().setSystemHealth('healthy')
-    expect(useNotificationStore.getState().systemHealth).toBe('healthy')
+  it('should add a note', () => {
+    const note = { id: 'n1', title: 'Test', content: 'Hello', tags: [], createdAt: '', updatedAt: '', isArchived: false }
+    useNotesStore.getState().addNote(note)
+    expect(useNotesStore.getState().notes).toHaveLength(1)
+    expect(useNotesStore.getState().notes[0].id).toBe('n1')
   })
 
-  it('should set system health to degraded', () => {
-    useNotificationStore.getState().setSystemHealth('degraded')
-    expect(useNotificationStore.getState().systemHealth).toBe('degraded')
-  })
-
-  it('should set system health to critical', () => {
-    useNotificationStore.getState().setSystemHealth('critical')
-    expect(useNotificationStore.getState().systemHealth).toBe('critical')
-  })
-
-  it('should transition system health through states', () => {
-    useNotificationStore.getState().setSystemHealth('healthy')
-    expect(useNotificationStore.getState().systemHealth).toBe('healthy')
-    useNotificationStore.getState().setSystemHealth('degraded')
-    expect(useNotificationStore.getState().systemHealth).toBe('degraded')
-    useNotificationStore.getState().setSystemHealth('critical')
-    expect(useNotificationStore.getState().systemHealth).toBe('critical')
-    useNotificationStore.getState().setSystemHealth('unknown')
-    expect(useNotificationStore.getState().systemHealth).toBe('unknown')
+  it('should delete a note', () => {
+    const note = { id: 'n1', title: 'Test', content: 'Hello', tags: [], createdAt: '', updatedAt: '', isArchived: false }
+    useNotesStore.getState().addNote(note)
+    useNotesStore.getState().deleteNote('n1')
+    expect(useNotesStore.getState().notes).toHaveLength(0)
   })
 
   it('should maintain independent state for different properties', () => {
-    useNotificationStore.getState().setUnreadAlerts(3)
-    useNotificationStore.getState().setActiveMissions(2)
-    useNotificationStore.getState().setOnlineDevices(5)
-    useNotificationStore.getState().setSystemHealth('healthy')
-    const state = useNotificationStore.getState()
-    expect(state.unreadAlerts).toBe(3)
-    expect(state.activeMissions).toBe(2)
-    expect(state.onlineDevices).toBe(5)
-    expect(state.systemHealth).toBe('healthy')
-  })
-
-  it('should handle large alert counts', () => {
-    useNotificationStore.getState().setUnreadAlerts(9999)
-    expect(useNotificationStore.getState().unreadAlerts).toBe(9999)
+    useNotesStore.getState().setSearchQuery('test query')
+    useNotesStore.getState().setSelectedNoteId('note-456')
+    const state = useNotesStore.getState()
+    expect(state.searchQuery).toBe('test query')
+    expect(state.selectedNoteId).toBe('note-456')
   })
 })

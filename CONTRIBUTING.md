@@ -1,6 +1,6 @@
 # Contributing to Memorix AI Memory
 
-Thank you for your interest in contributing to **Memorix AI Memory** — the Personal AI Memory Infrastructure! We welcome contributions from developers, AI enthusiasts, and memory system researchers of all skill levels.
+Thank you for your interest in contributing to **Memorix** — The Biggest Free Multi-LLM Hub! We welcome contributions from developers, AI enthusiasts, researchers, and anyone passionate about making LLM access free and universal.
 
 ## Table of Contents
 
@@ -17,7 +17,7 @@ Thank you for your interest in contributing to **Memorix AI Memory** — the Per
 
 ## Code of Conduct
 
-Be respectful, inclusive, and constructive. We are building robotics software for everyone, and every contributor deserves to feel welcome.
+Be respectful, inclusive, and constructive. We are building the world's biggest free multi-LLM hub, and every contributor deserves to feel welcome.
 
 ## Getting Started
 
@@ -51,12 +51,13 @@ Be respectful, inclusive, and constructive. We are building robotics software fo
 ### Ways to Contribute
 
 - **Bug fixes** — Find and fix issues in existing code
-- **Feature development** — Add new capabilities to the platform
-- **Hardware adapters** — Write HAL adapters for new devices (sensors, controllers, etc.)
-- **Robot templates** — Create project templates for new robot types
+- **Feature development** — Add new LLM providers, agent tools, or storage backends
+- **Model integrations** — Add new models to the registry or improve Puter.js integration
+- **MCP tools** — Create new MCP tools for AI assistant integration
 - **Documentation** — Improve guides, API docs, and inline comments
 - **Testing** — Write and improve tests for better reliability
-- **Translations** — Help make Memorix AI Memory accessible in more languages
+- **Translations** — Help make Memorix accessible in more languages
+- **SaaS/IaaS features** — Build billing, rate limiting, or multi-tenancy features
 
 ### Suggested Workflow
 
@@ -146,10 +147,10 @@ type(scope): description
 ### Examples
 
 ```
-feat(hal): add BME280 temperature/humidity sensor adapter
-fix(mission): resolve waypoint calculation overflow on large areas
-docs(api): update telemetry endpoint documentation
-refactor(agents): simplify Hermes command dispatcher
+feat(llm): add Cohere provider to BYOK integration
+fix(agent): resolve tool execution loop timeout on large contexts
+docs(api): update LLM chat endpoint documentation
+refactor(router): optimize Puter.js to BYOK fallback logic
 ```
 
 ## Pull Request Process
@@ -184,7 +185,7 @@ refactor(agents): simplify Hermes command dispatcher
 
 1. Open a [new issue](https://github.com/mulkymalikuldhrs/memorix/issues/new) with the label `enhancement`
 2. Describe the feature and the use case it solves
-3. Explain why it fits the Memorix AI Memory platform vision
+3. Explain why it fits the Memorix multi-LLM hub vision
 4. Optionally, propose an implementation approach
 
 ## Contact
@@ -194,4 +195,4 @@ refactor(agents): simplify Hermes command dispatcher
 
 ---
 
-*Thank you for helping build the future of AI-powered memory with Memorix!*
+*Thank you for helping build the future of free, universal LLM access with Memorix!*

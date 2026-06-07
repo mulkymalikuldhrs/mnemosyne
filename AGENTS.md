@@ -1,723 +1,907 @@
-# Memorix AI Memory — Agent System
+# Memorix v4.0 — AI Agent System
 
-> Documentation for the 6-agent system and Agent Orchestrator in Memorix AI Memory.
+> Documentation for the built-in AI Agent that can use any LLM from the multi-provider pool, execute tools, manage memory, and interact with all Memorix data.
 
 ---
 
 ## Table of Contents
 
 - [Overview](#overview)
-- [Agent Architecture](#agent-architecture)
-- [Agent Profiles](#agent-profiles)
-- [Agent Orchestrator](#agent-orchestrator)
-- [Task Queue System](#task-queue-system)
-- [Inter-Agent Communication](#inter-agent-communication)
-- [Configuration Options](#configuration-options)
-- [API Endpoints for Agent Control](#api-endpoints-for-agent-control)
-- [Safety Monitoring (Sentinel)](#safety-monitoring-sentinel)
+- [Agent Types](#agent-types)
+- [AgentConfig Interface](#agentconfig-interface)
+- [Built-in Tools](#built-in-tools)
+- [Tool Registry](#tool-registry)
+- [Agent Execution Engine](#agent-execution-engine)
+- [Execution Loop Diagram](#execution-loop-diagram)
+- [Default Agent Config](#default-agent-config)
+- [Custom Agents](#custom-agents)
+- [Agent API Endpoints](#agent-api-endpoints)
+- [Multi-LLM Agent](#multi-llm-agent)
+- [Integration with Puter.js](#integration-with-puterjs)
 - [Example Workflows](#example-workflows)
 
 ---
 
 ## Overview
 
-Memorix AI Memory uses a multi-agent architecture with 6 specialized agents coordinated by a central orchestrator. Each agent has a specific domain of responsibility and can communicate with other agents through a message bus.
+Memorix includes a built-in AI Agent system that combines the power of any LLM from the multi-provider pool with 7 built-in tools. The agent can search your memories, save new notes, update existing ones, track decisions, search the web, and generate insights about your knowledge base — all powered by free LLM models via Puter.js.
 
-### Agent Roster
+The key innovation is that the agent is **model-agnostic**: you can use any model from the pool (GPT-5.5 Pro, Claude Opus 4.8, DeepSeek R1, etc.) as the "brain" of the agent, and it will automatically route to the correct provider via the LLM Router.
 
-| Agent | Type | Role | Check Interval |
-|-------|------|------|---------------|
-| **Hermes** | LLM | Strategic planning, mission design, natural language | On-demand |
-| **PicoClaw** | Rule | Tactical safety checks, failsafe execution | On-demand |
-| **Sentinel** | Rule | Continuous telemetry monitoring, emergency actions | 2s |
-| **Navigator** | Hybrid | Route planning, obstacle avoidance, rerouting | 3s |
-| **CommsGuard** | Rule | Communication link monitoring, failover | 3s |
-| **DataSteward** | Rule | Data pipeline health, anomaly detection | 5s |
+### Key Capabilities
 
-### Agent Types
-
-- **LLM** — Uses AI language model for reasoning and natural language understanding
-- **Rule** — Deterministic rule-based logic with configurable thresholds
-- **Hybrid** — Combines rule-based checks with AI-assisted recommendations
+| Capability | Description |
+|-----------|-------------|
+| **Model-Agnostic** | Use any LLM from the pool (500+ via Puter.js or BYOK) |
+| **Tool Calling** | 7 built-in tools with full parameter validation |
+| **Agentic Loop** | Autonomous execution until task completion (configurable max iterations) |
+| **Memory-Aware** | Automatically searches your memory before answering |
+| **Free Execution** | Powered by Puter.js — no API key needed for basic usage |
+| **Context Tracking** | Tracks memory references created during execution |
 
 ---
 
-## Agent Architecture
+## Agent Types
 
-### AgentInstance Interface
+### The Memorix Agent
 
-All agents implement the `AgentInstance` interface:
+The default agent type in Memorix v4.0 is the **Memorix Agent** — a configurable, multi-LLM agent with access to the full tool registry. Unlike v2.0's multi-agent system (Hermes, PicoClaw, Sentinel, etc.), v4.0 uses a single, flexible agent that can be configured for any task by changing the system prompt, model, and tool set.
+
+| Property | Description |
+|----------|-------------|
+| **Type** | Multi-LLM Agent (configurable) |
+| **Default Model** | `openai/gpt-5.4-nano` (free via Puter.js) |
+| **Max Iterations** | 5 (configurable) |
+| **Tools** | All 7 built-in tools (configurable subset) |
+| **Provider** | Auto-routed via LLM Router (Puter.js → BYOK fallback) |
+
+---
+
+## AgentConfig Interface
+
+Every agent execution is configured through the `AgentConfig` interface:
 
 ```typescript
-interface AgentInstance {
-  name: string                    // Unique agent identifier
-  type: AgentType                 // 'llm' | 'rule' | 'hybrid'
-  state: AgentState               // 'idle' | 'thinking' | 'acting' | 'waiting' | 'error'
-  capabilities: string[]          // List of agent capabilities
-
-  // Lifecycle
-  initialize(): Promise<void>     // Set up agent resources
-  start(): Promise<void>          // Begin agent operation
-  stop(): Promise<void>           // Graceful shutdown
-
-  // Processing
-  processTask(task: AgentTask): Promise<unknown>  // Execute a task
-
-  // Communication
-  onMessage(message: AgentMessage): void          // Handle incoming message
-
-  // Status
-  getStatus(): AgentStatus        // Get current agent status
+interface AgentConfig {
+  id?: string                    // Optional agent identifier
+  name: string                   // Agent display name
+  description: string            // Agent description
+  systemPrompt: string           // System prompt that defines agent behavior
+  model: string                  // LLM model ID (e.g., "openai/gpt-5.4-nano")
+  provider?: string              // Explicit provider override ("puter" | "openai" | etc.)
+  temperature?: number           // LLM temperature (default: 0.7)
+  maxTokens?: number             // Maximum tokens in response (default: 2048)
+  maxIterations?: number         // Maximum agentic loop iterations (default: 5)
+  tools: string[]                // Array of tool names to enable
+  apiKey?: string                // BYOK API key (for BYOK models)
+  baseUrl?: string               // Custom base URL (for local/custom providers)
 }
 ```
 
-### Agent Lifecycle States
+### Configuration Fields
 
-```
-idle → thinking → acting → idle
-  │                              │
-  └── error ←─────── error ←────┘
-       │
-       └── (auto-recovery) → idle → start()
-```
-
-| State | Description |
-|-------|-------------|
-| `idle` | Agent is ready but not actively processing |
-| `thinking` | Agent is processing input (LLM inference) |
-| `acting` | Agent is performing an action |
-| `waiting` | Agent is waiting for external input |
-| `error` | Agent encountered an error (auto-recoverable) |
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `name` | `string` | Yes | — | Display name for the agent |
+| `description` | `string` | Yes | — | Human-readable description of the agent's purpose |
+| `systemPrompt` | `string` | Yes | — | Instructions that define the agent's behavior and personality |
+| `model` | `string` | Yes | `"openai/gpt-5.4-nano"` | Model ID from the model registry |
+| `provider` | `string` | No | Auto-detected | Override the provider routing |
+| `temperature` | `number` | No | `0.7` | Controls randomness (0 = deterministic, 1 = creative) |
+| `maxTokens` | `number` | No | `2048` | Maximum tokens in the LLM response |
+| `maxIterations` | `number` | No | `5` | Maximum number of agentic loop iterations |
+| `tools` | `string[]` | Yes | All 7 tools | Subset of tools to make available |
+| `apiKey` | `string` | No | — | API key for BYOK providers |
+| `baseUrl` | `string` | No | — | Custom endpoint URL for local/custom providers |
 
 ---
 
-## Agent Profiles
+## Built-in Tools
 
-### Hermes — Strategic Planning Agent
+The Memorix Agent comes with 7 built-in tools that provide full access to the user's knowledge base and the web:
 
-| Property | Value |
-|----------|-------|
-| **Name** | `hermes` |
-| **Type** | LLM |
-| **SDK** | z-ai-web-dev-sdk |
-| **Model** | default (cloud) |
+### 1. memory_search
 
-**Capabilities**:
-- `mission_planning` — Design missions from natural language
-- `route_optimization` — Optimize waypoint routes
-- `terrain_analysis` — Analyze terrain for mission planning
-- `weather_assessment` — Evaluate weather conditions
-- `battery_estimation` — Estimate flight time from battery data
-- `strategic_recommendation` — High-level mission recommendations
-- `natural_language_chat` — Conversational AI interface
+Search the user's memory/notes using semantic search. Use this to find relevant memories, notes, or knowledge before answering questions.
 
-**System Prompt Region**: Aceh Utara, Indonesia (4.9°N, 97.1°E) — coastal, tropical climate
+**Parameters:**
 
-**How it works**:
-1. Receives prompt via `/api/agents/chat`
-2. Builds context from current telemetry, mission, devices, alerts
-3. Calls z-ai-web-dev-sdk for LLM inference
-4. Returns structured JSON response with type, content, priority
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | `string` | Yes | The search query to find relevant memories |
+| `limit` | `number` | No | Maximum results to return (default: 5) |
 
-**Response Format**:
+**Behavior:**
+- Calls the `/api/search` endpoint with the query
+- Returns matching notes with ID, title, content snippet, and relevance score
+- Uses vector similarity (cosine) + keyword matching as fallback
+- The agent should always search memory first before answering questions
+
+**Example Tool Call:**
 ```json
 {
-  "type": "mission_plan" | "recommendation" | "alert" | "status" | "clarification",
-  "content": "Human-readable explanation",
-  "data": { ... },
-  "priority": "low" | "medium" | "high" | "critical"
+  "name": "memory_search",
+  "arguments": {
+    "query": "project deadlines Q4",
+    "limit": 5
+  }
+}
+```
+
+**Example Response:**
+```json
+[
+  {"id": "note-1", "title": "Q4 Planning", "snippet": "Deadline for Q4 deliverables is December 15...", "score": 0.89},
+  {"id": "note-2", "title": "Sprint Review Notes", "snippet": "The team agreed to prioritize...", "score": 0.72}
+]
+```
+
+---
+
+### 2. memory_save
+
+Save a new note/memory to the user's knowledge base. Use this when the user shares important information that should be stored for future reference.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `title` | `string` | Yes | Title of the note |
+| `content` | `string` | Yes | Content of the note |
+| `tags` | `string` | No | Comma-separated tags for categorization |
+
+**Behavior:**
+- Calls `/api/notes` POST endpoint to create a new note
+- The note is automatically chunked and embedded for semantic search
+- The note ID is added to `context.memoryRefs` for tracking
+- Auto-creates MemoryLinks to existing notes with similar tags
+
+**Example Tool Call:**
+```json
+{
+  "name": "memory_save",
+  "arguments": {
+    "title": "Meeting Notes: API Design Review",
+    "content": "Decided to use REST for the public API and gRPC for internal services. Rate limiting: 100 req/min for free tier, 1000 req/min for pro.",
+    "tags": "meeting,api,architecture,rate-limiting"
+  }
+}
+```
+
+**Example Response:**
+```
+Note saved: "Meeting Notes: API Design Review" (ID: note-abc123)
+```
+
+---
+
+### 3. memory_update
+
+Update an existing note/memory in the user's knowledge base. Use this to correct or augment existing information.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | `string` | Yes | The note ID to update |
+| `title` | `string` | No | New title |
+| `content` | `string` | No | New content |
+| `tags` | `string` | No | New tags |
+
+**Behavior:**
+- Calls `/api/notes/[id]` PUT endpoint
+- Only provided fields are updated (partial update)
+- The note is re-chunked and re-embedded after update
+- At least one of `title`, `content`, or `tags` must be provided
+
+**Example Tool Call:**
+```json
+{
+  "name": "memory_update",
+  "arguments": {
+    "id": "note-abc123",
+    "content": "Updated: Decided to use REST for public API. Rate limiting changed to 200 req/min for free tier.",
+    "tags": "meeting,api,architecture,rate-limiting,updated"
+  }
+}
+```
+
+**Example Response:**
+```
+Note updated: note-abc123
+```
+
+---
+
+### 4. memory_delete
+
+Delete a note/memory from the user's knowledge base. Use this when the user explicitly requests removal of a note or when information is no longer relevant.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `id` | `string` | Yes | The note ID to delete |
+
+**Behavior:**
+- Calls `/api/notes/[id]` DELETE endpoint
+- Removes the note and all associated chunks and embeddings
+- Cleans up related MemoryLinks
+
+**Example Tool Call:**
+```json
+{
+  "name": "memory_delete",
+  "arguments": {
+    "id": "note-abc123"
+  }
+}
+```
+
+**Example Response:**
+```
+Note deleted: note-abc123
+```
+
+---
+
+### 5. memory_insights
+
+Get AI-powered insights about the user's memory patterns, topics, and connections. Use this to help the user understand their knowledge base holistically.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `type` | `string` | No | Type of insights: `"patterns"`, `"related"`, or `"temporal"` |
+
+**Behavior:**
+- `patterns`: Calls `/api/memory/patterns` — detects tag frequency, keyword trends, knowledge clusters
+- `temporal`: Calls `/api/graph/temporal` — shows how memory evolves over time
+- `related` or omitted: Calls `/api/memory` — returns overall memory context
+
+**Example Tool Call:**
+```json
+{
+  "name": "memory_insights",
+  "arguments": {
+    "type": "patterns"
+  }
+}
+```
+
+**Example Response:**
+```json
+{
+  "patterns": [
+    "Recurring topic: 'api' appears in 8 notes",
+    "Common themes in titles: \"design\", \"review\", \"planning\"",
+    "Active memory: 42 notes across 15 unique tags"
+  ]
 }
 ```
 
 ---
 
-### PicoClaw — Tactical Safety Agent
+### 6. web_search
 
-| Property | Value |
-|----------|-------|
-| **Name** | `picoclaw` |
-| **Type** | Rule |
-| **Trigger** | On-demand (via task or message) |
+Search the web for current information. Use this when the user asks about recent events, current data, or information not available in their memory.
 
-**Capabilities**:
-- `safety_check` — Comprehensive telemetry safety analysis
-- `battery_monitoring` — Voltage threshold checking
-- `signal_monitoring` — Signal strength analysis
-- `altitude_monitoring` — Altitude limit enforcement
-- `temperature_monitoring` — Temperature threshold checking
-- `motor_asymmetry_detection` — Motor RPM deviation detection
-- `failsafe_execution` — RTH, land, reduce speed actions
+**Parameters:**
 
-**Safety Thresholds**:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | `string` | Yes | Search query |
+| `num` | `number` | No | Number of results (default: 5) |
 
-| Metric | Warning | Critical |
-|--------|---------|----------|
-| Battery Voltage | 13.2V | 12.6V |
-| Signal Strength | -70 dBm | -80 dBm |
-| Altitude | 110m | 120m |
-| Temperature | 40°C | 50°C |
-| Current Draw | 25A | 30A |
-| Speed | 12 m/s | 15 m/s |
-| Motor RPM Asymmetry | 8% | 15% |
+**Behavior:**
+- Calls `/api/llm/web-search` POST endpoint
+- Uses z-ai-web-dev-sdk for web search
+- Returns page titles, URLs, and snippets
+- The agent should prefer memory search first, then fall back to web search
 
-**Check Flow**:
-1. Receive telemetry snapshot
-2. Evaluate each metric against thresholds
-3. Generate alerts (warning/critical)
-4. Determine actions (RTH, land, reduce speed, alert operator)
-5. Return `{ safe, alerts, actions }`
-
----
-
-### Sentinel — Continuous Safety Monitor
-
-| Property | Value |
-|----------|-------|
-| **Name** | `sentinel` |
-| **Type** | Rule |
-| **Check Interval** | 2000ms (configurable) |
-
-**Capabilities**:
-- `continuous_telemetry_monitoring` — Background safety monitoring loop
-- `safety_threshold_checking` — Uses PicoClaw's check logic
-- `emergency_action_trigger` — Auto-trigger RTH/land on consecutive criticals
-- `alert_generation` — Create alerts in database
-- `hermes_escalation` — Escalate critical issues to Hermes
-- `telemetry_staleness_detection` — Detect stale data
-
-**How it differs from PicoClaw**:
-- PicoClaw is **on-demand** — called when needed
-- Sentinel is **continuous** — runs a background monitoring loop
-- Sentinel can **auto-trigger emergency actions** (RTH, land)
-- Sentinel tracks **consecutive critical count** for escalation
-- Sentinel **detects stale telemetry** (no data for >10s)
-
-**Emergency Action Logic**:
-1. First critical check → Generate alert
-2. Second consecutive critical → Auto-trigger emergency action (RTH/land)
-3. Escalate to Hermes for strategic response
-
-**Escalation Flow**:
-```
-Sentinel detects critical
-    │
-    ├──► Create Alert in DB
-    │
-    └──► Send escalation to Hermes (via message bus)
-              │
-              └──► Hermes formulates strategic response
-```
-
----
-
-### Navigator — Route Planning Agent
-
-| Property | Value |
-|----------|-------|
-| **Name** | `navigator` |
-| **Type** | Hybrid |
-| **Check Interval** | 3000ms (configurable) |
-
-**Capabilities**:
-- `route_planning` — Waypoint sequence optimization
-- `waypoint_processing` — Waypoint validation and calculation
-- `dynamic_rerouting` — Real-time route adjustment
-- `obstacle_avoidance` — Terrain, weather, no-fly zone detection
-- `wind_adjustment` — Speed reduction in high wind
-- `battery_aware_navigation` — RTH trigger on low battery
-- `altitude_optimization` — Safe altitude maintenance
-
-**Navigation Adjustment Types**:
-
-| Type | Priority | Trigger |
-|------|----------|---------|
-| `reroute` | High | Signal weakness, no-fly zone |
-| `speed_adjustment` | Medium | High wind, high temperature |
-| `altitude_change` | Medium | Near regulatory limit |
-| `hover` | Critical | Motor asymmetry |
-| `rth` | Critical | Low battery, signal loss |
-| `skip_waypoint` | Low | Unreachable waypoint |
-
-**Default Configuration**:
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `checkInterval` | 3000ms | Navigation check frequency |
-| `rerouteThreshold` | 50m | Deviation before rerouting |
-| `windSpeedLimit` | 10 m/s | Max safe wind speed |
-| `lowBatteryRthPercent` | 25% | Battery % to trigger RTH |
-| `maxWaypointDistance` | 500m | Max distance between waypoints |
-| `altitudeMargin` | 20m | Clearance above obstacles |
-
----
-
-### CommsGuard — Communication Guard Agent
-
-| Property | Value |
-|----------|-------|
-| **Name** | `comms_guard` |
-| **Type** | Rule |
-| **Check Interval** | 3000ms (configurable) |
-
-**Capabilities**:
-- `link_monitoring` — Monitor all communication links
-- `signal_quality_tracking` — Signal strength and latency tracking
-- `failover_management` — Automatic channel failover
-- `connection_retry` — Retry failed connections
-- `heartbeat_monitoring` — Detect dead connections
-- `operator_alerting` — Alert operator on communication issues
-
-**Failover Priority**: `radio → gsm → wifi → telemetry`
-
-**Communication Link Status**:
-
-| Status | Description |
-|--------|-------------|
-| `connected` | Link is healthy |
-| `degraded` | Signal below warning threshold |
-| `failing` | Signal below critical threshold |
-| `lost` | No heartbeat within timeout |
-| `unknown` | No data available |
-
-**Failover Flow**:
-1. Detect signal below critical threshold or heartbeat timeout
-2. Search for backup channel by priority order
-3. Attempt failover to best available backup
-4. If failover succeeds → continue on backup channel
-5. If failover fails → retry up to max attempts
-6. If all retries exhausted → alert operator
-
----
-
-### DataSteward — Data Pipeline Agent
-
-| Property | Value |
-|----------|-------|
-| **Name** | `data_steward` |
-| **Type** | Rule |
-| **Check Interval** | 5000ms (configurable) |
-
-**Capabilities**:
-- `data_freshness_monitoring` — Check data staleness per metric
-- `sensor_anomaly_detection` — Detect stuck values and outliers
-- `stuck_value_detection` — Consecutive identical readings
-- `outlier_detection` — Values >3 std devs from mean
-- `data_sync_management` — Monitor sync queue health
-- `data_cleanup_archival` — Delete old telemetry data
-- `pipeline_health_monitoring` — Overall pipeline status
-
-**Anomaly Types**:
-
-| Type | Severity | Detection |
-|------|----------|-----------|
-| `stuck_value` | Critical | N consecutive identical readings |
-| `outlier` | Warning | Value >N std devs from mean |
-| `drift` | Warning | Data is older than threshold |
-| `missing` | Warning | No readings for a metric |
-
-**Default Staleness Thresholds** (partial):
-
-| Metric | Threshold |
-|--------|-----------|
-| `battery_voltage` | 5s |
-| `gps_lat`, `gps_lng` | 3s |
-| `altitude` | 3s |
-| `signal_strength` | 5s |
-| `temperature` | 10s |
-| `heading` | 3s |
-| `motor_rpm_*` | 3s |
-
----
-
-## Agent Orchestrator
-
-### Overview
-
-The `AgentOrchestrator` is a singleton class that coordinates all 6 agents. It manages:
-
-- Agent registration and lifecycle
-- Task queue with priority scheduling
-- Inter-agent message bus
-- Auto-recovery for crashed agents
-- DB-backed task persistence
-
-### Configuration
-
-```typescript
-interface AgentOrchestratorConfig {
-  tickInterval: number            // ms between orchestration cycles (default: 5000)
-  safetyMonitorInterval: number   // ms between safety checks (default: 2000)
-  maxConcurrentAgents: number     // max agents running simultaneously (default: 6)
-  autoRecovery: boolean           // auto-restart crashed agents (default: true)
+**Example Tool Call:**
+```json
+{
+  "name": "web_search",
+  "arguments": {
+    "query": "latest Node.js 24 features",
+    "num": 5
+  }
 }
 ```
 
-### Orchestrator Tick Cycle
-
-Every 5 seconds (configurable):
-
-```
-1. Process Task Queue
-   ├── Sort by priority (critical > high > normal > low)
-   ├── Find available slots (up to maxConcurrentAgents)
-   ├── Execute pending tasks via agent.processTask()
-   └── Clean up completed/failed tasks (keep last 100)
-
-2. Auto-Recovery
-   ├── Find agents in 'error' state
-   ├── Stop → Initialize → Start each crashed agent
-   └── Log recovery attempt
-
-3. Process DB Tasks
-   ├── Query pending AgentTaskRecords
-   ├── Assign to registered agents
-   └── Update DB with results
-```
-
-### Starting the Orchestrator
-
-```typescript
-// Get singleton instance
-const orchestrator = AgentOrchestrator.getInstance()
-
-// Register all 6 default agents
-orchestrator.registerDefaultAgents()
-
-// Start the orchestrator
-await orchestrator.start()
+**Example Response:**
+```json
+[
+  {"title": "Node.js 24 Release Notes", "url": "https://nodejs.org/...", "snippet": "Node.js 24 includes native TypeScript support..."},
+  {"title": "What's New in Node.js 24", "url": "https://dev.to/...", "snippet": "The latest LTS release brings..."}
+]
 ```
 
 ---
 
-## Task Queue System
+### 7. decision_track
 
-### Task Lifecycle
+Track a decision with context, reasoning, and outcomes. Use this when the user makes an important decision that should be recorded for future reference.
 
-```
-pending → running → completed
-                  └── failed
-```
+**Parameters:**
 
-### In-Memory Task Queue
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `title` | `string` | Yes | Decision title |
+| `context` | `string` | Yes | The situation/context that led to the decision |
+| `decision` | `string` | Yes | What was decided |
+| `reasoning` | `string` | No | Why this decision was made |
 
-Tasks can be submitted to the in-memory queue for immediate processing:
+**Behavior:**
+- Calls `/api/decisions` POST endpoint
+- Creates a Decision record with full context and reasoning
+- Enables future retrospection: "Why did I decide X?"
+- The agent should proactively suggest tracking important decisions
 
-```typescript
-const taskId = orchestrator.submitTask({
-  type: 'safety_check',
-  agent: 'sentinel',
-  priority: 'critical',
-  payload: { action: 'manual_check' }
-})
-```
-
-### DB-Backed Task Queue
-
-For persistent tasks that survive restarts:
-
-```typescript
-const taskId = await orchestrator.submitTaskToDb({
-  type: 'navigation',
-  agent: 'navigator',
-  priority: 'high',
-  payload: { action: 'evaluate_route', waypoints: [...] },
-  missionId: 'mission-001',
-  projectId: 'proj-001'
-})
-```
-
-### Task Priority
-
-| Priority | Weight | Use Cases |
-|----------|--------|-----------|
-| `critical` | 0 | Emergency RTH, signal loss, battery critical |
-| `high` | 1 | Safety warnings, route adjustments, failover |
-| `normal` | 2 | Regular checks, status queries, data analysis |
-| `low` | 3 | Cleanup, archival, non-urgent reports |
-
-### AgentTaskRecord Model
-
-Tasks submitted via `submitTaskToDb` are persisted in the `AgentTaskRecord` Prisma model with indexes on `agent`, `status`, and `priority`.
-
----
-
-## Inter-Agent Communication
-
-### Message Bus
-
-The orchestrator uses a Node.js `EventEmitter` as the message bus. Each agent listens on `agent:{name}` channels.
-
-### Message Format
-
-```typescript
-interface AgentMessage {
-  id: string           // Unique message ID
-  from: string         // Sender agent name
-  to: string           // Recipient agent name (or '*' for broadcast)
-  type: string         // alert, command, status, escalation, data
-  payload: unknown     // Message-specific data
-  timestamp: Date      // When the message was sent
-  priority?: AgentPriority  // Message priority
+**Example Tool Call:**
+```json
+{
+  "name": "decision_track",
+  "arguments": {
+    "title": "Choose PostgreSQL over MongoDB",
+    "context": "Building a new multi-tenant SaaS application that needs ACID compliance",
+    "decision": "Use PostgreSQL as the primary database",
+    "reasoning": "ACID compliance is critical for financial data. Strong schema enforcement reduces bugs. JSON columns provide flexibility when needed."
+  }
 }
 ```
 
-### Message Types
-
-| Type | Description | Example |
-|------|-------------|---------|
-| `alert` | Safety or status alert | Signal degradation |
-| `command` | Direct instruction | Reset consecutive counter |
-| `status` | Status update | Pipeline health report |
-| `escalation` | Critical issue escalation | Sentinel → Hermes |
-| `data` | Data exchange | Telemetry snapshot |
-
-### Communication Patterns
-
-**Direct Message**:
-```typescript
-orchestrator.sendMessage('sentinel', 'hermes', {
-  type: 'escalation',
-  payload: { criticalCount: 2, alerts: [...] },
-  priority: 'critical'
-})
+**Example Response:**
 ```
-
-**Broadcast**:
-```typescript
-orchestrator.broadcast('sentinel', {
-  type: 'status',
-  payload: { safe: false, criticalCount: 1 },
-  priority: 'high'
-})
-```
-
-### Communication Log
-
-The orchestrator maintains a bounded communication log (max 200 entries) for debugging and audit:
-
-```typescript
-const log = orchestrator.getCommunicationLog(50)
-// Returns last 50 communication events
-```
-
-All messages are also persisted to the `AgentMessage` database model for long-term audit.
-
----
-
-## Configuration Options
-
-### Sentinel Configuration
-
-```typescript
-interface SentinelConfig {
-  checkInterval: number             // 2000ms default
-  thresholds: SentinelThresholds    // Safety thresholds
-  autoEmergencyActions: boolean     // true default
-  escalationToHermes: boolean       // true default
-  telemetryStalenessThreshold: number  // 10000ms default
-}
-```
-
-### Navigator Configuration
-
-```typescript
-interface NavigatorConfig {
-  checkInterval: number         // 3000ms default
-  rerouteThreshold: number      // 50m default
-  windSpeedLimit: number        // 10 m/s default
-  lowBatteryRthPercent: number  // 25% default
-  maxWaypointDistance: number    // 500m default
-  altitudeMargin: number        // 20m default
-}
-```
-
-### CommsGuard Configuration
-
-```typescript
-interface CommsGuardConfig {
-  checkInterval: number                // 3000ms default
-  signalDegradationThreshold: number   // -65 dBm default
-  signalCriticalThreshold: number      // -80 dBm default
-  heartbeatTimeout: number             // 10000ms default
-  maxRetryAttempts: number             // 3 default
-  retryInterval: number                // 5000ms default
-  failoverPriority: string[]           // ['radio','gsm','wifi','telemetry']
-}
-```
-
-### DataSteward Configuration
-
-```typescript
-interface DataStewardConfig {
-  checkInterval: number                 // 5000ms default
-  stalenessThresholds: Record<string, number>  // Per-metric
-  stuckValueThreshold: number           // 5 consecutive default
-  outlierStdDeviations: number          // 3 default
-  cleanupAgeDays: number                // 90 days default
-  syncCheckInterval: number             // 30000ms default
-  anomalyHistorySize: number            // 100 readings default
-}
+Decision tracked: "Choose PostgreSQL over MongoDB"
 ```
 
 ---
 
-## API Endpoints for Agent Control
+## Tool Registry
+
+The Tool Registry is a `Record<string, AgentTool>` map that stores all available tools by name. It provides O(1) lookup for tool execution during the agentic loop.
+
+```typescript
+export const TOOL_REGISTRY: Record<string, AgentTool> = {
+  memory_search:   MEMORY_SEARCH_TOOL,
+  memory_save:     MEMORY_SAVE_TOOL,
+  memory_update:   MEMORY_UPDATE_TOOL,
+  memory_delete:   MEMORY_DELETE_TOOL,
+  memory_insights: MEMORY_INSIGHTS_TOOL,
+  web_search:      WEB_SEARCH_TOOL,
+  decision_track:  DECISION_TRACK_TOOL,
+}
+```
+
+### AgentTool Interface
+
+Each tool implements the `AgentTool` interface:
+
+```typescript
+interface AgentTool {
+  name: string                    // Unique tool identifier
+  description: string             // Description for the LLM to understand when to use this tool
+  parameters: Record<string, any> // JSON Schema for tool parameters
+  execute: (args: Record<string, any>, context: AgentContext) => Promise<string>
+}
+```
+
+### AgentContext Interface
+
+The execution context passed to every tool:
+
+```typescript
+interface AgentContext {
+  userId: string                  // Authenticated user ID
+  conversationId?: string         // Current conversation ID
+  memoryRefs: string[]            // Accumulated memory reference IDs
+  metadata: Record<string, any>   // Additional context metadata
+}
+```
+
+The `memoryRefs` array is particularly important — tools like `memory_save` append note IDs to this array, enabling the agent to track which memories were created during the current execution.
+
+---
+
+## Agent Execution Engine
+
+The `AgentEngine` class is the core execution engine that runs the agentic loop:
+
+```typescript
+class AgentEngine {
+  private config: AgentConfig
+  private context: AgentContext
+  private tools: AgentTool[]
+  private llmTools: LLMTool[]
+
+  constructor(config: AgentConfig, context: AgentContext)
+
+  async run(userMessage: string): Promise<AgentRunResult>
+}
+```
+
+### How AgentEngine.run() Works
+
+1. **Initialize** — Build the message array with system prompt and user message. Resolve tools from the Tool Registry based on `config.tools`. Convert tools to LLM-compatible format.
+
+2. **LLM Call** — Call `LLMRouter.chat()` with the current messages, config, and tools. The LLM Router automatically routes to Puter.js (free) or BYOK.
+
+3. **Check for Tool Calls** — If the LLM response contains `toolCalls`, execute each tool:
+   - Parse the tool call arguments from JSON
+   - Look up the tool in the Tool Registry
+   - Execute `tool.execute(args, context)`
+   - Append the tool result as a `role: "tool"` message
+
+4. **Loop** — If tool calls were made, go back to step 2 (up to `maxIterations`). If no tool calls were made, the LLM's response is the final answer.
+
+5. **Return** — Package the result with messages, final response, tool call count, memory refs, model, and iteration count.
+
+---
+
+## Execution Loop Diagram
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│                    Agent Execution Loop                        │
+│                                                               │
+│  Start: userMessage                                           │
+│      │                                                        │
+│      ▼                                                        │
+│  ┌─────────────────────────────────────────────────────┐      │
+│  │ Build messages: [systemPrompt, userMessage]         │      │
+│  │ Resolve tools from config.tools → TOOL_REGISTRY     │      │
+│  │ Convert to LLMTool[] format                         │      │
+│  └─────────────────────┬───────────────────────────────┘      │
+│                        │                                      │
+│                        ▼                                      │
+│  ┌─────────────────────────────────────────────────────┐      │
+│  │ Call LLMRouter.chat(config, messages)               │      │
+│  │ → Puter.js (free) or BYOK (auto-routed)            │      │
+│  └─────────────────────┬───────────────────────────────┘      │
+│                        │                                      │
+│                        ▼                                      │
+│  ┌─────────────────────────────────────────────────────┐      │
+│  │ Check response for toolCalls                        │      │
+│  └──────┬──────────────────────────┬───────────────────┘      │
+│         │                          │                          │
+│    Tool Calls                  No Tool Calls                  │
+│         │                          │                          │
+│         ▼                          ▼                          │
+│  ┌──────────────────┐    ┌──────────────────────────┐        │
+│  │ For each toolCall:│    │ Final answer received!   │        │
+│  │ 1. Parse args    │    │ Return AgentRunResult    │        │
+│  │ 2. Find tool     │    └──────────────────────────┘        │
+│  │ 3. Execute tool  │                                        │
+│  │ 4. Append result │                                        │
+│  └────────┬─────────┘                                        │
+│           │                                                  │
+│           ▼                                                  │
+│  ┌─────────────────────────────────────────────────────┐      │
+│  │ iterations < maxIterations?                         │      │
+│  └──────┬──────────────────────────┬───────────────────┘      │
+│         │ YES                      │ NO                       │
+│         ▼                          ▼                          │
+│    Go back to                    Return last                  │
+│    LLM Call                      assistant message            │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Default Agent Config
+
+The default agent configuration is optimized for general-purpose memory assistance:
+
+```typescript
+export const DEFAULT_AGENT_CONFIG: AgentConfig = {
+  name: 'Memorix Agent',
+  description: 'Your personal AI memory assistant — can search, save, update, and reason about your memories.',
+  systemPrompt: `You are Memorix Agent, an advanced AI assistant with full access to the user's memory and knowledge base. You can search memories, save new notes, update existing ones, track decisions, and search the web for current information.
+
+Key behaviors:
+1. Always search memory first before answering questions — the user's past knowledge is your primary source
+2. Proactively save important information to memory when the user shares it
+3. Connect ideas across different notes and time periods
+4. Track decisions with proper context and reasoning
+5. Use web search only when the user asks about current events or information not in their memory
+6. Be concise but insightful — reference specific memories by title
+7. Suggest connections the user might not have noticed`,
+  model: 'openai/gpt-5.4-nano',
+  maxIterations: 5,
+  tools: ['memory_search', 'memory_save', 'memory_update', 'memory_delete', 'memory_insights', 'web_search', 'decision_track'],
+}
+```
+
+### Key Design Decisions
+
+- **Model**: `openai/gpt-5.4-nano` — the fastest free model, ideal for most agent tasks
+- **Max Iterations**: 5 — balances thoroughness with cost/latency
+- **All Tools**: The default config enables all 7 tools for maximum capability
+- **Memory-First Behavior**: The system prompt instructs the agent to search memory before answering
+
+---
+
+## Custom Agents
+
+You can create custom agents by providing overrides to the default configuration. Custom agents allow you to specialize the agent for specific tasks.
+
+### Creating a Research Agent
+
+```typescript
+const researchAgent: AgentConfig = {
+  name: 'Research Agent',
+  description: 'Deep research agent that searches the web and saves comprehensive notes.',
+  systemPrompt: `You are a research assistant. When given a topic:
+1. Search the web for current information
+2. Search existing memory for prior knowledge
+3. Synthesize findings into comprehensive notes
+4. Save the research as a structured note with tags
+5. Track the research decision with reasoning`,
+  model: 'openai/gpt-5.4',  // Use a more capable model for research
+  temperature: 0.3,           // Lower temperature for factual accuracy
+  maxTokens: 4096,            // Longer responses for research
+  maxIterations: 8,           // More iterations for thorough research
+  tools: ['memory_search', 'memory_save', 'web_search', 'decision_track'],
+}
+```
+
+### Creating a Memory Manager Agent
+
+```typescript
+const memoryManager: AgentConfig = {
+  name: 'Memory Manager',
+  description: 'Agent focused on organizing and maintaining the knowledge base.',
+  systemPrompt: `You are a memory organization assistant. Your job is to:
+1. Review existing memories for duplicates or outdated info
+2. Update notes with new information
+3. Suggest connections between related notes
+4. Clean up poorly tagged notes
+5. Generate insights about memory patterns`,
+  model: 'anthropic/claude-opus-4-8',  // Use Claude for nuanced reasoning
+  temperature: 0.5,
+  maxIterations: 10,          // More iterations for complex reorganization
+  tools: ['memory_search', 'memory_save', 'memory_update', 'memory_delete', 'memory_insights'],
+}
+```
+
+### Running a Custom Agent via API
+
+```bash
+curl -X POST http://localhost:3000/api/llm/agent \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Research the latest developments in quantum computing",
+    "userId": "user-123",
+    "model": "openai/gpt-5.4",
+    "systemPrompt": "You are a research assistant...",
+    "maxIterations": 8,
+    "tools": ["memory_search", "memory_save", "web_search", "decision_track"],
+    "temperature": 0.3
+  }'
+```
+
+---
+
+## Agent API Endpoints
+
+### POST /api/llm/agent
+
+Execute the AI agent with a message. The agent runs the full agentic loop with tool calling.
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `message` | `string` | Yes | The user message to process |
+| `userId` | `string` | Yes | The user ID for data scoping |
+| `model` | `string` | No | Override the default model |
+| `provider` | `string` | No | Override the provider ("puter", "openai", etc.) |
+| `systemPrompt` | `string` | No | Override the default system prompt |
+| `maxIterations` | `number` | No | Override max iterations (default: 5) |
+| `tools` | `string[]` | No | Override enabled tools |
+| `apiKey` | `string` | No | BYOK API key |
+| `conversationId` | `string` | No | Continue an existing conversation |
+| `metadata` | `object` | No | Additional context metadata |
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "response": "Based on your notes, the Q4 deadline is December 15...",
+    "toolCallsMade": 2,
+    "memoryRefs": ["note-1", "note-2"],
+    "model": "openai/gpt-5.4-nano",
+    "iterations": 3,
+    "messages": [
+      {"role": "system", "content": "..."},
+      {"role": "user", "content": "..."},
+      {"role": "assistant", "content": "", "toolCalls": [...]},
+      {"role": "tool", "content": "...", "toolName": "memory_search"},
+      {"role": "assistant", "content": "Based on your notes..."}
+    ]
+  }
+}
+```
+
+### GET /api/llm/agent
+
+Get the default agent configuration and available tools.
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "defaultConfig": {
+      "name": "Memorix Agent",
+      "description": "Your personal AI memory assistant...",
+      "model": "openai/gpt-5.4-nano",
+      "maxIterations": 5
+    },
+    "availableTools": [
+      {
+        "name": "memory_search",
+        "description": "Search the user's memory/notes...",
+        "parameters": { "type": "object", "properties": { "query": {...}, "limit": {...} } }
+      },
+      ...
+    ]
+  }
+}
+```
+
+### POST /api/agents
+
+Manage agent configurations (create, list, update custom agents).
 
 ### GET /api/agents
 
-Get agent messages and status.
+List agent messages and configuration status.
 
-### POST /api/agents/chat
+### GET/PUT/DELETE /api/agents/[id]
 
-Send a message to Hermes for LLM-powered response.
-
-**Request**:
-```json
-{
-  "prompt": "Plan a mapping mission",
-  "agent": "hermes",
-  "includeContext": true,
-  "missionId": "mission-001"
-}
-```
-
-### GET/POST /api/agents/orchestrate
-
-Control the agent orchestrator.
-
-**GET** — Get orchestrator status, agent statuses, task queue, and communication log.
-
-**POST Actions**:
-
-| Action | Description | Example Request |
-|--------|-------------|-----------------|
-| `start` | Start orchestrator with all agents | `{ "action": "start" }` |
-| `stop` | Stop orchestrator | `{ "action": "stop" }` |
-| `submit_task` | Submit task to queue | `{ "action": "submit_task", "type": "safety_check", "agent": "sentinel", "priority": "critical", "payload": {} }` |
-| `cancel_task` | Cancel a pending task | `{ "action": "cancel_task", "taskId": "task-123" }` |
-| `send_message` | Send inter-agent message | `{ "action": "send_message", "from": "hermes", "to": "sentinel", "type": "command", "payload": {} }` |
-| `register_agent` | Register an agent | `{ "action": "register_agent", "agentName": "sentinel" }` |
-| `unregister_agent` | Unregister an agent | `{ "action": "unregister_agent", "agentName": "sentinel" }` |
-
-### GET/POST /api/agents/sentinel
-
-Direct Sentinel agent control.
-
-**GET** — Get sentinel status, last check result, current safety check, and config.
-
-**POST Actions**:
-
-| Action | Description | Example Request |
-|--------|-------------|-----------------|
-| `manual_check` | Trigger immediate safety check | `{ "action": "manual_check" }` |
-| `configure` | Update safety thresholds | `{ "action": "configure", "thresholds": { "battery_voltage": { "warning": 13.5, "critical": 12.8 } } }` |
+Get, update, or delete a specific agent configuration.
 
 ---
 
-## Safety Monitoring (Sentinel)
+## Multi-LLM Agent
 
-### How Sentinel Works
+One of the most powerful features of Memorix's agent system is the ability to use **any model** from the pool as the agent's "brain". This is handled automatically by the LLM Router.
 
-Sentinel runs a continuous background loop that:
+### Model Selection Guide
 
-1. **Every 2 seconds**: Fetches latest telemetry snapshot
-2. **Checks telemetry staleness**: Is data fresh? (< 10 seconds old)
-3. **Runs PicoClaw check logic**: Evaluates all safety thresholds
-4. **Handles critical conditions**:
-   - Creates alerts in the database
-   - Auto-triggers emergency actions (RTH/land) after 2+ consecutive criticals
-5. **Escalates to Hermes**: Sends escalation message for critical conditions
-6. **Broadcasts status**: Sends safety status to all agents
+| Task Type | Recommended Model | Reason |
+|-----------|------------------|--------|
+| General chat | `openai/gpt-5.4-nano` | Fast, free, good for most tasks |
+| Complex reasoning | `anthropic/claude-opus-4-8` | Best reasoning capabilities |
+| Research | `openai/gpt-5.4` | Balance of speed and quality |
+| Code generation | `deepseek/deepseek-r1-0528` | Strong code capabilities |
+| Long context | `google/gemini-3.1-pro` | 2M token context window |
+| Fast responses | `openai/gpt-5.4-nano` | Lowest latency |
+| BYOK tasks | `byok/openai-gpt-4o` | When you need guaranteed availability |
 
-### Safety Check Response
+### Switching Models at Runtime
 
-```typescript
-interface SentinelCheckResult {
-  timestamp: Date
-  safe: boolean              // No critical alerts
-  criticalCount: number      // Number of critical conditions
-  warningCount: number       // Number of warning conditions
-  alerts: Alert[]            // Detailed alert list
-  actions: Action[]          // Recommended/emergency actions
-  telemetryAge: number       // ms since last telemetry update
-}
+The agent model can be switched per-request without any configuration changes:
+
+```bash
+# Use Claude Opus for a complex reasoning task
+curl -X POST http://localhost:3000/api/llm/agent \
+  -d '{"message": "Analyze the trade-offs between microservices and monolith", "userId": "user-1", "model": "anthropic/claude-opus-4-8"}'
+
+# Use DeepSeek R1 for a coding task
+curl -X POST http://localhost:3000/api/llm/agent \
+  -d '{"message": "Write a binary search implementation in Rust", "userId": "user-1", "model": "deepseek/deepseek-r1-0528"}'
+
+# Use BYOK for guaranteed availability
+curl -X POST http://localhost:3000/api/llm/agent \
+  -d '{"message": "Process this sensitive data", "userId": "user-1", "model": "byok/openai-gpt-4o", "apiKey": "sk-...", "provider": "openai"}'
 ```
 
-### Emergency Action Triggers
+---
 
-| Condition | Consecutive Criticals | Action |
-|-----------|----------------------|--------|
-| Battery < 12.6V | 2+ | RTH |
-| Signal < -80 dBm | 2+ | RTH |
-| Altitude > 120m | 2+ | Land |
-| Temperature > 50°C | 2+ | Land |
-| No telemetry data | 1 | Alert operator |
+## Integration with Puter.js
+
+The agent's default execution path uses Puter.js for free LLM access. This means:
+
+### How It Works
+
+1. **Client-Side Auth**: Puter.js SDK loads in the browser and handles user authentication with Puter.com
+2. **User-Pays Model**: End-users cover their own LLM usage through their Puter.com accounts
+3. **Zero API Key**: No API keys are needed for the default agent experience
+4. **500+ Models**: Access to the full Puter.js model catalog beyond the curated registry
+
+### Puter.js SDK Integration
+
+The `puter-provider.ts` module provides the bridge between Memorix and Puter.js:
+
+```typescript
+// Load Puter.js SDK (browser only)
+await loadPuterSDK()
+
+// Chat completions (FREE)
+const response = await puterChat(config, messages)
+
+// Streaming completions (FREE)
+for await (const chunk of puterChatStream(config, messages)) {
+  // Process each chunk
+}
+
+// Additional Puter.js capabilities:
+await puterGenerateImage(prompt, model)   // Image generation
+await puterTextToSpeech(text, voice)      // Text-to-speech
+await puterSpeechToText(audioBlob)        // Speech-to-text
+await puterWriteFile(path, content)       // Cloud file storage
+await puterKvSet(key, value)              // Key-value store
+```
+
+### Fallback Strategy
+
+When Puter.js is unavailable (server-side rendering, network issues, rate limits), the agent automatically falls back to BYOK if an API key is provided:
+
+```
+Puter.js (free) ──► Success ──► Return response
+       │
+       └──► Error ──► apiKey provided?
+                         │
+                         ├── YES ──► BYOK fallback ──► Return response
+                         └── NO ──► Throw error
+```
 
 ---
 
 ## Example Workflows
 
-### Workflow 1: Mission Planning with Safety
+### Workflow 1: Knowledge Query
 
 ```
-1. Operator sends "Map area near Lhoksukon" via Agents tab
-2. Dashboard calls POST /api/agents/chat
-3. Hermes generates mission plan (type: mission_plan)
-4. Operator reviews plan and creates mission
-5. Sentinel starts monitoring telemetry
-6. Navigator checks route safety
-7. If safety issue detected → Sentinel escalates to Hermes
-8. Hermes recommends alternative action
+User: "What did I decide about the database for the SaaS project?"
+       │
+       ▼
+Agent calls memory_search("database decision SaaS")
+       │
+       ▼
+Results: Decision "Choose PostgreSQL over MongoDB" (score: 0.94)
+       │
+       ▼
+Agent: "You decided to use PostgreSQL as the primary database for the SaaS project.
+       The reasoning was: ACID compliance is critical for financial data,
+       strong schema enforcement reduces bugs, and JSON columns provide flexibility.
+       This decision was made in the context of building a multi-tenant SaaS
+       that needs ACID compliance."
 ```
 
-### Workflow 2: Communication Failover
+### Workflow 2: Saving New Information
 
 ```
-1. CommsGuard detects radio signal at -82 dBm (critical)
-2. CommsGuard searches for backup: GSM is available
-3. CommsGuard attempts failover to GSM
-4. CommsGuard sends broadcast alert about failover
-5. If GSM fails → try WiFi → try telemetry
-6. If all fail → alert operator via DB alert
+User: "The API rate limit for the free tier is now 200 requests per minute,
+       up from 100. We decided this in yesterday's meeting."
+       │
+       ▼
+Agent calls memory_search("API rate limit free tier")
+       │
+       ▼
+Results: Note "Meeting Notes: API Design Review" (score: 0.88)
+         - Contains old rate limit: 100 req/min
+       │
+       ▼
+Agent calls memory_update("note-abc123", {content: "...200 req/min...", tags: "...updated"})
+       │
+       ▼
+Agent: "I've updated your 'Meeting Notes: API Design Review' note with the new
+       rate limit of 200 req/min for the free tier. The previous value was
+       100 req/min."
 ```
 
-### Workflow 3: Data Anomaly Detection
+### Workflow 3: Research and Save
 
 ```
-1. DataSteward checks telemetry freshness every 5s
-2. DataSteward detects battery_voltage stuck at 14.8V for 6 readings
-3. DataSteward creates critical anomaly alert
-4. DataSteward notifies Sentinel via message bus
-5. Sentinel evaluates: is this a real safety concern?
-6. If critical → Sentinel escalates to Hermes
-7. Hermes responds with diagnostic recommendation
+User: "What's new in Next.js 16? Save a summary to my notes."
+       │
+       ▼
+Agent calls memory_search("Next.js 16")
+       │
+       ▼
+Results: No relevant memories found
+       │
+       ▼
+Agent calls web_search("Next.js 16 new features")
+       │
+       ▼
+Results: 5 web pages with Next.js 16 information
+       │
+       ▼
+Agent synthesizes findings
+       │
+       ▼
+Agent calls memory_save("Next.js 16 Features Summary", "...", "nextjs,react,framework")
+       │
+       ▼
+Agent: "I've researched Next.js 16 and saved a comprehensive summary to your notes.
+       Key highlights include: [summary]. The note has been tagged with
+       'nextjs,react,framework' for easy future retrieval."
 ```
 
-### Workflow 4: Emergency RTH
+### Workflow 4: Decision Tracking
 
 ```
-1. Sentinel detects battery at 12.5V (critical)
-2. First check: creates alert in DB
-3. Second check (2s later): battery still critical
-4. Sentinel auto-triggers RTH emergency action
-5. Sentinel creates emergency alert in DB
-6. Sentinel escalates to Hermes
-7. Navigator detects active navigation plan → aborts it
-8. Hermes formulates recovery plan for operator
+User: "We decided to use Redis for caching instead of Memcached because
+       we need pub/sub support and data persistence."
+       │
+       ▼
+Agent calls decision_track({
+  title: "Choose Redis over Memcached for caching",
+  context: "Building a caching layer for the API that needs pub/sub and persistence",
+  decision: "Use Redis for caching",
+  reasoning: "Redis provides pub/sub support and data persistence,
+              which Memcached does not offer"
+})
+       │
+       ▼
+Agent: "I've tracked this decision: 'Choose Redis over Memcached for caching'.
+       The reasoning (pub/sub support and data persistence) has been recorded
+       so you can reference it later when evaluating your caching strategy."
 ```
 
-### Workflow 5: Agent Task Submission
+### Workflow 5: Memory Insights
 
 ```
-1. Operator submits task via POST /api/agents/orchestrate
-2. Task is persisted in AgentTaskRecord (DB)
-3. Orchestrator picks up pending task on next tick
-4. Task assigned to appropriate agent
-5. Agent processes task → result stored in DB
-6. Orchestrator increments tasksCompleted counter
-7. Communication log records the event
+User: "What patterns do you see in my notes?"
+       │
+       ▼
+Agent calls memory_insights({type: "patterns"})
+       │
+       ▼
+Results: Tag frequency, recurring topics, knowledge clusters
+       │
+       ▼
+Agent: "Here's what I found in your knowledge base:
+       - 'api' appears in 8 notes — it's your most common topic
+       - You have 3 decisions about database choices
+       - Recent activity focuses on architecture and rate limiting
+       - Your notes span 15 unique tags across 42 notes
+       I'd recommend reviewing your older notes about microservices
+       — they might connect well with your recent API design work."
 ```
 
 ---
 
-*Last updated: 2025*
+## AgentRunResult Interface
+
+The result of an agent execution:
+
+```typescript
+interface AgentRunResult {
+  messages: AgentMessage[]         // Full conversation history including tool calls
+  finalResponse: string            // The agent's final text response
+  toolCallsMade: number            // Total number of tool calls executed
+  memoryRefs: string[]             // Note IDs created or referenced during execution
+  model: string                    // The model used for execution
+  iterations: number               // Number of agentic loop iterations
+}
+```
+
+### Convenience Function
+
+For quick agent execution without manually constructing an `AgentEngine`:
+
+```typescript
+import { runAgent } from '@/lib/agent'
+
+const result = await runAgent(
+  'What did I decide about the database?',
+  'user-123',
+  { model: 'anthropic/claude-opus-4-8', maxIterations: 8 }
+)
+```
+
+---
+
+*Last updated: 2026 · Memorix v4.0.0*
