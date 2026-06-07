@@ -1,11 +1,11 @@
-# Memorix Security Policy
+# Mnemosyne Security Policy
 
 ## Reporting Security Vulnerabilities
 
-If you discover a security vulnerability in Memorix, please report it responsibly:
+If you discover a security vulnerability in mnemosyne, please report it responsibly:
 
 - **Email:** mulkymalikuldhaher@email.com
-- **GitHub:** Open a private security advisory at [github.com/mulkymalikuldhrs/memorix/security](https://github.com/mulkymalikuldhrs/memorix/security)
+- **GitHub:** Open a private security advisory at [github.com/mulkymalikuldhrs/mnemosyne/security](https://github.com/mulkymalikuldhrs/mnemosyne/security)
 
 **Please do not disclose security vulnerabilities publicly until they have been addressed.**
 
@@ -18,7 +18,7 @@ If you discover a security vulnerability in Memorix, please report it responsibl
 - **Session Management:** JWT-based sessions via NextAuth.js
 - **API Key Authentication:** MCP server requires API key validation (plain text in DB — see Known Issues)
 - **Production Guard:** NEXTAUTH_SECRET must be changed from default in production (enforced at startup)
-- **MCP Server Auth:** Refuses to start in production without MEMORIX_API_KEY
+- **MCP Server Auth:** Refuses to start in production without mnemosyne_API_KEY
 
 ### API Security
 - **Rate Limiting:** Per-route rate limiting enforced at middleware level (10-60 req/min depending on endpoint)
@@ -57,14 +57,14 @@ SQLite does not support native vector search. Embeddings are stored as JSON stri
 The MCP server authenticates a single user per process via the API key. Multiple concurrent users require separate MCP server instances.
 
 ### Demo Credentials (INFO)
-The seed script creates a demo user with known credentials (`demo@memorix.ai` / `demo123`). These should only be used in local development and changed immediately in any shared environment.
+The seed script creates a demo user with known credentials (`demo@mnemosyne.ai` / `demo123`). These should only be used in local development and changed immediately in any shared environment.
 
 ---
 
 ## Deployment Security Checklist
 
 - [ ] Set `NEXTAUTH_SECRET` to a cryptographically random value (use `openssl rand -base64 32`)
-- [ ] Set `MEMORIX_API_KEY` for MCP server authentication
+- [ ] Set `mnemosyne_API_KEY` for MCP server authentication
 - [ ] Remove or change demo user credentials
 - [ ] Configure Redis for production rate limiting
 - [ ] Enable HTTPS/TLS termination (via reverse proxy like Caddy or Nginx)

@@ -1,10 +1,10 @@
 // ============================================================
-// MEMORIX v3.0.0 — Storage Manager
+// MNEMOSYNE v1.0.0 — Storage Manager
 // Universal AI/Human Memory Hub
 //
 // Orchestrates all cloud storage providers. Manages account
 // connections, file synchronization, and content ingestion
-// into Memorix's memory system.
+// into Mnemosyne's memory system.
 //
 // Responsibilities:
 //   - Provider instantiation and lifecycle management
@@ -73,6 +73,10 @@ const INGEST_MAX_FILE_SIZE = 50 * 1024 * 1024 // 50 MB
 // ============================================================
 // StorageManager
 // ============================================================
+
+  // NOTE: Dropbox and OneDrive adapters are NOT yet implemented.
+  // They will throw a StorageManagerError when instantiated.
+  // Use Google Drive, S3, TeraBox, or local storage instead.
 
 export class StorageManager {
   private static instance: StorageManager
@@ -406,7 +410,7 @@ export class StorageManager {
   // ----------------------------------------------------------
 
   /**
-   * Ingest a cloud file into Memorix memory.
+   * Ingest a cloud file into Mnemosyne memory.
    * Downloads the file, extracts text, creates a Note,
    * and stores chunks with embeddings.
    */

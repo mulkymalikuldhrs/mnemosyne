@@ -1,5 +1,5 @@
 /**
- * Error reporting utility for Memorix AI Memory SaaS.
+ * Error reporting utility for Mnemosyne AI Memory SaaS.
  * Logs structured error information to console with context.
  * Can be extended to send errors to external services (Sentry, etc.) in production.
  */
@@ -29,7 +29,7 @@ export function reportError(
   }
 
   // Console logging (always available)
-  console.error('[Memorix Error]', JSON.stringify(report, null, 2))
+  console.error('[Mnemosyne Error]', JSON.stringify(report, null, 2))
 
   // In production, you could add external reporting here:
   // - Sentry.captureException(error, { extra: context })
@@ -84,7 +84,7 @@ export function reportWarning(
     severity: 'warning',
   }
 
-  console.warn('[Memorix Warning]', JSON.stringify(report, null, 2))
+  console.warn('[Mnemosyne Warning]', JSON.stringify(report, null, 2))
 }
 
 /**
@@ -101,5 +101,5 @@ export function reportInfo(
     severity: 'info',
   }
 
-  console.info('[Memorix Info]', JSON.stringify(report, null, 2))
+  console.info('[Mnemosyne Info]', JSON.stringify(report, null, 2))
 }

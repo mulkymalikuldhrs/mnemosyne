@@ -120,7 +120,7 @@ export function KeyboardShortcutsPanel() {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
       e.preventDefault()
       // Dispatch a custom event that note-editor can listen to
-      window.dispatchEvent(new CustomEvent('memorix:save'))
+      window.dispatchEvent(new CustomEvent('mnemosyne:save'))
       return
     }
 

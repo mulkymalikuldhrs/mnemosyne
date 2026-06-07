@@ -132,7 +132,7 @@ export function usePWA(): PWAState {
                 setWaitingWorker(newWorker)
               } else {
                 // First install — content cached for offline use
-                console.log('[Memorix PWA] Content cached for offline use')
+                console.log('[Mnemosyne PWA] Content cached for offline use')
               }
             }
           })
@@ -140,10 +140,10 @@ export function usePWA(): PWAState {
 
         // Listen for controlling service worker changes
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-          console.log('[Memorix PWA] Service worker controller changed')
+          console.log('[Mnemosyne PWA] Service worker controller changed')
         })
       } catch (error) {
-        console.warn('[Memorix PWA] Service worker registration failed:', error)
+        console.warn('[Mnemosyne PWA] Service worker registration failed:', error)
       }
     }
 
@@ -168,7 +168,7 @@ export function usePWA(): PWAState {
 
       return outcome === 'accepted'
     } catch (error) {
-      console.warn('[Memorix PWA] Install prompt failed:', error)
+      console.warn('[Mnemosyne PWA] Install prompt failed:', error)
       return false
     }
   }, [installPrompt])

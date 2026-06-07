@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX v3.0.0 — Email Sync API
+// mnemosyne v3.0.0 — Email Sync API
 // POST /api/email/sync  — Trigger sync for a specific account or all accounts
 // GET  /api/email/sync  — Get sync status for all accounts
 // ============================================================

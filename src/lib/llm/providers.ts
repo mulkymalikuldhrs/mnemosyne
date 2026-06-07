@@ -1,5 +1,5 @@
 /**
- * Memorix v4.0 — Multi-LLM Provider Layer
+ * Mnemosyne v1.0 — Multi-LLM Provider Layer
  *
  * Universal LLM access via:
  * 1. Puter.js (FREE — 500+ models, user-pays, zero API key)
@@ -7,7 +7,7 @@
  * 3. OpenRouter — Unified API for 100+ models
  * 4. Local — Ollama, LM Studio, etc.
  *
- * This is the CORE abstraction that makes Memorix the biggest
+ * This is the CORE abstraction that makes Mnemosyne the biggest
  * multi-LLM middle provider — portable yet powerful.
  */
 

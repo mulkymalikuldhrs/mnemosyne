@@ -14,7 +14,7 @@ const envSchema = z.object({
   EMBEDDING_DIMENSION: z.string().default('768'),
   EMBEDDING_API_URL: z.string().optional(),
   EMBEDDING_API_KEY: z.string().optional(),
-  MEMORIX_API_KEY: z.string().optional(),
+  mnemosyne_API_KEY: z.string().optional(),
 })
 
 export type Env = z.infer<typeof envSchema>

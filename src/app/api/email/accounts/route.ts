@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX v3.0.0 — Email Accounts API
+// mnemosyne v3.0.0 — Email Accounts API
 // GET  /api/email/accounts  — List all email accounts for the authenticated user
 // POST /api/email/accounts  — Add a new email account (Gmail, IMAP, Outlook)
 // ============================================================

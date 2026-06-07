@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX v3.0.0 — Local Filesystem Storage Adapter
+// MNEMOSYNE v1.0.0 — Local Filesystem Storage Adapter
 // Universal AI/Human Memory Hub
 //
 // Implements CloudStorageProviderInterface for the local
@@ -76,7 +76,7 @@ export class LocalStorageProvider implements CloudStorageProviderInterface {
       }
 
       // Test write access by creating and deleting a temp file
-      const testFile = join(this.rootPath, '.memorix_write_test')
+      const testFile = join(this.rootPath, '.mnemosyne_write_test')
       await writeFile(testFile, 'test')
       await unlink(testFile)
 

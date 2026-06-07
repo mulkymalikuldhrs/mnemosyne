@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX v3.0.0 — Email Summary API
+// mnemosyne v3.0.0 — Email Summary API
 // GET /api/email/summary  — Get AI-generated summary of recent emails
 //
 // Query parameters:

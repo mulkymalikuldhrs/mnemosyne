@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX — TypeScript Type Definitions
+// mnemosyne — TypeScript Type Definitions
 // AI Memory SaaS: notes, conversations, decisions, insights,
 // wiki-links, canvases, templates, and API responses.
 // ============================================================

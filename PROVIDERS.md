@@ -1,4 +1,4 @@
-# Memorix — Provider Documentation
+# Mnemosyne — Provider Documentation
 
 > **Three provider types: Free (Puter.js), BYOK, and Local**
 > Unified access to 500+ AI models through a single consistent API
@@ -27,7 +27,7 @@
 
 ## Overview
 
-Memorix provides access to AI language models through three distinct provider types, each with different characteristics:
+Mnemosyne provides access to AI language models through three distinct provider types, each with different characteristics:
 
 | Provider Type | Cost | API Key | Internet | Models | Use Case |
 |--------------|------|---------|----------|--------|----------|
@@ -71,7 +71,7 @@ const localResponse = await LLMRouter.chat(
 
 ### Overview
 
-Puter.js is the default and primary provider in Memorix. It provides free access to 500+ AI models through a browser-based SDK with zero configuration.
+Puter.js is the default and primary provider in mnemosyne. It provides free access to 500+ AI models through a browser-based SDK with zero configuration.
 
 | Property | Value |
 |----------|-------|
@@ -103,7 +103,7 @@ Beyond chat completions, Puter.js provides additional AI capabilities at no cost
 
 ### Setup
 
-Puter.js is automatically loaded by Memorix when needed. No configuration required.
+Puter.js is automatically loaded by mnemosyne when needed. No configuration required.
 
 ```typescript
 import { loadPuterSDK } from '@/lib/llm/puter-provider'
@@ -157,7 +157,7 @@ const imageSrc = await puterGenerateImage(
 
 ## BYOK Providers
 
-BYOK (Bring Your Own Key) providers allow you to use your own API keys for direct access to LLM providers. Memorix wraps all providers into a unified API, so you get consistent behavior regardless of which provider you use.
+BYOK (Bring Your Own Key) providers allow you to use your own API keys for direct access to LLM providers. Mnemosyne wraps all providers into a unified API, so you get consistent behavior regardless of which provider you use.
 
 ### Common BYOK Pattern
 
@@ -194,7 +194,7 @@ const response = await byokChat(
 
 1. Create an account at [platform.openai.com](https://platform.openai.com/)
 2. Generate an API key at API Keys → Create new secret key
-3. Add the key to Memorix dashboard under Settings → API Keys → OpenAI
+3. Add the key to mnemosyne dashboard under Settings → API Keys → OpenAI
 
 #### Supported Models
 
@@ -241,7 +241,7 @@ const response = await byokChat(
 
 1. Create an account at [console.anthropic.com](https://console.anthropic.com/)
 2. Generate an API key at API Keys → Create Key
-3. Add the key to Memorix dashboard under Settings → API Keys → Anthropic
+3. Add the key to mnemosyne dashboard under Settings → API Keys → Anthropic
 
 #### Supported Models
 
@@ -272,7 +272,7 @@ const response = await byokChat(
 
 1. Create a project at [aistudio.google.com](https://aistudio.google.com/)
 2. Generate an API key at Get API Key
-3. Add the key to Memorix dashboard under Settings → API Keys → Google
+3. Add the key to mnemosyne dashboard under Settings → API Keys → Google
 
 #### Supported Models
 
@@ -303,7 +303,7 @@ const response = await byokChat(
 
 1. Create an account at [platform.deepseek.com](https://platform.deepseek.com/)
 2. Generate an API key at API Keys
-3. Add the key to Memorix dashboard under Settings → API Keys → DeepSeek
+3. Add the key to mnemosyne dashboard under Settings → API Keys → DeepSeek
 
 #### Supported Models
 
@@ -332,7 +332,7 @@ const response = await byokChat(
 
 1. Create an account at [openrouter.ai](https://openrouter.ai/)
 2. Generate an API key at Keys → Create Key
-3. Add the key to Memorix dashboard under Settings → API Keys → OpenRouter
+3. Add the key to mnemosyne dashboard under Settings → API Keys → OpenRouter
 
 #### Supported Models
 
@@ -345,7 +345,7 @@ const response = await byokChat(
 - OpenRouter adds `HTTP-Referer` and `X-Title` headers automatically
 - Acts as a meta-provider — routes to the underlying model provider
 - Supports both free and paid models
-- Excellent for accessing models not directly available in Memorix
+- Excellent for accessing models not directly available in mnemosyne
 
 ---
 
@@ -367,7 +367,7 @@ const response = await byokChat(
 1. Install Ollama: `curl -fsSL https://ollama.com/install.sh | sh`
 2. Pull a model: `ollama pull llama3`
 3. Start the server: `ollama serve`
-4. Configure Memorix: Set provider to `ollama` with base URL `http://localhost:11434/v1/chat/completions`
+4. Configure mnemosyne: Set provider to `ollama` with base URL `http://localhost:11434/v1/chat/completions`
 
 #### Popular Models
 
@@ -423,7 +423,7 @@ baseUrl: 'http://192.168.1.100:11434/v1/chat/completions'
 1. Download and install [LM Studio](https://lmstudio.ai/)
 2. Search for and download a model (e.g., Mistral 7B Instruct)
 3. Go to Local Server tab and click Start Server
-4. Configure Memorix: Set provider to `custom` with base URL `http://localhost:1234/v1/chat/completions`
+4. Configure mnemosyne: Set provider to `custom` with base URL `http://localhost:1234/v1/chat/completions`
 
 #### Example
 
@@ -462,7 +462,7 @@ Any server that implements the OpenAI Chat Completions API format can be used as
 
 1. Deploy your inference server following its documentation
 2. Note the base URL (e.g., `http://your-server:8000/v1/chat/completions`)
-3. Configure Memorix: Set provider to `custom`, provide base URL and optional API key
+3. Configure mnemosyne: Set provider to `custom`, provide base URL and optional API key
 
 #### Example
 
@@ -485,7 +485,7 @@ const response = await LLMRouter.chat(
 
 ### Step-by-Step Guide
 
-1. **Open Memorix Dashboard** — Navigate to your Memorix instance
+1. **Open mnemosyne Dashboard** — Navigate to your mnemosyne instance
 2. **Go to Settings** — Click the gear icon in the sidebar
 3. **Select API Keys** — Navigate to the API Keys section
 4. **Add Provider Key** — Click "Add Key" and select the provider
@@ -554,7 +554,7 @@ OPENROUTER_API_KEY=sk-or-...
 ### Generating Secure Keys
 
 ```bash
-# Generate a secure random string for MEMORIX_API_KEY
+# Generate a secure random string for mnemosyne_API_KEY
 openssl rand -hex 32
 # Example output: a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456
 ```
@@ -565,7 +565,7 @@ openssl rand -hex 32
 
 ### Health Check Endpoint
 
-Use the Memorix API to check provider availability:
+Use the mnemosyne API to check provider availability:
 
 ```bash
 # Check overall system health

@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX v3.0.0 — IMAP Email Provider
+// MNEMOSYNE v1.0.0 — IMAP Email Provider
 // Universal AI/Human Memory Hub: Email Integration Layer
 //
 // Implements EmailProviderInterface for any IMAP-compatible

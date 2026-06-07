@@ -1,13 +1,13 @@
 // ============================================================
-// MEMORIX v3.0.0 — Email Manager
+// MNEMOSYNE v1.0.0 — Email Manager
 // Universal AI/Human Memory Hub: Email Integration Layer
 //
 // The EmailManager orchestrates all email providers (Gmail, IMAP,
 // Outlook) and provides the high-level API for the rest of the
-// Memorix application:
+// Mnemosyne application:
 //   - Provider instantiation and lifecycle
 //   - Account syncing with incremental cursor tracking
-//   - Email ingestion into the Memorix memory system
+//   - Email ingestion into the Mnemosyne memory system
 //   - Cross-account email search
 //   - AI-powered email summarisation
 // ============================================================
@@ -49,7 +49,7 @@ const SYNC_MAX_MESSAGES = 500
 // ============================================================
 
 /**
- * Central orchestrator for all email operations in Memorix.
+ * Central orchestrator for all email operations in Mnemosyne.
  *
  * Responsibilities:
  *  1. Provider lifecycle management (instantiation, auth, disconnect)
@@ -254,12 +254,12 @@ export class EmailManager {
   // ============================================================
 
   /**
-   * Ingest an email into the Memorix memory system.
+   * Ingest an email into the Mnemosyne memory system.
    *
    * This process:
    *  1. Loads the email message from the database
    *  2. Extracts meaningful text content (prefers plain text, falls back to HTML)
-   *  3. Creates a Memorix Note with email metadata
+   *  3. Creates a Mnemosyne Note with email metadata
    *  4. Stores the note content as chunks with embeddings (via storeMemory)
    *  5. Links the Note back to the EmailMessage
    *
@@ -290,7 +290,7 @@ export class EmailManager {
     const noteTitle = `📧 ${emailMessage.subject || '(No Subject)'}`
     const noteContent = this.buildNoteContent(emailMessage, extractedText)
 
-    // Step 3: Create a Memorix Note
+    // Step 3: Create a Mnemosyne Note
     const note = await db.note.create({
       data: {
         userId,
@@ -463,7 +463,7 @@ export class EmailManager {
     // Step 3: Generate summary using z-ai-web-dev-sdk
     const zai = await ZAI.create()
 
-    const systemPrompt = `You are Memorix, an AI assistant that helps users understand their email inbox. Generate a concise, well-organized summary of the following emails. Highlight:
+    const systemPrompt = `You are Mnemosyne, an AI assistant that helps users understand their email inbox. Generate a concise, well-organized summary of the following emails. Highlight:
 
 1. **Key Topics & Themes** — What are the main subjects being discussed?
 2. **Action Items** — What requests or tasks need attention?

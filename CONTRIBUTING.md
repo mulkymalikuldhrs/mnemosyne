@@ -1,6 +1,6 @@
-# Contributing to Memorix AI Memory
+# Contributing to mnemosyne AI Memory
 
-Thank you for your interest in contributing to **Memorix** — The Biggest Free Multi-LLM Hub! We welcome contributions from developers, AI enthusiasts, researchers, and anyone passionate about making LLM access free and universal.
+Thank you for your interest in contributing to **Mnemosyne** — The Biggest Free Multi-LLM Hub! We welcome contributions from developers, AI enthusiasts, researchers, and anyone passionate about making LLM access free and universal.
 
 ## Table of Contents
 
@@ -24,8 +24,8 @@ Be respectful, inclusive, and constructive. We are building the world's biggest 
 1. **Fork** the repository on GitHub
 2. **Clone** your fork locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/memorix.git
-   cd memorix
+   git clone https://github.com/YOUR_USERNAME/mnemosyne.git
+   cd mnemosyne
    ```
 3. **Install** dependencies:
    ```bash
@@ -56,12 +56,12 @@ Be respectful, inclusive, and constructive. We are building the world's biggest 
 - **MCP tools** — Create new MCP tools for AI assistant integration
 - **Documentation** — Improve guides, API docs, and inline comments
 - **Testing** — Write and improve tests for better reliability
-- **Translations** — Help make Memorix accessible in more languages
+- **Translations** — Help make mnemosyne accessible in more languages
 - **SaaS/IaaS features** — Build billing, rate limiting, or multi-tenancy features
 
 ### Suggested Workflow
 
-1. Check existing [Issues](https://github.com/mulkymalikuldhrs/memorix/issues) for something to work on
+1. Check existing [Issues](https://github.com/mulkymalikuldhrs/mnemosyne/issues) for something to work on
 2. If no issue exists, create one to discuss your proposed change
 3. Create a feature branch from `main`:
    ```bash
@@ -173,7 +173,7 @@ refactor(router): optimize Puter.js to BYOK fallback logic
 
 ## Reporting Bugs
 
-1. Check if the bug is already reported in [Issues](https://github.com/mulkymalikuldhrs/memorix/issues)
+1. Check if the bug is already reported in [Issues](https://github.com/mulkymalikuldhrs/mnemosyne/issues)
 2. If not, create a new issue with:
    - **Clear title** summarizing the problem
    - **Steps to reproduce** the bug
@@ -183,16 +183,16 @@ refactor(router): optimize Puter.js to BYOK fallback logic
 
 ## Feature Requests
 
-1. Open a [new issue](https://github.com/mulkymalikuldhrs/memorix/issues/new) with the label `enhancement`
+1. Open a [new issue](https://github.com/mulkymalikuldhrs/mnemosyne/issues/new) with the label `enhancement`
 2. Describe the feature and the use case it solves
-3. Explain why it fits the Memorix multi-LLM hub vision
+3. Explain why it fits the mnemosyne multi-LLM hub vision
 4. Optionally, propose an implementation approach
 
 ## Contact
 
 - **Creator & Lead Developer**: Mulky Malikul Dhaher — mulkymalikuldhaher@email.com
-- **Issues**: [GitHub Issues](https://github.com/mulkymalikuldhrs/memorix/issues)
+- **Issues**: [GitHub Issues](https://github.com/mulkymalikuldhrs/mnemosyne/issues)
 
 ---
 
-*Thank you for helping build the future of free, universal LLM access with Memorix!*
+*Thank you for helping build the future of free, universal LLM access with mnemosyne!*

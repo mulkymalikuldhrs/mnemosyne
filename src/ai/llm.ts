@@ -17,7 +17,7 @@ export interface ChatResponse {
 
 // ─── System Prompt Template ─────────────────────────────────────────────────
 
-const SYSTEM_PROMPT_TEMPLATE = `You are Memorix, a personal AI memory assistant. You help users recall, connect, and reason about their stored knowledge.
+const SYSTEM_PROMPT_TEMPLATE = `You are Mnemosyne, a personal AI memory assistant. You help users recall, connect, and reason about their stored knowledge.
 
 You have access to the following memories from the user's knowledge base:
 {memory_context}

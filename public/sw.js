@@ -1,9 +1,9 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// Memorix v3 — Service Worker
+// Mnemosyne v1 — Service Worker
 // Offline-first caching, background sync, and push notification support
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const CACHE_VERSION = 'memorix-v3'
+const CACHE_VERSION = 'mnemosyne-v1'
 const STATIC_CACHE = `${CACHE_VERSION}-static`
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`
 const API_CACHE = `${CACHE_VERSION}-api`
@@ -31,13 +31,13 @@ const STATIC_EXTENSIONS = [
 
 // ─── Install Event ────────────────────────────────────────────────────────────
 self.addEventListener('install', (event) => {
-  console.log('[Memorix SW] Installing service worker v3...')
+  console.log('[Mnemosyne SW] Installing service worker v1...')
 
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
-      console.log('[Memorix SW] Pre-caching static assets')
+      console.log('[Mnemosyne SW] Pre-caching static assets')
       return cache.addAll(PRE_CACHE_URLS).catch((err) => {
-        console.warn('[Memorix SW] Some pre-cache URLs failed:', err)
+        console.warn('[Mnemosyne SW] Some pre-cache URLs failed:', err)
       })
     }).then(() => {
       // Force activate without waiting for existing clients to close
@@ -48,15 +48,15 @@ self.addEventListener('install', (event) => {
 
 // ─── Activate Event ───────────────────────────────────────────────────────────
 self.addEventListener('activate', (event) => {
-  console.log('[Memorix SW] Activating service worker v3...')
+  console.log('[Mnemosyne SW] Activating service worker v1...')
 
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames
-          .filter((name) => name.startsWith('memorix-') && name !== STATIC_CACHE && name !== DYNAMIC_CACHE && name !== API_CACHE)
+          .filter((name) => name.startsWith('mnemosyne-') && name !== STATIC_CACHE && name !== DYNAMIC_CACHE && name !== API_CACHE)
           .map((name) => {
-            console.log('[Memorix SW] Deleting old cache:', name)
+            console.log('[Mnemosyne SW] Deleting old cache:', name)
             return caches.delete(name)
           })
       )
@@ -100,27 +100,27 @@ self.addEventListener('fetch', (event) => {
 
 // ─── Background Sync ──────────────────────────────────────────────────────────
 self.addEventListener('sync', (event) => {
-  console.log('[Memorix SW] Background sync triggered:', event.tag)
+  console.log('[Mnemosyne SW] Background sync triggered:', event.tag)
 
-  if (event.tag === 'memorix-sync-notes') {
+  if (event.tag === 'mnemosyne-sync-notes') {
     event.waitUntil(syncOfflineNotes())
   }
 
-  if (event.tag === 'memorix-sync-data') {
+  if (event.tag === 'mnemosyne-sync-data') {
     event.waitUntil(syncAllOfflineData())
   }
 })
 
 // ─── Push Notification ────────────────────────────────────────────────────────
 self.addEventListener('push', (event) => {
-  console.log('[Memorix SW] Push notification received')
+  console.log('[Mnemosyne SW] Push notification received')
 
   let data = {
-    title: 'Memorix',
+    title: 'Mnemosyne',
     body: 'You have a new update',
     icon: '/logo.svg',
     badge: '/logo.svg',
-    tag: 'memorix-notification',
+    tag: 'mnemosyne-notification',
     data: {},
   }
 
@@ -142,7 +142,7 @@ self.addEventListener('push', (event) => {
       data: data.data,
       vibrate: [100, 50, 100],
       actions: [
-        { action: 'open', title: 'Open Memorix' },
+        { action: 'open', title: 'Open Mnemosyne' },
         { action: 'dismiss', title: 'Dismiss' },
       ],
     })
@@ -151,7 +151,7 @@ self.addEventListener('push', (event) => {
 
 // ─── Notification Click ───────────────────────────────────────────────────────
 self.addEventListener('notificationclick', (event) => {
-  console.log('[Memorix SW] Notification clicked:', event.action)
+  console.log('[Mnemosyne SW] Notification clicked:', event.action)
   event.notification.close()
 
   if (event.action === 'dismiss') return
@@ -173,7 +173,7 @@ self.addEventListener('notificationclick', (event) => {
 // ─── Message Handler ──────────────────────────────────────────────────────────
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    console.log('[Memorix SW] Skip waiting requested')
+    console.log('[Mnemosyne SW] Skip waiting requested')
     self.skipWaiting()
   }
 
@@ -182,7 +182,7 @@ self.addEventListener('message', (event) => {
     if (Array.isArray(urls)) {
       caches.open(STATIC_CACHE).then((cache) => {
         cache.addAll(urls).catch((err) => {
-          console.warn('[Memorix SW] Failed to cache URLs:', err)
+          console.warn('[Mnemosyne SW] Failed to cache URLs:', err)
         })
       })
     }
@@ -192,7 +192,7 @@ self.addEventListener('message', (event) => {
     caches.keys().then((names) => {
       return Promise.all(names.map((name) => caches.delete(name)))
     }).then(() => {
-      console.log('[Memorix SW] All caches cleared')
+      console.log('[Mnemosyne SW] All caches cleared')
     })
   }
 
@@ -253,7 +253,7 @@ async function networkFirst(request, cacheName) {
     if (cached) {
       // Add warning header for stale data
       const headers = new Headers(cached.headers)
-      headers.set('X-Memorix-Cache', 'stale')
+      headers.set('X-Mnemosyne-Cache', 'stale')
       return new Response(cached.body, {
         status: cached.status,
         statusText: cached.statusText,
@@ -370,11 +370,11 @@ async function syncOfflineNotes() {
           await deleteStore.delete(note.id)
         }
       } catch (err) {
-        console.warn('[Memorix SW] Failed to sync note:', note.id, err)
+        console.warn('[Mnemosyne SW] Failed to sync note:', note.id, err)
       }
     }
   } catch (err) {
-    console.warn('[Memorix SW] Failed to open offline DB for sync:', err)
+    console.warn('[Mnemosyne SW] Failed to open offline DB for sync:', err)
   }
 }
 
@@ -385,7 +385,7 @@ async function syncAllOfflineData() {
 
 function openOfflineDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('memorix-offline', 1)
+    const request = indexedDB.open('mnemosyne-offline', 1)
 
     request.onupgradeneeded = (event) => {
       const db = event.target.result

@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX v3.0.0 — Email Account by ID API
+// mnemosyne v3.0.0 — Email Account by ID API
 // GET    /api/email/accounts/[id]  — Get specific email account
 // DELETE /api/email/accounts/[id]  — Remove an email account
 // PATCH  /api/email/accounts/[id]  — Update email account settings

@@ -5,8 +5,8 @@ import { Providers } from '@/components/providers'
 import { PWARegister } from '@/components/pwa-register'
 
 export const metadata: Metadata = {
-  title: 'Memorix — Universal AI Memory Hub',
-  description: 'The central memory hub for AI agents and humans. Semantic memory, RAG, MCP, multi-cloud storage, email, and more.',
+  title: 'Mnemosyne — Universal AI Memory & LLM Hub',
+  description: 'The biggest free multi-LLM hub — memory, AI agent, BYOK, semantic search, RAG, MCP, multi-cloud storage, SaaS/IaaS ready.',
   manifest: '/manifest.webmanifest',
   icons: {
     icon: '/logo.svg',
@@ -16,17 +16,17 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Memorix',
+    title: 'Mnemosyne',
   },
   formatDetection: {
     telephone: false,
   },
-  applicationName: 'Memorix',
+  applicationName: 'Mnemosyne',
   openGraph: {
-    title: 'Memorix — Universal AI Memory Hub',
-    description: 'The central memory hub for AI agents and humans.',
+    title: 'Mnemosyne — Universal AI Memory & LLM Hub',
+    description: 'The biggest free multi-LLM hub — memory, AI agent, BYOK, and more.',
     type: 'website',
-    siteName: 'Memorix',
+    siteName: 'Mnemosyne',
   },
   other: {
     'mobile-web-app-capable': 'yes',

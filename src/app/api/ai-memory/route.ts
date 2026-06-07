@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX — AI Memory API Route
+// mnemosyne — AI Memory API Route
 // GET/POST/DELETE /api/ai-memory — AI memory management
 // Requires authentication (session or API key)
 // ============================================================

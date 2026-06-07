@@ -1,11 +1,11 @@
 'use client'
 
 /**
- * Memorix v4.0 — LLM Marketplace Component
+ * Mnemosyne v1.0 — LLM Marketplace Component
  *
  * Professional-grade dashboard showing all available LLM models,
  * grouped by provider, with search, compare, and selection capabilities.
- * This is what makes Memorix the biggest multi-LLM hub.
+ * This is what makes Mnemosyne the biggest multi-LLM hub.
  */
 
 import { useState, useMemo } from 'react'
@@ -325,7 +325,7 @@ export function LLMMarketplace() {
               <p className="text-xs text-muted-foreground mt-1">
                 All models marked &quot;FREE&quot; are accessible through Puter.js with zero API keys and zero cost.
                 End-users authenticate with their free Puter.com account and cover their own usage.
-                This makes Memorix the biggest free multi-LLM hub — portable yet powerful.
+                This makes Mnemosyne the biggest free multi-LLM hub — portable yet powerful.
               </p>
             </div>
           </div>

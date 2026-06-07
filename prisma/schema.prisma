@@ -292,7 +292,7 @@ model SyncQueue {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// ─── Memorix v3.0.0 — Universal AI/Human Memory Hub Models ────────
+// ─── Mnemosyne v1.0.0 — Universal AI/Human Memory Hub Models ────────
 // ═══════════════════════════════════════════════════════════════════
 
 model CloudStorageAccount {

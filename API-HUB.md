@@ -1,12 +1,12 @@
-# API Hub Documentation — Memorix v4.0
+# API Hub Documentation — mnemosyne v4.0
 
-> Complete documentation for Memorix as a Middle Provider / API Hub, offering universal LLM access, agent execution, multi-model comparison, and more.
+> Complete documentation for mnemosyne as a Middle Provider / API Hub, offering universal LLM access, agent execution, multi-model comparison, and more.
 
 ---
 
 ## Table of Contents
 
-- [Memorix as Middle Provider / API Hub](#memorix-as-middle-provider--api-hub)
+- [mnemosyne as Middle Provider / API Hub](#mnemosyne-as-middle-provider--api-hub)
 - [Universal Chat API](#universal-chat-api)
 - [Agent Execution API](#agent-execution-api)
 - [Multi-Model Comparison API](#multi-model-comparison-api)
@@ -23,19 +23,19 @@
 
 ---
 
-## Memorix as Middle Provider / API Hub
+## Mnemosyne as Middle Provider / API Hub
 
-Memorix v4.0 operates as a **middle provider** — an API hub that aggregates multiple LLM providers behind a single, unified interface. This is the core architectural innovation:
+mnemosyne v4.0 operates as a **middle provider** — an API hub that aggregates multiple LLM providers behind a single, unified interface. This is the core architectural innovation:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                    Your Application                       │
 │                                                          │
-│   Single API endpoint → Memorix API Hub                  │
+│   Single API endpoint → mnemosyne API Hub                  │
 └────────────────────────┬────────────────────────────────┘
                          │
 ┌────────────────────────▼────────────────────────────────┐
-│               Memorix API Hub (Middle Provider)          │
+│               mnemosyne API Hub (Middle Provider)          │
 │                                                          │
 │   ┌──────────────────────────────────────────────────┐  │
 │   │              LLM Router                           │  │
@@ -57,7 +57,7 @@ Memorix v4.0 operates as a **middle provider** — an API hub that aggregates mu
 └─────────────────────────────────────────────────────────┘
 ```
 
-### Why Use Memorix as an API Hub?
+### Why Use mnemosyne as an API Hub?
 
 | Benefit | Description |
 |---------|-------------|
@@ -192,7 +192,7 @@ Execute the built-in AI agent with tool calling. The agent can search memory, sa
     "model": "openai/gpt-5.4-nano",
     "iterations": 3,
     "messages": [
-      {"role": "system", "content": "You are Memorix Agent..."},
+      {"role": "system", "content": "You are mnemosyne Agent..."},
       {"role": "user", "content": "Search my memory for ML notes"},
       {"role": "assistant", "content": "", "toolCalls": [...]},
       {"role": "tool", "content": "[...search results...]", "toolName": "memory_search"},
@@ -238,7 +238,7 @@ Get available agent tools and default configuration.
   "success": true,
   "data": {
     "defaultConfig": {
-      "name": "Memorix Agent",
+      "name": "mnemosyne Agent",
       "description": "Your personal AI memory assistant",
       "model": "openai/gpt-5.4-nano",
       "maxIterations": 5
@@ -411,7 +411,7 @@ curl -X POST http://localhost:3000/api/llm/web-search \
 
 ## OpenAI Compatibility
 
-Memorix can serve as a **drop-in replacement** for the OpenAI API. The Universal Chat API follows the OpenAI chat completions format, making it compatible with any library or tool that expects OpenAI's API.
+mnemosyne can serve as a **drop-in replacement** for the OpenAI API. The Universal Chat API follows the OpenAI chat completions format, making it compatible with any library or tool that expects OpenAI's API.
 
 ### Compatibility Layer
 
@@ -425,7 +425,7 @@ OpenAI Client Library
 │  (Caddy / Nginx)    │     │  (Change base URL)   │
 │                      │     │                      │
 │  api.openai.com →   │     │  baseURL =            │
-│  memorix:3000       │     │  localhost:3000       │
+│  mnemosyne:3000       │     │  localhost:3000       │
 └─────────────────────┘     └─────────────────────┘
 ```
 
@@ -434,7 +434,7 @@ OpenAI Client Library
 ```python
 from openai import OpenAI
 
-# Point to Memorix instead of OpenAI
+# Point to mnemosyne instead of OpenAI
 client = OpenAI(
     base_url="http://localhost:3000/api/llm/chat",
     api_key="not-needed-for-free-models"  # Or your BYOK key
@@ -443,7 +443,7 @@ client = OpenAI(
 response = client.chat.completions.create(
     model="openai/gpt-5.4-nano",
     messages=[
-        {"role": "user", "content": "Hello from Memorix!"}
+        {"role": "user", "content": "Hello from mnemosyne!"}
     ]
 )
 
@@ -462,7 +462,7 @@ const client = new OpenAI({
 
 const response = await client.chat.completions.create({
   model: 'openai/gpt-5.4-nano',
-  messages: [{ role: 'user', content: 'Hello from Memorix!' }],
+  messages: [{ role: 'user', content: 'Hello from mnemosyne!' }],
 })
 
 console.log(response.choices[0].message.content)
@@ -470,7 +470,7 @@ console.log(response.choices[0].message.content)
 
 ### Model ID Mapping
 
-| OpenAI Model | Memorix Model ID | Free? |
+| OpenAI Model | Mnemosyne Model ID | Free? |
 |-------------|------------------|-------|
 | gpt-4o | `openai/gpt-4o` | Yes |
 | gpt-4o-mini | `openai/gpt-4o-mini` | Yes |
@@ -483,12 +483,12 @@ console.log(response.choices[0].message.content)
 
 ## Anthropic Compatibility
 
-While Memorix's API follows OpenAI's format, it also provides access to Anthropic models through the same unified interface. Internally, Memorix handles the format conversion between OpenAI and Anthropic APIs.
+While Mnemosyne's API follows OpenAI's format, it also provides access to Anthropic models through the same unified interface. Internally, mnemosyne handles the format conversion between OpenAI and Anthropic APIs.
 
 ### Using Anthropic Models
 
 ```bash
-# Claude Opus via Memorix (free via Puter.js)
+# Claude Opus via mnemosyne (free via Puter.js)
 curl -X POST http://localhost:3000/api/llm/chat \
   -d '{
     "model": "anthropic/claude-opus-4-8",
@@ -498,9 +498,9 @@ curl -X POST http://localhost:3000/api/llm/chat \
 
 ### Format Conversion
 
-Memorix automatically converts between formats:
+mnemosyne automatically converts between formats:
 
-| Feature | OpenAI Format | Anthropic Format | Memorix Handling |
+| Feature | OpenAI Format | Anthropic Format | Mnemosyne Handling |
 |---------|--------------|-----------------|------------------|
 | System message | `messages[0].role = "system"` | `system` parameter | Extracted and sent as `system` |
 | Tool calls | `tool_calls` array | `tool_use` content blocks | Converted automatically |
@@ -666,7 +666,7 @@ curl -X POST http://localhost:3000/api/llm/chat \
 
 ### Session Authentication
 
-For Memorix user sessions:
+For mnemosyne user sessions:
 
 ```bash
 # Include session token in header
@@ -806,10 +806,10 @@ console.log(`Available models: ${modelsData.data.length}`)
 
 ### Pattern 1: API Gateway
 
-Use Memorix as a unified API gateway for your SaaS:
+Use mnemosyne as a unified API gateway for your SaaS:
 
 ```
-Your SaaS App → Memorix API Hub → Multiple LLM Providers
+Your SaaS App → mnemosyne API Hub → Multiple LLM Providers
                     │
                     ├── Auto-routing (free → paid)
                     ├── Fallback chains
@@ -821,7 +821,7 @@ Your SaaS App → Memorix API Hub → Multiple LLM Providers
 
 ```
 Tenant A ──┐
-Tenant B ──┼──→ Memorix API Hub ──→ LLM Providers
+Tenant B ──┼──→ mnemosyne API Hub ──→ LLM Providers
 Tenant C ──┘         │
                      ├── Per-tenant API keys
                      ├── Per-tenant rate limits
@@ -833,10 +833,10 @@ Tenant C ──┘         │
 
 ```
 Your Application
-├── Feature A ──→ Memorix Chat API ──→ Smart responses
-├── Feature B ──→ Memorix Agent API ──→ Autonomous actions
-├── Feature C ──→ Memorix Compare API ──→ A/B testing
-└── Feature D ──→ Memorix Web Search ──→ Real-time data
+├── Feature A ──→ mnemosyne Chat API ──→ Smart responses
+├── Feature B ──→ mnemosyne Agent API ──→ Autonomous actions
+├── Feature C ──→ mnemosyne Compare API ──→ A/B testing
+└── Feature D ──→ mnemosyne Web Search ──→ Real-time data
 ```
 
 ### Pattern 4: White-Label AI
@@ -845,7 +845,7 @@ Your Application
 Your Brand's App
 ├── Your UI/UX
 ├── Your Branding
-└── Memorix API Hub (hidden backend)
+└── mnemosyne API Hub (hidden backend)
     ├── 500+ models
     ├── Auto-routing
     └── Zero-config free tier
@@ -857,7 +857,7 @@ Your Brand's App
 
 ### z-ai-web-dev-sdk
 
-Memorix's MCP server uses the `z-ai-web-dev-sdk` for LLM-powered chat responses:
+mnemosyne's MCP server uses the `z-ai-web-dev-sdk` for LLM-powered chat responses:
 
 ```typescript
 import zai from 'z-ai-web-dev-sdk'
@@ -867,7 +867,7 @@ const client = await zai.create()
 const response = await client.chat.completions.create({
   model: 'gpt-4o-mini',
   messages: [
-    { role: 'system', content: 'You are Memorix, a personal AI memory assistant.' },
+    { role: 'system', content: 'You are mnemosyne, a personal AI memory assistant.' },
     { role: 'user', content: 'What do I know about databases?' },
   ],
   max_tokens: 1024,
@@ -879,10 +879,10 @@ console.log(response.choices[0].message.content)
 
 ### Custom SDK Wrapper
 
-You can build your own SDK wrapper around Memorix's API:
+You can build your own SDK wrapper around mnemosyne's API:
 
 ```typescript
-class MemorixClient {
+class mnemosyneClient {
   private baseUrl: string
   private apiKey?: string
 
@@ -934,12 +934,12 @@ class MemorixClient {
 }
 
 // Usage
-const memorix = new MemorixClient('http://localhost:3000')
-const result = await memorix.chat('openai/gpt-5.4-nano', [
+const mnemosyne = new mnemosyneClient('http://localhost:3000')
+const result = await mnemosyne.chat('openai/gpt-5.4-nano', [
   { role: 'user', content: 'Hello!' }
 ])
 ```
 
 ---
 
-*Memorix v4.0 — The Biggest Free Multi-LLM Hub. One API for all models.*
+*mnemosyne v4.0 — The Biggest Free Multi-LLM Hub. One API for all models.*

@@ -2,9 +2,9 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Memorix — Universal AI Memory Hub',
-    short_name: 'Memorix',
-    description: 'The central memory hub for AI agents and humans. Semantic memory, RAG, MCP, multi-cloud storage, email, and more.',
+    name: 'Mnemosyne — Universal AI Memory & LLM Hub',
+    short_name: 'Mnemosyne',
+    description: 'The biggest free multi-LLM hub — memory, AI agent, BYOK, semantic search, RAG, MCP, multi-cloud storage, SaaS/IaaS ready.',
     start_url: '/',
     display: 'standalone',
     background_color: '#09090b',

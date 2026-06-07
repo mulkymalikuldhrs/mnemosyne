@@ -4,17 +4,17 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=file:/app/data/memorix.db
+      - DATABASE_URL=file:/app/data/mnemosyne.db
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:?Set NEXTAUTH_SECRET in .env - generate with: openssl rand -base64 32}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
     volumes:
-      - memorix-data:/app/data
+      - mnemosyne-data:/app/data
     restart: unless-stopped
 
   # MCP server uses stdio (stdin/stdout), not HTTP.
   # Run with: docker compose run --rm -i mcp
-  # Or standalone: docker run -i --rm memorix-mcp
+  # Or standalone: docker run -i --rm mnemosyne-mcp
   mcp:
     build:
       context: .
@@ -22,13 +22,13 @@ services:
     # No port mapping — MCP uses stdio transport only
     stdin_open: true  # Keep stdin open for JSON-RPC communication
     environment:
-      - DATABASE_URL=file:/app/data/memorix.db
-      - MEMORIX_API_KEY=${MEMORIX_API_KEY:-}
+      - DATABASE_URL=file:/app/data/mnemosyne.db
+      - MNEMOSYNE_API_KEY=${MNEMOSYNE_API_KEY:-}
     volumes:
-      - memorix-data:/app/data:ro
+      - mnemosyne-data:/app/data:ro
     # No restart policy — MCP server runs on-demand, not as a daemon
     profiles:
       - mcp
 
 volumes:
-  memorix-data:
+  mnemosyne-data:

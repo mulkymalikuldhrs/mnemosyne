@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Memorix MCP Server — CLI entry point
+// mnemosyne MCP Server — CLI entry point
 // This wrapper runs the compiled TypeScript from dist/
 'use strict';
 
@@ -11,8 +11,8 @@ try {
   require(distPath);
 } catch (err) {
   if (err.code === 'MODULE_NOT_FOUND') {
-    console.error('[memorix-mcp] Error: Compiled output not found at ' + distPath);
-    console.error('[memorix-mcp] Run "npm run mcp:build" first to compile the MCP server.');
+    console.error('[mnemosyne-mcp] Error: Compiled output not found at ' + distPath);
+    console.error('[mnemosyne-mcp] Run "npm run mcp:build" first to compile the MCP server.');
     process.exit(1);
   }
   throw err;

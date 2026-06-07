@@ -1,9 +1,9 @@
 /**
- * Memorix MCP Server
+ * mnemosyne MCP Server
  *
  * A standalone MCP (Model Context Protocol) server implementing JSON-RPC 2.0
  * over stdio transport. Allows AI assistants (Claude, GPT, etc.) to interact
- * with the Memorix AI memory system.
+ * with the mnemosyne AI memory system.
  *
  * Protocol: JSON-RPC 2.0 over stdio (stdin/stdout)
  * Authentication: API key validated against the ApiKey table in the database
@@ -65,7 +65,7 @@ interface ToolDefinition {
 
 const TOOLS: ToolDefinition[] = [
   {
-    name: "memorix_search",
+    name: "mnemosyne_search",
     description:
       "Search the user's memory for notes matching a query. Returns ranked results with relevance scores.",
     inputSchema: {
@@ -84,9 +84,9 @@ const TOOLS: ToolDefinition[] = [
     },
   },
   {
-    name: "memorix_add_note",
+    name: "mnemosyne_add_note",
     description:
-      "Add a new note to the user's memory. Notes are the primary unit of storage in Memorix.",
+      "Add a new note to the user's memory. Notes are the primary unit of storage in mnemosyne.",
     inputSchema: {
       type: "object",
       properties: {
@@ -108,7 +108,7 @@ const TOOLS: ToolDefinition[] = [
     },
   },
   {
-    name: "memorix_get_note",
+    name: "mnemosyne_get_note",
     description:
       "Retrieve a specific note by its ID, including full content and metadata.",
     inputSchema: {
@@ -123,7 +123,7 @@ const TOOLS: ToolDefinition[] = [
     },
   },
   {
-    name: "memorix_list_notes",
+    name: "mnemosyne_list_notes",
     description:
       "List all notes in the user's memory with pagination support.",
     inputSchema: {
@@ -141,7 +141,7 @@ const TOOLS: ToolDefinition[] = [
     },
   },
   {
-    name: "memorix_chat",
+    name: "mnemosyne_chat",
     description:
       "Chat with the memory system. Ask questions and get AI-powered responses grounded in your stored memories. Uses LLM with RAG pipeline for intelligent responses.",
     inputSchema: {
@@ -161,7 +161,7 @@ const TOOLS: ToolDefinition[] = [
     },
   },
   {
-    name: "memorix_get_related",
+    name: "mnemosyne_get_related",
     description:
       "Get notes related to a specific note, based on shared tags, content similarity, and explicit memory links.",
     inputSchema: {
@@ -180,7 +180,7 @@ const TOOLS: ToolDefinition[] = [
     },
   },
   {
-    name: "memorix_detect_patterns",
+    name: "mnemosyne_detect_patterns",
     description:
       "Detect patterns and themes across the user's memory. Returns identified patterns such as recurring topics, temporal trends, and knowledge clusters.",
     inputSchema: {
@@ -189,7 +189,7 @@ const TOOLS: ToolDefinition[] = [
     },
   },
   {
-    name: "memorix_add_decision",
+    name: "mnemosyne_add_decision",
     description:
       "Record a decision in the memory system. Decisions capture context, reasoning, and outcomes for future reference.",
     inputSchema: {
@@ -241,13 +241,13 @@ function hasAllowOpenFlag(): boolean {
 }
 
 /**
- * Validate the API key from the MEMORIX_API_KEY environment variable
+ * Validate the API key from the mnemosyne_API_KEY environment variable
  * against the ApiKey table in the database.
  *
  * Security behavior:
- * - If MEMORIX_API_KEY is set: validate against the ApiKey table in the database
- * - If MEMORIX_API_KEY is NOT set AND NODE_ENV is "production": REFUSE to start
- * - If MEMORIX_API_KEY is NOT set AND NODE_ENV is not "production": allow open mode
+ * - If mnemosyne_API_KEY is set: validate against the ApiKey table in the database
+ * - If mnemosyne_API_KEY is NOT set AND NODE_ENV is "production": REFUSE to start
+ * - If mnemosyne_API_KEY is NOT set AND NODE_ENV is not "production": allow open mode
  *   with a clear WARNING (requires --allow-open flag for explicit opt-in)
  *
  * - Looks up the key in the database
@@ -256,7 +256,7 @@ function hasAllowOpenFlag(): boolean {
  * - Creates an McpSession record
  */
 async function validateAndAuthenticate(): Promise<boolean> {
-  const apiKey = process.env.MEMORIX_API_KEY;
+  const apiKey = process.env.mnemosyne_API_KEY;
   const isProduction = process.env.NODE_ENV === "production";
   const allowOpen = hasAllowOpenFlag();
 
@@ -264,15 +264,15 @@ async function validateAndAuthenticate(): Promise<boolean> {
   if (!apiKey) {
     // PRODUCTION: Refuse to start without an API key
     if (isProduction) {
-      log("FATAL: MEMORIX_API_KEY is not set and NODE_ENV is 'production'.");
+      log("FATAL: mnemosyne_API_KEY is not set and NODE_ENV is 'production'.");
       log("  The MCP server REFUSES to run in open mode in production.");
-      log("  Set the MEMORIX_API_KEY environment variable to a valid API key.");
+      log("  Set the mnemosyne_API_KEY environment variable to a valid API key.");
       return false;
     }
 
     // DEVELOPMENT: Require --allow-open flag for explicit opt-in
     if (!allowOpen) {
-      log("ERROR: MEMORIX_API_KEY is not set and --allow-open flag is not provided.");
+      log("ERROR: mnemosyne_API_KEY is not set and --allow-open flag is not provided.");
       log("  In development mode, you must explicitly opt in to open (unauthenticated)");
       log("  mode by passing the --allow-open flag:");
       log("    bun run mcp-server/index.ts --allow-open");
@@ -282,7 +282,7 @@ async function validateAndAuthenticate(): Promise<boolean> {
     }
 
     // Open mode with explicit opt-in (development only)
-    log("⚠️  WARNING: Running in OPEN MODE (no MEMORIX_API_KEY set, --allow-open flag provided).");
+    log("⚠️  WARNING: Running in OPEN MODE (no mnemosyne_API_KEY set, --allow-open flag provided).");
     log("  This grants unauthenticated access to the first user's data.");
     log("  NEVER use this in production!");
 
@@ -294,7 +294,7 @@ async function validateAndAuthenticate(): Promise<boolean> {
       log("Running in open mode — using first user");
       return true;
     }
-    log("ERROR: No users in database and no MEMORIX_API_KEY set");
+    log("ERROR: No users in database and no mnemosyne_API_KEY set");
     return false;
   }
 
@@ -305,7 +305,7 @@ async function validateAndAuthenticate(): Promise<boolean> {
   });
 
   if (!keyRecord) {
-    log("ERROR: Invalid MEMORIX_API_KEY — not found in database");
+    log("ERROR: Invalid mnemosyne_API_KEY — not found in database");
     return false;
   }
 
@@ -339,7 +339,7 @@ function requireUserId(): string {
   if (!authenticatedUserId) {
     throw {
       code: RPC_ERROR.AUTH_REQUIRED,
-      message: "Authentication required. Set MEMORIX_API_KEY environment variable.",
+      message: "Authentication required. Set mnemosyne_API_KEY environment variable.",
     };
   }
   return authenticatedUserId;
@@ -737,7 +737,7 @@ async function callLLM(
   const client = await getLLMClient();
   if (!client) return null;
 
-  const systemPrompt = `You are Memorix, a personal AI memory assistant. You help users recall, connect, and reason about their stored knowledge.
+  const systemPrompt = `You are mnemosyne, a personal AI memory assistant. You help users recall, connect, and reason about their stored knowledge.
 
 You have access to the following memories from the user's knowledge base:
 ${memoryContext}
@@ -1102,7 +1102,7 @@ async function toolChat(
   } else if (relevantNotes.length === 0) {
     response =
       "I couldn't find any relevant memories for your question. " +
-      "You can add notes to your memory using the memorix_add_note tool, " +
+      "You can add notes to your memory using the mnemosyne_add_note tool, " +
       "and I'll be able to reference them in future conversations.";
   } else {
     // Fallback: keyword-based response when LLM is unavailable
@@ -1116,7 +1116,7 @@ async function toolChat(
     response =
       `Based on your memory, here's what I found:\n\n${memorySummary}\n\n` +
       `I referenced ${relevantNotes.length} memory item(s) to answer your question. ` +
-      `For more details on any specific item, use memorix_get_note with the note ID.`;
+      `For more details on any specific item, use mnemosyne_get_note with the note ID.`;
   }
 
   // Step 5: Handle conversation persistence using separate Message model
@@ -1376,14 +1376,14 @@ const TOOL_HANDLERS: Record<
   string,
   (params: Record<string, unknown>) => Promise<unknown>
 > = {
-  memorix_search: toolSearch,
-  memorix_add_note: toolAddNote,
-  memorix_get_note: toolGetNote,
-  memorix_list_notes: toolListNotes,
-  memorix_chat: toolChat,
-  memorix_get_related: toolGetRelated,
-  memorix_detect_patterns: toolDetectPatterns,
-  memorix_add_decision: toolAddDecision,
+  mnemosyne_search: toolSearch,
+  mnemosyne_add_note: toolAddNote,
+  mnemosyne_get_note: toolGetNote,
+  mnemosyne_list_notes: toolListNotes,
+  mnemosyne_chat: toolChat,
+  mnemosyne_get_related: toolGetRelated,
+  mnemosyne_detect_patterns: toolDetectPatterns,
+  mnemosyne_add_decision: toolAddDecision,
 };
 
 // ---------------------------------------------------------------------------
@@ -1410,10 +1410,10 @@ function handleInitialize(
         logging: {},
       },
       serverInfo: {
-        name: "memorix-mcp-server",
+        name: "mnemosyne-mcp-server",
         version: "1.0.0",
         description:
-          "Memorix MCP Server — AI Memory Integration for AI Assistants",
+          "mnemosyne MCP Server — AI Memory Integration for AI Assistants",
       },
     },
   };
@@ -1630,7 +1630,7 @@ function sendResponse(response: JsonRpcResponse): void {
 
 function log(message: string): void {
   // Log to stderr so it doesn't interfere with JSON-RPC on stdout
-  process.stderr.write(`[memorix-mcp] ${message}\n`);
+  process.stderr.write(`[mnemosyne-mcp] ${message}\n`);
 }
 
 let inputBuffer = "";
@@ -1702,14 +1702,14 @@ async function main(): Promise<void> {
   // Validate and authenticate using the API key
   const authSuccess = await validateAndAuthenticate();
   if (!authSuccess) {
-    log("ERROR: Authentication failed. Set MEMORIX_API_KEY to a valid API key from the Memorix app.");
+    log("ERROR: Authentication failed. Set mnemosyne_API_KEY to a valid API key from the mnemosyne app.");
     process.exit(1);
   }
 
-  const apiKeyStatus = process.env.MEMORIX_API_KEY
+  const apiKeyStatus = process.env.mnemosyne_API_KEY
     ? "configured (authenticated)"
     : "not set (open mode — using first user)";
-  log(`Memorix MCP Server starting...`);
+  log(`mnemosyne MCP Server starting...`);
   log(`API Key: ${apiKeyStatus}`);
   log(`Database: ${process.env.DATABASE_URL || "file:./dev.db"}`);
   log(`Tools available: ${TOOLS.length}`);

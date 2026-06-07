@@ -1,6 +1,6 @@
-# Memorix v4.0 — Architecture
+# Mnemosyne v4.0 — Architecture
 
-> System architecture documentation for Memorix, the world's biggest free multi-LLM hub.
+> System architecture documentation for mnemosyne, the world's biggest free multi-LLM hub.
 
 ---
 
@@ -27,9 +27,9 @@
 
 ## System Overview
 
-Memorix v4.0 is the world's biggest free multi-LLM hub — a full-stack Next.js 16 application that provides free access to 500+ AI models via Puter.js, alongside BYOK (Bring Your Own Key) support, a built-in AI Agent with tool execution, semantic memory with RAG, an MCP server for AI assistant integration, and multi-cloud storage with file ingestion.
+mnemosyne v4.0 is the world's biggest free multi-LLM hub — a full-stack Next.js 16 application that provides free access to 500+ AI models via Puter.js, alongside BYOK (Bring Your Own Key) support, a built-in AI Agent with tool execution, semantic memory with RAG, an MCP server for AI assistant integration, and multi-cloud storage with file ingestion.
 
-The core innovation is the **LLM Router**: a unified interface that automatically routes chat requests to the best available provider — Puter.js (free, 500+ models, zero API key) first, then BYOK (user's own API keys) as fallback. This makes Memorix a **middle provider** — portable yet powerful, SaaS/IaaS ready.
+The core innovation is the **LLM Router**: a unified interface that automatically routes chat requests to the best available provider — Puter.js (free, 500+ models, zero API key) first, then BYOK (user's own API keys) as fallback. This makes mnemosyne a **middle provider** — portable yet powerful, SaaS/IaaS ready.
 
 ---
 
@@ -37,7 +37,7 @@ The core innovation is the **LLM Router**: a unified interface that automaticall
 
 1. **Free First** — Puter.js provides 500+ models at zero cost. The default experience requires no API keys, no credit cards, no backend.
 2. **Portable** — Runs entirely on SQLite + Prisma. Deploy anywhere: Docker, Vercel, bare metal, Raspberry Pi.
-3. **Middle Provider** — Memorix sits between end-users and LLM providers. It wraps everything into a unified API, making it SaaS/IaaS ready out of the box.
+3. **Middle Provider** — mnemosyne sits between end-users and LLM providers. It wraps everything into a unified API, making it SaaS/IaaS ready out of the box.
 4. **Agent-Native** — The built-in AI Agent can use any LLM from the pool and execute tools against your memory, notes, decisions, and the web.
 5. **Memory-First** — Every note is chunked, embedded, and indexed. RAG injects your memories into conversations. The knowledge graph connects ideas automatically.
 6. **Type-Safe** — TypeScript strict mode throughout. Zod validation on critical routes. Prisma for type-safe database access.
@@ -48,7 +48,7 @@ The core innovation is the **LLM Router**: a unified interface that automaticall
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
-│                    Memorix v4.0 — Multi-LLM Hub                       │
+│                    mnemosyne v4.0 — Multi-LLM Hub                       │
 ├───────────────────────────────────────────────────────────────────────┤
 │                                                                       │
 │  ┌─── Client Layer ─────────────────────────────────────────────┐    │
@@ -114,13 +114,13 @@ The core innovation is the **LLM Router**: a unified interface that automaticall
 
 ## Client Layer
 
-The client layer encompasses all interfaces through which users and systems interact with Memorix:
+The client layer encompasses all interfaces through which users and systems interact with mnemosyne:
 
 | Client | Transport | Purpose |
 |--------|-----------|---------|
 | **Web UI (PWA)** | HTTPS (REST + SSE) | Full dashboard with LLM Marketplace, Agent Chat, Notes, Memory, Search, Settings |
 | **MCP Clients** | Stdio (JSON-RPC 2.0) | Claude Desktop, Cursor, Windsurf, and other MCP-compatible AI assistants |
-| **API Consumers** | HTTPS (REST) | External applications consuming Memorix as a SaaS/IaaS LLM provider |
+| **API Consumers** | HTTPS (REST) | External applications consuming mnemosyne as a SaaS/IaaS LLM provider |
 
 ---
 
@@ -175,7 +175,7 @@ Core services are the business logic layer between the API routes and the data l
 
 ## LLM Router Architecture
 
-The LLM Router is the core of Memorix as a multi-LLM middle provider. It provides a single interface that automatically routes to the best available provider:
+The LLM Router is the core of mnemosyne as a multi-LLM middle provider. It provides a single interface that automatically routes to the best available provider:
 
 ```
 ┌───────────────────────────────────────────────────────────┐
@@ -285,7 +285,7 @@ The AI Agent is a built-in autonomous agent that can use any LLM from the pool a
 
 ## Memory Engine
 
-The Memory Engine (`src/ai/memory.ts`) provides the semantic memory capabilities that power Memorix's "second brain" functionality:
+The Memory Engine (`src/ai/memory.ts`) provides the semantic memory capabilities that power mnemosyne's "second brain" functionality:
 
 ### Pipeline
 
@@ -342,7 +342,7 @@ Note Content
 
 ## MCP Server Architecture
 
-The MCP Server is a standalone JSON-RPC 2.0 server that allows AI assistants (Claude, Cursor, etc.) to interact with Memorix's memory system:
+The MCP Server is a standalone JSON-RPC 2.0 server that allows AI assistants (Claude, Cursor, etc.) to interact with mnemosyne's memory system:
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -350,19 +350,19 @@ The MCP Server is a standalone JSON-RPC 2.0 server that allows AI assistants (Cl
 │                                                      │
 │  Transport: Stdio (stdin/stdout)                     │
 │  Protocol:  JSON-RPC 2.0                            │
-│  Auth:      API Key (MEMORIX_API_KEY env var)       │
+│  Auth:      API Key (mnemosyne_API_KEY env var)       │
 │                                                      │
 │  ┌────────────────────────────────────────────┐     │
 │  │            Tool Implementations             │     │
 │  │                                             │     │
-│  │  memorix_search     → Vector + Keyword      │     │
-│  │  memorix_add_note   → Create + Auto-link    │     │
-│  │  memorix_get_note   → Read + Metadata       │     │
-│  │  memorix_list_notes → Paginated listing     │     │
-│  │  memorix_chat       → RAG-powered chat      │     │
-│  │  memorix_get_related→ Links + Tag matching  │     │
-│  │  memorix_detect_patterns → Tag/keyword/time │     │
-│  │  memorix_add_decision → Context + Reasoning │     │
+│  │  mnemosyne_search     → Vector + Keyword      │     │
+│  │  mnemosyne_add_note   → Create + Auto-link    │     │
+│  │  mnemosyne_get_note   → Read + Metadata       │     │
+│  │  mnemosyne_list_notes → Paginated listing     │     │
+│  │  mnemosyne_chat       → RAG-powered chat      │     │
+│  │  mnemosyne_get_related→ Links + Tag matching  │     │
+│  │  mnemosyne_detect_patterns → Tag/keyword/time │     │
+│  │  mnemosyne_add_decision → Context + Reasoning │     │
 │  └────────────────────────────────────────────┘     │
 │                                                      │
 │  ┌────────────────────────────────────────────┐     │
@@ -373,13 +373,13 @@ The MCP Server is a standalone JSON-RPC 2.0 server that allows AI assistants (Cl
 │  └────────────────────────────────────────────┘     │
 │                                                      │
 │  Entry: mcp-server/index.ts                         │
-│  CLI:  npx memorix-mcp                              │
+│  CLI:  npx mnemosyne-mcp                              │
 └─────────────────────────────────────────────────────┘
 ```
 
 ### Authentication Flow
 
-1. On startup, `MEMORIX_API_KEY` is validated against the `ApiKey` database table
+1. On startup, `mnemosyne_API_KEY` is validated against the `ApiKey` database table
 2. An `McpSession` record is created for audit purposes
 3. All tool operations are scoped to the authenticated user's data
 4. In development mode, `--allow-open` flag enables unauthenticated access (first user)
@@ -455,7 +455,7 @@ Layout (layout.tsx)
 ├── QueryClientProvider (TanStack Query)
 ├── AppLayout
 │   ├── Sidebar
-│   │   ├── Brand header ("MEMORIX")
+│   │   ├── Brand header ("mnemosyne")
 │   │   ├── Navigation sections
 │   │   │   ├── LLM Marketplace
 │   │   │   ├── Agent Chat
@@ -579,7 +579,7 @@ src/app/api/
 │  ┌──────────────────────────────────────────────┐│
 │  │  Layer 2: Authentication                     ││
 │  │  NextAuth Session · API Key (mx_ prefix)     ││
-│  │  MCP: MEMORIX_API_KEY validation             ││
+│  │  MCP: mnemosyne_API_KEY validation             ││
 │  └──────────────────────────────────────────────┘│
 │                                                    │
 │  ┌──────────────────────────────────────────────┐│
@@ -641,7 +641,7 @@ src/app/api/
 │  │  Shared SQLite volume: /app/data        │ │
 │  └─────────────────────────────────────────┘ │
 │                                               │
-│  Volume: memorix-data → /app/data            │
+│  Volume: mnemosyne-data → /app/data            │
 └──────────────────────────────────────────────┘
 ```
 
@@ -708,4 +708,4 @@ Developer → bun run build → .next/standalone/
 
 ---
 
-*Last updated: 2026 · Memorix v4.0.0*
+*Last updated: 2026 · Mnemosyne v1.0.0*

@@ -1,13 +1,13 @@
-# Puter.js Integration Guide — Memorix v4.0
+# Puter.js Integration Guide — mnemosyne v4.0
 
-> Complete guide for using Puter.js to power Memorix's free LLM access, cloud storage, key-value store, and authentication.
+> Complete guide for using Puter.js to power mnemosyne's free LLM access, cloud storage, key-value store, and authentication.
 
 ---
 
 ## Table of Contents
 
 - [What is Puter.js?](#what-is-puterjs)
-- [How Puter.js Powers Memorix](#how-puterjs-powers-memorix)
+- [How Puter.js Powers mnemosyne](#how-puterjs-powers-mnemosyne)
 - [User-Pays Model Explained](#user-pays-model-explained)
 - [Setting Up Puter.js](#setting-up-puterjs)
 - [AI Capabilities](#ai-capabilities)
@@ -37,13 +37,13 @@ Puter.js requires **zero configuration** and **zero API keys** for the developer
 
 ---
 
-## How Puter.js Powers Memorix
+## How Puter.js Powers mnemosyne
 
-Memorix v4.0 uses Puter.js as its **primary free LLM provider**. This is the core innovation that makes Memorix "The Biggest Free Multi-LLM Hub":
+mnemosyne v4.0 uses Puter.js as its **primary free LLM provider**. This is the core innovation that makes mnemosyne "The Biggest Free Multi-LLM Hub":
 
 ```
 ┌──────────────────────────────────────────────────┐
-│                   Memorix v4.0                    │
+│                   mnemosyne v4.0                    │
 │                                                   │
 │  ┌─────────────────────────────────────────────┐ │
 │  │            LLM Router                        │ │
@@ -96,14 +96,14 @@ Benefits:
 - **Free Puter.com accounts** — Users get generous free tier on Puter.com
 - **Privacy** — User data stays in their Puter account, not the developer's
 
-### How It Works in Memorix
+### How It Works in mnemosyne
 
-1. User opens Memorix in their browser
+1. User opens mnemosyne in their browser
 2. Puter.js SDK loads automatically (no setup required)
 3. User is prompted to sign in with their free Puter.com account (if not already)
 4. All LLM calls are made through the user's Puter session
 5. The user's Puter.com account covers the cost of their AI usage
-6. Memorix never sees the user's API key or billing information
+6. Mnemosyne never sees the user's API key or billing information
 
 ---
 
@@ -111,7 +111,7 @@ Benefits:
 
 ### No Configuration Needed
 
-Puter.js requires **zero configuration**. Memorix loads the SDK dynamically:
+Puter.js requires **zero configuration**. Mnemosyne loads the SDK dynamically:
 
 ```typescript
 // src/lib/llm/puter-provider.ts
@@ -131,9 +131,9 @@ If you want to load the SDK manually (e.g., for testing):
 <script src="https://js.puter.com/v2/" async></script>
 ```
 
-### How Memorix Loads the SDK
+### How mnemosyne Loads the SDK
 
-Memorix dynamically injects the SDK script only when an LLM call is made:
+mnemosyne dynamically injects the SDK script only when an LLM call is made:
 
 ```typescript
 export function loadPuterSDK(): Promise<void> {
@@ -164,7 +164,7 @@ export function loadPuterSDK(): Promise<void> {
 
 ### Browser-Only Requirement
 
-Puter.js runs **only in the browser**. It cannot be used in server-side Node.js environments. Memorix's LLM Router automatically detects the environment and falls back to BYOK providers when running server-side.
+Puter.js runs **only in the browser**. It cannot be used in server-side Node.js environments. Mnemosyne's LLM Router automatically detects the environment and falls back to BYOK providers when running server-side.
 
 ---
 
@@ -251,7 +251,7 @@ Convert text to speech audio:
 import { puterTextToSpeech } from '@/lib/llm/puter-provider'
 
 const audioBlob = await puterTextToSpeech(
-  'Welcome to Memorix, your AI-powered memory hub.',
+  'Welcome to mnemosyne, your AI-powered memory hub.',
   'alloy' // optional voice parameter
 )
 
@@ -297,7 +297,7 @@ Puter.js provides free cloud storage accessible directly from the browser:
 ```typescript
 import { puterWriteFile } from '@/lib/llm/puter-provider'
 
-await puterWriteFile('/memorix/notes/my-note.md', '# My Note\n\nContent here...')
+await puterWriteFile('/mnemosyne/notes/my-note.md', '# My Note\n\nContent here...')
 ```
 
 ### Read a File
@@ -305,7 +305,7 @@ await puterWriteFile('/memorix/notes/my-note.md', '# My Note\n\nContent here...'
 ```typescript
 import { puterReadFile } from '@/lib/llm/puter-provider'
 
-const content = await puterReadFile('/memorix/notes/my-note.md')
+const content = await puterReadFile('/mnemosyne/notes/my-note.md')
 console.log(content)
 ```
 
@@ -314,7 +314,7 @@ console.log(content)
 ```typescript
 import { puterListDir } from '@/lib/llm/puter-provider'
 
-const files = await puterListDir('/memorix/notes')
+const files = await puterListDir('/mnemosyne/notes')
 for (const file of files) {
   console.log(file.name, file.size)
 }
@@ -325,10 +325,10 @@ for (const file of files) {
 ```typescript
 import { puterDeleteFile } from '@/lib/llm/puter-provider'
 
-await puterDeleteFile('/memorix/notes/old-note.md')
+await puterDeleteFile('/mnemosyne/notes/old-note.md')
 ```
 
-### Storage Use Cases in Memorix
+### Storage Use Cases in mnemosyne
 
 - **Backup notes** to Puter cloud storage
 - **Sync settings** across devices via Puter KV
@@ -365,7 +365,7 @@ if (prefs) {
 }
 ```
 
-### KV Use Cases in Memorix
+### KV Use Cases in mnemosyne
 
 - User preferences and settings
 - Session state persistence
@@ -396,7 +396,7 @@ if (!isSignedIn) {
 import { puterSignIn } from '@/lib/llm/puter-provider'
 
 await puterSignIn()
-// User is redirected to Puter.com sign-in, then back to Memorix
+// User is redirected to Puter.com sign-in, then back to mnemosyne
 ```
 
 ### Get User Info
@@ -409,17 +409,17 @@ console.log(user.username)
 console.log(user.email)
 ```
 
-### Authentication Flow in Memorix
+### Authentication Flow in mnemosyne
 
 ```
-1. User opens Memorix
-2. Memorix loads Puter.js SDK
+1. User opens mnemosyne
+2. Mnemosyne loads Puter.js SDK
 3. Check if user is signed in (puterIsSignedIn)
 4. If not signed in:
    a. Show "Sign in with Puter" button
    b. Call puterSignIn() on button click
    c. User authenticates at Puter.com
-   d. User is redirected back to Memorix
+   d. User is redirected back to mnemosyne
 5. User can now use all AI features for free
 ```
 
@@ -427,7 +427,7 @@ console.log(user.email)
 
 ## Integration Architecture
 
-Memorix wraps Puter.js through a clean abstraction layer:
+mnemosyne wraps Puter.js through a clean abstraction layer:
 
 ```
 ┌───────────────────────────────────────────────────────┐
@@ -483,7 +483,7 @@ Memorix wraps Puter.js through a clean abstraction layer:
 
 ## Fallback to BYOK
 
-When Puter.js is unavailable, Memorix automatically falls back to BYOK providers:
+When Puter.js is unavailable, mnemosyne automatically falls back to BYOK providers:
 
 ```typescript
 // In the LLM Router
@@ -531,7 +531,7 @@ Puter.com enforces rate limits based on user account tier:
 2. **Browser-Only** — Puter.js cannot be used in server-side (Node.js) contexts
 3. **User Authentication Required** — Users must be signed into Puter.com
 4. **Network Dependency** — Requires internet connection to Puter.com
-5. **Response Format Variation** — Different models return slightly different response formats; Memorix normalizes these
+5. **Response Format Variation** — Different models return slightly different response formats; mnemosyne normalizes these
 6. **Cost Transparency** — Users should check their Puter.com dashboard for usage details
 
 ### Best Practices
@@ -613,7 +613,7 @@ console.log('Memory references:', result.memoryRefs)
 ### Direct Puter.js Usage
 
 ```typescript
-// Access Puter.js directly (outside Memorix abstractions)
+// Access Puter.js directly (outside mnemosyne abstractions)
 await loadPuterSDK()
 const puter = window.puter
 
@@ -637,4 +637,4 @@ const value = await puter.kv.get('key')
 
 ---
 
-*Memorix v4.0 — The Biggest Free Multi-LLM Hub. Powered by Puter.js.*
+*mnemosyne v4.0 — The Biggest Free Multi-LLM Hub. Powered by Puter.js.*

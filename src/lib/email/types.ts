@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX v3.0.0 — Email Integration Type Definitions
+// MNEMOSYNE v1.0.0 — Email Integration Type Definitions
 // Universal AI/Human Memory Hub: Email Integration Layer
 //
 // Types, interfaces, and configuration for multi-provider

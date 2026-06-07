@@ -1,6 +1,6 @@
-# Memorix AI Memory — Testing
+# Mnemosyne AI Memory — Testing
 
-> E2E testing documentation for Memorix AI Memory using Playwright.
+> E2E testing documentation for mnemosyne AI Memory using Playwright.
 
 ---
 
@@ -19,7 +19,7 @@
 
 ## Overview
 
-Memorix AI Memory uses **Playwright** for end-to-end testing. The test suite covers:
+mnemosyne AI Memory uses **Playwright** for end-to-end testing. The test suite covers:
 
 - **8 spec files** covering all major dashboard features
 - **183 tests** across dashboard navigation, API health, agents, hardware, missions, navigation, flash, and power
@@ -113,7 +113,7 @@ npx playwright test e2e/dashboard.spec.ts
 ### Run Specific Test
 
 ```bash
-npx playwright test -g "sidebar brand shows MEMORIX IOT"
+npx playwright test -g "sidebar brand shows mnemosyne IOT"
 ```
 
 ### Run with Verbose Output
@@ -372,7 +372,7 @@ The `api-health.spec.ts` file tests all API endpoints:
 test('GET /api — system health check', async ({ request }) => {
   const json = await verifyApiEndpoint(request, API_ENDPOINTS.health)
   expect(json.data).toBeDefined()
-  expect(json.data.system).toBe('Memorix AI Memory')
+  expect(json.data.system).toBe('mnemosyne AI Memory')
   expect(json.data.version).toBeDefined()
 })
 ```
@@ -412,7 +412,7 @@ test('POST /api/missions with invalid data — returns error', async ({ request 
 
 ```typescript
 test('POST /api/mcp without API key — returns 401 in production', async ({ request }) => {
-  // This test requires MEMORIX_API_KEY to be set
+  // This test requires mnemosyne_API_KEY to be set
   const response = await request.post('/api/mcp', {
     data: { tool: 'safety_assessment', arguments: {} },
   })
@@ -428,7 +428,7 @@ test('POST /api/mcp without API key — returns 401 in production', async ({ req
 ### Dashboard
 
 - [ ] Page loads without crash
-- [ ] Sidebar shows "MEMORIX IOT" branding
+- [ ] Sidebar shows "mnemosyne IOT" branding
 - [ ] Version number is displayed
 - [ ] System online indicator shows green pulsing dot
 - [ ] Region info shows "Aceh Utara Region"

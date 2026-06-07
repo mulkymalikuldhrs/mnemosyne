@@ -44,7 +44,7 @@ export function Header() {
         <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground">
           <Brain className="w-4 h-4" />
         </div>
-        <span className="font-semibold text-base">Memorix</span>
+        <span className="font-semibold text-base">Mnemosyne</span>
       </div>
 
       {/* Search Bar */}

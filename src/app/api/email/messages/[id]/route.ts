@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX v3.0.0 — Email Message by ID API
+// mnemosyne v3.0.0 — Email Message by ID API
 // GET    /api/email/messages/[id]  — Get specific email message
 // DELETE /api/email/messages/[id]  — Delete an email message
 // ============================================================

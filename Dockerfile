@@ -1,5 +1,5 @@
 # ============================================================
-# Memorix AI Memory SaaS — Multi-stage Dockerfile
+# Mnemosyne AI Memory SaaS — Multi-stage Dockerfile
 # Stage 1: Install dependencies
 # Stage 2: Build Next.js
 # Stage 3: Production image (minimal)

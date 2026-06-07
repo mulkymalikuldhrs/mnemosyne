@@ -278,7 +278,7 @@ export function ChatPanel() {
           </Button>
         </div>
         <p className="text-[10px] text-muted-foreground/50 text-center mt-2">
-          Memorix uses your stored memories to provide contextual responses
+          Mnemosyne uses your stored memories to provide contextual responses
         </p>
       </div>
     </div>

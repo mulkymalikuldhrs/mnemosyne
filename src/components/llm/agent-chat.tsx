@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Memorix v4.0 — AI Agent Chat Panel
+ * Mnemosyne v1.0 — AI Agent Chat Panel
  *
  * Full AI agent with multi-LLM access and tool execution.
  * Powered by Puter.js for FREE LLMs.
@@ -90,7 +90,7 @@ export function AgentChatPanel() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: userMessage.content,
-            userId: 'current-user',
+            userId: 'current-user', // TODO: Replace with authenticated user ID from session
             model: selectedModel,
           }),
         })
@@ -139,7 +139,7 @@ export function AgentChatPanel() {
           body: JSON.stringify({
             model: selectedModel,
             messages: [
-              { role: 'system', content: 'You are Memorix, a personal AI memory assistant. Help users with their questions and knowledge management.' },
+              { role: 'system', content: 'You are Mnemosyne, a personal AI memory assistant. Help users with their questions and knowledge management.' },
               ...messages.filter(m => m.role === 'user' || m.role === 'assistant').map(m => ({
                 role: m.role,
                 content: m.content,
@@ -256,7 +256,7 @@ export function AgentChatPanel() {
               <Brain className="w-8 h-8 text-primary" />
             </div>
             <div>
-              <p className="text-lg font-semibold">Memorix AI Agent</p>
+              <p className="text-lg font-semibold">Mnemosyne AI Agent</p>
               <p className="text-sm text-muted-foreground max-w-md mt-1">
                 Chat with your AI agent powered by {modelInfo?.name || 'multi-LLM'}.
                 {useAgent && ' The agent can search your memories, save notes, track decisions, and search the web.'}

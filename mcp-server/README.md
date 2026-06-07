@@ -1,8 +1,8 @@
-# Memorix MCP Server
+# mnemosyne MCP Server
 
 > AI Memory Integration for AI Assistants — Give your AI assistant a persistent, searchable memory.
 
-Memorix MCP Server implements the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) to let AI assistants like **Claude**, **GPT**, **Cursor**, and any MCP-compatible client store, search, and interact with a personal knowledge base. Think of it as giving your AI a long-term memory that persists across conversations.
+mnemosyne MCP Server implements the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) to let AI assistants like **Claude**, **GPT**, **Cursor**, and any MCP-compatible client store, search, and interact with a personal knowledge base. Think of it as giving your AI a long-term memory that persists across conversations.
 
 ---
 
@@ -25,28 +25,28 @@ All data is stored locally in SQLite via Prisma ORM — no cloud dependencies re
 ### Option 1: Run directly with npx (Recommended)
 
 ```bash
-npx @memorix/mcp-server
+npx @mnemosyne/mcp-server
 ```
 
 ### Option 2: Install globally
 
 ```bash
-npm install -g @memorix/mcp-server
-memorix-mcp
+npm install -g @mnemosyne/mcp-server
+mnemosyne-mcp
 ```
 
 ### Option 3: Install locally in a project
 
 ```bash
-npm install @memorix/mcp-server
-npx memorix-mcp
+npm install @mnemosyne/mcp-server
+npx mnemosyne-mcp
 ```
 
 ### Option 4: From source
 
 ```bash
-git clone https://github.com/mulkymalikuldhrs/memorix.git
-cd memorix/mcp-server
+git clone https://github.com/mulkymalikuldhrs/mnemosyne.git
+cd mnemosyne/mcp-server
 bun install
 bun run db:push    # Create database tables
 bun start          # Start the MCP server
@@ -60,8 +60,8 @@ bun start          # Start the MCP server
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `MEMORIX_API_KEY` | No | *(none)* | API key for authentication. If not set, the server runs in open mode (no auth). |
-| `DATABASE_URL` | No | `file:../db/memorix.db` | Prisma database connection string. Uses SQLite by default. |
+| `mnemosyne_API_KEY` | No | *(none)* | API key for authentication. If not set, the server runs in open mode (no auth). |
+| `DATABASE_URL` | No | `file:../db/mnemosyne.db` | Prisma database connection string. Uses SQLite by default. |
 
 ### Claude Desktop Configuration
 
@@ -73,12 +73,12 @@ Add the following to your Claude Desktop config file:
 ```json
 {
   "mcpServers": {
-    "memorix": {
+    "mnemosyne": {
       "command": "npx",
-      "args": ["-y", "@memorix/mcp-server"],
+      "args": ["-y", "@mnemosyne/mcp-server"],
       "env": {
-        "MEMORIX_API_KEY": "your-api-key",
-        "DATABASE_URL": "file:./memorix.db"
+        "mnemosyne_API_KEY": "your-api-key",
+        "DATABASE_URL": "file:./mnemosyne.db"
       }
     }
   }
@@ -92,12 +92,12 @@ Add to your Cursor MCP settings (Settings → MCP):
 ```json
 {
   "mcpServers": {
-    "memorix": {
+    "mnemosyne": {
       "command": "npx",
-      "args": ["-y", "@memorix/mcp-server"],
+      "args": ["-y", "@mnemosyne/mcp-server"],
       "env": {
-        "MEMORIX_API_KEY": "your-api-key",
-        "DATABASE_URL": "file:./memorix.db"
+        "mnemosyne_API_KEY": "your-api-key",
+        "DATABASE_URL": "file:./mnemosyne.db"
       }
     }
   }
@@ -111,12 +111,12 @@ Add to your Windsurf MCP settings:
 ```json
 {
   "mcpServers": {
-    "memorix": {
+    "mnemosyne": {
       "command": "npx",
-      "args": ["-y", "@memorix/mcp-server"],
+      "args": ["-y", "@mnemosyne/mcp-server"],
       "env": {
-        "MEMORIX_API_KEY": "your-api-key",
-        "DATABASE_URL": "file:./memorix.db"
+        "mnemosyne_API_KEY": "your-api-key",
+        "DATABASE_URL": "file:./mnemosyne.db"
       }
     }
   }
@@ -130,12 +130,12 @@ Add to your VS Code `settings.json`:
 ```json
 {
   "cline.mcpServers": {
-    "memorix": {
+    "mnemosyne": {
       "command": "npx",
-      "args": ["-y", "@memorix/mcp-server"],
+      "args": ["-y", "@mnemosyne/mcp-server"],
       "env": {
-        "MEMORIX_API_KEY": "your-api-key",
-        "DATABASE_URL": "file:./memorix.db"
+        "mnemosyne_API_KEY": "your-api-key",
+        "DATABASE_URL": "file:./mnemosyne.db"
       }
     }
   }
@@ -149,12 +149,12 @@ Add to your Zed `settings.json`:
 ```json
 {
   "context_servers": {
-    "memorix": {
+    "mnemosyne": {
       "command": "npx",
-      "args": ["-y", "@memorix/mcp-server"],
+      "args": ["-y", "@mnemosyne/mcp-server"],
       "env": {
-        "MEMORIX_API_KEY": "your-api-key",
-        "DATABASE_URL": "file:./memorix.db"
+        "mnemosyne_API_KEY": "your-api-key",
+        "DATABASE_URL": "file:./mnemosyne.db"
       }
     }
   }
@@ -165,7 +165,7 @@ Add to your Zed `settings.json`:
 
 ## 🛠️ Available Tools
 
-### `memorix_search`
+### `mnemosyne_search`
 
 Search the user's memory for notes matching a query. Returns ranked results with relevance scores.
 
@@ -193,7 +193,7 @@ Search the user's memory for notes matching a query. Returns ranked results with
 
 ---
 
-### `memorix_add_note`
+### `mnemosyne_add_note`
 
 Add a new note to memory. Notes are auto-linked to existing notes with shared tags.
 
@@ -216,7 +216,7 @@ Add a new note to memory. Notes are auto-linked to existing notes with shared ta
 
 ---
 
-### `memorix_get_note`
+### `mnemosyne_get_note`
 
 Retrieve a specific note by ID with full content and metadata.
 
@@ -240,7 +240,7 @@ Retrieve a specific note by ID with full content and metadata.
 
 ---
 
-### `memorix_list_notes`
+### `mnemosyne_list_notes`
 
 List all notes with pagination support.
 
@@ -268,7 +268,7 @@ List all notes with pagination support.
 
 ---
 
-### `memorix_chat`
+### `mnemosyne_chat`
 
 Chat with your memory. Ask questions and get AI-powered responses grounded in your stored knowledge. Supports multi-turn conversations.
 
@@ -291,7 +291,7 @@ Chat with your memory. Ask questions and get AI-powered responses grounded in yo
 
 ---
 
-### `memorix_get_related`
+### `mnemosyne_get_related`
 
 Get notes related to a specific note based on shared tags, content similarity, and explicit relations.
 
@@ -319,7 +319,7 @@ Get notes related to a specific note based on shared tags, content similarity, a
 
 ---
 
-### `memorix_detect_patterns`
+### `mnemosyne_detect_patterns`
 
 Detect patterns and themes across your memory. Identifies recurring topics, temporal trends, and knowledge clusters.
 
@@ -340,7 +340,7 @@ Detect patterns and themes across your memory. Identifies recurring topics, temp
 
 ---
 
-### `memorix_add_decision`
+### `mnemosyne_add_decision`
 
 Record a decision with full context and reasoning. Decisions are tracked separately from notes for easy retrieval.
 
@@ -372,7 +372,7 @@ AI Assistant (Claude/GPT/Cursor)
         │ JSON-RPC 2.0 over stdio
         ▼
 ┌──────────────────────────┐
-│   Memorix MCP Server     │
+│   mnemosyne MCP Server     │
 │                          │
 │  ┌────────────────────┐  │
 │  │  MCP Protocol      │  │
@@ -401,7 +401,7 @@ AI Assistant (Claude/GPT/Cursor)
 └───────────┼──────────────┘
             │
      ┌──────▼──────┐
-     │  memorix.db  │
+     │  mnemosyne.db  │
      │  (SQLite)    │
      └─────────────┘
 ```
@@ -442,7 +442,7 @@ bun run start
 
 ## 🔐 Security
 
-- **API Key Authentication**: Set `MEMORIX_API_KEY` to require authentication. Without it, the server runs in open mode (suitable for local development).
+- **API Key Authentication**: Set `mnemosyne_API_KEY` to require authentication. Without it, the server runs in open mode (suitable for local development).
 - **Local Storage**: All data is stored locally in SQLite. No data is sent to external services.
 - **Stdio Transport**: Communication happens only over stdin/stdout, ensuring no network exposure.
 
@@ -457,5 +457,5 @@ MIT © Mulky Malikul Dhaher
 ## 🔗 Links
 
 - [Model Context Protocol](https://modelcontextprotocol.io/)
-- [Memorix GitHub](https://github.com/mulkymalikuldhrs/memorix)
-- [Report Issues](https://github.com/mulkymalikuldhrs/memorix/issues)
+- [mnemosyne GitHub](https://github.com/mulkymalikuldhrs/mnemosyne)
+- [Report Issues](https://github.com/mulkymalikuldhrs/mnemosyne/issues)

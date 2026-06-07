@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX IOT - Extension WebSocket Server
+// mnemosyne IOT - Extension WebSocket Server
 // Port 3004 — Real-time push to connected IDE extensions
 // ============================================================
 

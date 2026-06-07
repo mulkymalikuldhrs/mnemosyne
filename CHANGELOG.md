@@ -1,12 +1,20 @@
-# Memorix v4.0.0 — CHANGELOG
+# Mnemosyne — CHANGELOG
 
-All notable changes to Memorix will be documented in this file.
+All notable changes to Mnemosyne will be documented in this file.
 
-## [4.0.0] — 2026-06-07
+## [1.0.0] — 2026-06-07
 
-### 🌟 The Biggest Free Multi-LLM Hub
+### 🌟 Mnemosyne — The Biggest Free Multi-LLM Hub & AI Agent Memory Center
 
-This is a **landmark release** that transforms Memorix from a memory platform into the world's biggest free multi-LLM hub. No backend needed. No API keys needed for free tier. Bring Your Own Key for premium models. SaaS/IaaS ready.
+This is the **inaugural release** of Mnemosyne (rebranded from Memorix), named after the Greek titan goddess of memory. Mnemosyne is the world's biggest free multi-LLM hub — a central connection point for both AI agents and humans. No backend needed. No API keys needed for free tier. BYOAPI (Bring Your Own API) for premium models. SaaS/IaaS ready.
+
+### Rebranding: Memorix → Mnemosyne
+
+- Complete rebrand from "Memorix" to "Mnemosyne" across all source code, documentation, configuration files, service worker, PWA manifest, and Docker files
+- Package renamed from `@memorix/memory` to `@mnemosyne/memory`
+- MCP server binary renamed from `memorix-mcp` to `mnemosyne-mcp`
+- Service worker cache version updated to `mnemosyne-v1`
+- All documentation updated with proper Mnemosyne branding and capitalization
 
 ---
 
@@ -48,7 +56,7 @@ This is a **landmark release** that transforms Memorix from a memory platform in
 
 #### 🌐 API Hub (Middle Provider)
 
-Memorix now serves as a **middle provider** — wrapping 500+ LLM models into a single unified API that anyone can call from anywhere.
+Mnemosyne now serves as a **middle provider** — wrapping 500+ LLM models into a single unified API that anyone can call from anywhere.
 
 - **POST /api/llm/chat** — Universal Chat API (auto-routes to Puter.js or BYOK, supports streaming and tool calling)
 - **POST /api/llm/agent** — AI Agent Execution API (automatic tool execution, multi-LLM)

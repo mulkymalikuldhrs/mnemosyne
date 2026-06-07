@@ -10,10 +10,10 @@ async function main() {
   const hashedPassword = await bcrypt.hash('demo123', 12)
 
   const user = await prisma.user.upsert({
-    where: { email: 'demo@memorix.ai' },
+    where: { email: 'demo@mnemosyne.ai' },
     update: {},
     create: {
-      email: 'demo@memorix.ai',
+      email: 'demo@mnemosyne.ai',
       name: 'Demo User',
       password: hashedPassword,
       plan: 'PRO',
@@ -135,7 +135,7 @@ async function main() {
     {
       title: 'Choose nomic-embed-text over OpenAI embeddings',
       context:
-        'Building the Memorix memory engine requires an embedding model for semantic search. Options: OpenAI text-embedding-3-small (proprietary, API-dependent) vs nomic-embed-text (open-source, self-hostable).',
+        'Building the mnemosyne memory engine requires an embedding model for semantic search. Options: OpenAI text-embedding-3-small (proprietary, API-dependent) vs nomic-embed-text (open-source, self-hostable).',
       decision:
         'Use nomic-embed-text as the default embedding model with a fallback to pseudo-embeddings for development.',
       reasoning:

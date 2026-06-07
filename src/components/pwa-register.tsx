@@ -77,7 +77,7 @@ export function PWARegister() {
                   <Download className="w-4 h-4 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold">Install Memorix</p>
+                  <p className="text-sm font-semibold">Install Mnemosyne</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     Add to home screen for a faster, app-like experience with offline support.
                   </p>
@@ -132,7 +132,7 @@ export function PWARegister() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold">Update Available</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    A new version of Memorix is ready. Update to get the latest features.
+                    A new version of Mnemosyne is ready. Update to get the latest features.
                   </p>
                   <div className="flex gap-2 mt-3">
                     <Button size="sm" onClick={handleUpdate} className="h-7 text-xs">

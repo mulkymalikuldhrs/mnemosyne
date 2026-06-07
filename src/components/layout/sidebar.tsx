@@ -112,7 +112,7 @@ export function Sidebar() {
               transition={{ duration: 0.15 }}
               className="font-semibold text-lg tracking-tight whitespace-nowrap"
             >
-              Memorix
+              Mnemosyne
             </motion.span>
           )}
         </AnimatePresence>

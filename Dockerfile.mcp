@@ -1,15 +1,15 @@
 # ============================================================
-# Memorix MCP Server — Dockerfile
+# Mnemosyne MCP Server — Dockerfile
 # Lightweight container for the MCP server (stdio transport)
 # ============================================================
 #
 # Usage:
-#   docker build -f Dockerfile.mcp -t memorix-mcp .
+#   docker build -f Dockerfile.mcp -t mnemosyne-mcp .
 #   docker run -i --rm \
-#     -e DATABASE_URL="file:/app/data/memorix.db" \
-#     -e MEMORIX_API_KEY="mx_your_api_key" \
-#     -v /path/to/memorix.db:/app/data/memorix.db \
-#     memorix-mcp
+#     -e DATABASE_URL="file:/app/data/mnemosyne.db" \
+#     -e MNEMOSYNE_API_KEY="mx_your_api_key" \
+#     -v /path/to/mnemosyne.db:/app/data/mnemosyne.db \
+#     mnemosyne-mcp
 #
 # The MCP server communicates via stdin/stdout (stdio transport).
 # No port is exposed. Use `docker run -i` for interactive stdin.
@@ -57,7 +57,7 @@ RUN mkdir -p /app/data
 
 # Set environment defaults
 ENV NODE_ENV=production
-ENV DATABASE_URL="file:/app/data/memorix.db"
+ENV DATABASE_URL="file:/app/data/mnemosyne.db"
 
 # Run the MCP server via the cli.js wrapper
 ENTRYPOINT ["node", "mcp-server/cli.js"]

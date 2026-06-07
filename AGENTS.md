@@ -1,6 +1,6 @@
-# Memorix v4.0 — AI Agent System
+# Mnemosyne v4.0 — AI Agent System
 
-> Documentation for the built-in AI Agent that can use any LLM from the multi-provider pool, execute tools, manage memory, and interact with all Memorix data.
+> Documentation for the built-in AI Agent that can use any LLM from the multi-provider pool, execute tools, manage memory, and interact with all mnemosyne data.
 
 ---
 
@@ -24,7 +24,7 @@
 
 ## Overview
 
-Memorix includes a built-in AI Agent system that combines the power of any LLM from the multi-provider pool with 7 built-in tools. The agent can search your memories, save new notes, update existing ones, track decisions, search the web, and generate insights about your knowledge base — all powered by free LLM models via Puter.js.
+Mnemosyne includes a built-in AI Agent system that combines the power of any LLM from the multi-provider pool with 7 built-in tools. The agent can search your memories, save new notes, update existing ones, track decisions, search the web, and generate insights about your knowledge base — all powered by free LLM models via Puter.js.
 
 The key innovation is that the agent is **model-agnostic**: you can use any model from the pool (GPT-5.5 Pro, Claude Opus 4.8, DeepSeek R1, etc.) as the "brain" of the agent, and it will automatically route to the correct provider via the LLM Router.
 
@@ -43,9 +43,9 @@ The key innovation is that the agent is **model-agnostic**: you can use any mode
 
 ## Agent Types
 
-### The Memorix Agent
+### The mnemosyne Agent
 
-The default agent type in Memorix v4.0 is the **Memorix Agent** — a configurable, multi-LLM agent with access to the full tool registry. Unlike v2.0's multi-agent system (Hermes, PicoClaw, Sentinel, etc.), v4.0 uses a single, flexible agent that can be configured for any task by changing the system prompt, model, and tool set.
+The default agent type in mnemosyne v4.0 is the **mnemosyne Agent** — a configurable, multi-LLM agent with access to the full tool registry. Unlike v2.0's multi-agent system (Hermes, PicoClaw, Sentinel, etc.), v4.0 uses a single, flexible agent that can be configured for any task by changing the system prompt, model, and tool set.
 
 | Property | Description |
 |----------|-------------|
@@ -98,7 +98,7 @@ interface AgentConfig {
 
 ## Built-in Tools
 
-The Memorix Agent comes with 7 built-in tools that provide full access to the user's knowledge base and the web:
+The mnemosyne Agent comes with 7 built-in tools that provide full access to the user's knowledge base and the web:
 
 ### 1. memory_search
 
@@ -498,9 +498,9 @@ The default agent configuration is optimized for general-purpose memory assistan
 
 ```typescript
 export const DEFAULT_AGENT_CONFIG: AgentConfig = {
-  name: 'Memorix Agent',
+  name: 'mnemosyne Agent',
   description: 'Your personal AI memory assistant — can search, save, update, and reason about your memories.',
-  systemPrompt: `You are Memorix Agent, an advanced AI assistant with full access to the user's memory and knowledge base. You can search memories, save new notes, update existing ones, track decisions, and search the web for current information.
+  systemPrompt: `You are mnemosyne Agent, an advanced AI assistant with full access to the user's memory and knowledge base. You can search memories, save new notes, update existing ones, track decisions, and search the web for current information.
 
 Key behaviors:
 1. Always search memory first before answering questions — the user's past knowledge is your primary source
@@ -640,7 +640,7 @@ Get the default agent configuration and available tools.
   "success": true,
   "data": {
     "defaultConfig": {
-      "name": "Memorix Agent",
+      "name": "mnemosyne Agent",
       "description": "Your personal AI memory assistant...",
       "model": "openai/gpt-5.4-nano",
       "maxIterations": 5
@@ -673,7 +673,7 @@ Get, update, or delete a specific agent configuration.
 
 ## Multi-LLM Agent
 
-One of the most powerful features of Memorix's agent system is the ability to use **any model** from the pool as the agent's "brain". This is handled automatically by the LLM Router.
+One of the most powerful features of mnemosyne's agent system is the ability to use **any model** from the pool as the agent's "brain". This is handled automatically by the LLM Router.
 
 ### Model Selection Guide
 
@@ -720,7 +720,7 @@ The agent's default execution path uses Puter.js for free LLM access. This means
 
 ### Puter.js SDK Integration
 
-The `puter-provider.ts` module provides the bridge between Memorix and Puter.js:
+The `puter-provider.ts` module provides the bridge between mnemosyne and Puter.js:
 
 ```typescript
 // Load Puter.js SDK (browser only)
@@ -904,4 +904,4 @@ const result = await runAgent(
 
 ---
 
-*Last updated: 2026 · Memorix v4.0.0*
+*Last updated: 2026 · Mnemosyne v1.0.0*

@@ -1,9 +1,9 @@
 /**
- * Memorix v4.0 — Puter.js LLM Provider
+ * Mnemosyne v1.0 — Puter.js LLM Provider
  *
  * FREE access to 500+ AI models with zero API key.
  * User-Pays model: end-users cover their own usage via Puter.com accounts.
- * This makes Memorix the biggest free multi-LLM hub in the world.
+ * This makes Mnemosyne the biggest free multi-LLM hub in the world.
  */
 
 import type { LLMConfig, LLMMessage, LLMResponse, LLMStreamChunk, LLMTool, ToolCall } from './providers'

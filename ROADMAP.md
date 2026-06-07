@@ -1,4 +1,4 @@
-# Memorix — Product Roadmap
+# Mnemosyne — Product Roadmap
 
 > **The Biggest Free Multi-LLM Hub** — From v4.0 to v6.0 and beyond
 
@@ -23,7 +23,7 @@
 **Release Date**: March 2025
 **Status**: Released
 
-The foundation of Memorix as the world's biggest free multi-LLM hub. This release establishes the core architecture for free LLM access, unified routing, and AI agent capabilities.
+The foundation of mnemosyne as the world's biggest free multi-LLM hub. This release establishes the core architecture for free LLM access, unified routing, and AI agent capabilities.
 
 ### What's Done
 
@@ -267,7 +267,7 @@ interface StorageProvider {
 
 ### Custom Domain Support
 
-- Map custom domains to Memorix instances
+- Map custom domains to mnemosyne instances
 - SSL certificate management
 - Brand customization (logo, colors, name)
 - Custom email templates
@@ -370,7 +370,7 @@ interface StorageProvider {
 ### Plugin System
 
 - Third-party plugin architecture
-- Plugin API for extending Memorix
+- Plugin API for extending mnemosyne
 - Plugin marketplace
 - Plugin sandboxing and security
 - Community plugin development tools
@@ -391,13 +391,13 @@ interface StorageProvider {
 
 | Area | Vision |
 |------|--------|
-| **AI-Native OS** | Memorix as the operating system for AI workflows |
+| **AI-Native OS** | Mnemosyne as the operating system for AI workflows |
 | **Federated Memory** | Interconnected knowledge graphs across organizations |
-| **Model Fine-Tuning** | User-trained models hosted on Memorix infrastructure |
+| **Model Fine-Tuning** | User-trained models hosted on mnemosyne infrastructure |
 | **Voice Interface** | Full voice-to-voice AI interaction via Puter.js STT/TTS |
 | **Visual Intelligence** | Image understanding, diagram generation, visual RAG |
 | **Agent Economy** | Monetized agent services, agent-as-a-service |
-| **Edge Deployment** | Memorix on edge devices (Raspberry Pi, Jetson) |
+| **Edge Deployment** | Mnemosyne on edge devices (Raspberry Pi, Jetson) |
 | **Academic Partnerships** | Research collaborations, citation tracking, peer review tools |
 
 ---

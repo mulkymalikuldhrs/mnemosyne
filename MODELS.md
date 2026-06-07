@@ -1,4 +1,4 @@
-# Memorix — Model Catalog
+# Mnemosyne — Model Catalog
 
 > **21 Curated Free Models across 8 Providers** — All accessible via Puter.js at zero cost
 > Plus BYOK and Local model support for maximum flexibility
@@ -20,11 +20,11 @@
 
 ## Introduction
 
-Memorix provides access to AI models through three provider types:
+Mnemosyne provides access to AI models through three provider types:
 
-1. **Free (Puter.js)** — 21 curated models across 8 providers, accessible at zero cost. No API key required. Users access models through their free Puter.com account via the Puter.js SDK. This is the core innovation that makes Memorix the biggest free multi-LLM hub.
+1. **Free (Puter.js)** — 21 curated models across 8 providers, accessible at zero cost. No API key required. Users access models through their free Puter.com account via the Puter.js SDK. This is the core innovation that makes mnemosyne the biggest free multi-LLM hub.
 
-2. **BYOK (Bring Your Own Key)** — Bring your own API keys from OpenAI, Anthropic, Google, DeepSeek, OpenRouter, or any OpenAI-compatible endpoint. Memorix acts as the unified middle provider, wrapping all BYOK services into a single consistent API.
+2. **BYOK (Bring Your Own Key)** — Bring your own API keys from OpenAI, Anthropic, Google, DeepSeek, OpenRouter, or any OpenAI-compatible endpoint. Mnemosyne acts as the unified middle provider, wrapping all BYOK services into a single consistent API.
 
 3. **Local (Ollama / LM Studio)** — Run models locally on your own hardware. Zero cost, full privacy, no internet required. Supports any model available through Ollama or OpenAI-compatible local servers.
 
@@ -108,7 +108,7 @@ All models below are accessible for free via Puter.js. No API key required.
 
 ## BYOK Models
 
-Bring Your Own Key models require an API key from the respective provider. Memorix acts as the unified API layer, so you only need to configure keys once.
+Bring Your Own Key models require an API key from the respective provider. Mnemosyne acts as the unified API layer, so you only need to configure keys once.
 
 | Model ID | Name | Provider | Context | Pricing (per 1M tokens) |
 |----------|------|----------|---------|------------------------|
@@ -120,7 +120,7 @@ Bring Your Own Key models require an API key from the respective provider. Memor
 
 ### BYOK Configuration
 
-To use BYOK models, configure your API keys in the Memorix dashboard under **Settings → API Keys**. Each key is encrypted at rest and never sent to third parties except the intended provider.
+To use BYOK models, configure your API keys in the mnemosyne dashboard under **Settings → API Keys**. Each key is encrypted at rest and never sent to third parties except the intended provider.
 
 ```typescript
 // Example: Using BYOK via the LLM Router
@@ -152,7 +152,7 @@ Run models locally on your hardware. Zero cost, full privacy, no internet requir
 1. Install Ollama: `curl -fsSL https://ollama.com/install.sh | sh`
 2. Pull a model: `ollama pull llama3`
 3. Start the server: `ollama serve` (runs on `http://localhost:11434`)
-4. Configure Memorix: Set provider to `ollama` and base URL to `http://localhost:11434/v1/chat/completions`
+4. Configure mnemosyne: Set provider to `ollama` and base URL to `http://localhost:11434/v1/chat/completions`
 
 ```typescript
 // Example: Using local Ollama model
@@ -171,7 +171,7 @@ const response = await LLMRouter.chat(
 1. Download [LM Studio](https://lmstudio.ai/)
 2. Search and download a model (e.g., Mistral 7B)
 3. Start the local server (default: `http://localhost:1234/v1/chat/completions`)
-4. Configure Memorix: Set provider to `custom` with your LM Studio base URL
+4. Configure mnemosyne: Set provider to `custom` with your LM Studio base URL
 
 ---
 
@@ -315,7 +315,7 @@ Models sorted by context window size (largest first):
 
 ### Adding to the Model Registry
 
-To add a new model to Memorix, edit `src/lib/llm/providers.ts` and add an entry to the `MODEL_REGISTRY` array:
+To add a new model to mnemosyne, edit `src/lib/llm/providers.ts` and add an entry to the `MODEL_REGISTRY` array:
 
 ```typescript
 // Example: Adding a new free model

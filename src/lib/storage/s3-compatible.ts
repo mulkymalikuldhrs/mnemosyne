@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX v3.0.0 — S3-Compatible Storage Adapter
+// MNEMOSYNE v1.0.0 — S3-Compatible Storage Adapter
 // Universal AI/Human Memory Hub
 //
 // Implements CloudStorageProviderInterface for any S3-compatible

@@ -20,7 +20,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       data: {
-        system: 'Memorix AI Memory',
+        system: 'Mnemosyne AI Memory',
         version: '1.0.0',
         uptime: {
           seconds: uptimeSeconds,

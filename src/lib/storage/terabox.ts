@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX v3.0.0 — TeraBox Storage Adapter
+// MNEMOSYNE v1.0.0 — TeraBox Storage Adapter
 // Universal AI/Human Memory Hub
 //
 // IMPORTANT LIMITATIONS:
@@ -632,7 +632,7 @@ export class TeraBoxProvider implements CloudStorageProviderInterface {
   }
 
   /**
-   * Map Memorix orderBy to TeraBox order parameter.
+   * Map Mnemosyne orderBy to TeraBox order parameter.
    */
   private mapOrderBy(
     orderBy?: 'name' | 'lastModified' | 'size',

@@ -238,7 +238,7 @@ function DashboardView() {
               <Brain className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold">Welcome to Memorix v4</h1>
+              <h1 className="text-xl md:text-2xl font-bold">Welcome to Mnemosyne</h1>
               <p className="text-sm text-muted-foreground">The Biggest Free Multi-LLM Hub — Memory, AI Agent, BYOK, SaaS/IaaS Ready</p>
             </div>
           </div>
@@ -2121,7 +2121,7 @@ function SettingsView() {
           <Settings className="w-5 h-5 text-primary" />
           Settings
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">Configure your Memorix instance</p>
+        <p className="text-sm text-muted-foreground mt-1">Configure your Mnemosyne instance</p>
       </div>
 
       {/* Profile */}
@@ -2250,7 +2250,7 @@ function SettingsView() {
           <div className="p-3 rounded-lg bg-muted/50 space-y-2">
             <p className="text-xs font-medium">Server Command</p>
             <code className="text-xs bg-background px-2 py-1 rounded font-mono block">
-              npx @memorix/mcp-server --db ./memorix.db
+              npx @mnemosyne/mcp-server --db ./mnemosyne.db
             </code>
           </div>
           <div className="p-3 rounded-lg bg-muted/50 space-y-2">
@@ -2258,9 +2258,9 @@ function SettingsView() {
             <pre className="text-[10px] bg-background px-2 py-1.5 rounded font-mono overflow-x-auto">
 {`{
   "mcpServers": {
-    "memorix": {
+    "mnemosyne": {
       "command": "npx",
-      "args": ["@memorix/mcp-server"]
+      "args": ["@mnemosyne/mcp-server"]
     }
   }
 }`}
@@ -2336,14 +2336,14 @@ function SettingsView() {
 
 function McpServerView() {
   const tools = [
-    { name: 'memorix_search', desc: 'Search user memory', method: 'tools/call' },
-    { name: 'memorix_add_note', desc: 'Add note to memory', method: 'tools/call' },
-    { name: 'memorix_get_note', desc: 'Get specific note', method: 'tools/call' },
-    { name: 'memorix_list_notes', desc: 'List all notes', method: 'tools/call' },
-    { name: 'memorix_chat', desc: 'Chat with memory', method: 'tools/call' },
-    { name: 'memorix_get_related', desc: 'Get related notes', method: 'tools/call' },
-    { name: 'memorix_detect_patterns', desc: 'Detect memory patterns', method: 'tools/call' },
-    { name: 'memorix_add_decision', desc: 'Record a decision', method: 'tools/call' },
+    { name: 'mnemosyne_search', desc: 'Search user memory', method: 'tools/call' },
+    { name: 'mnemosyne_add_note', desc: 'Add note to memory', method: 'tools/call' },
+    { name: 'mnemosyne_get_note', desc: 'Get specific note', method: 'tools/call' },
+    { name: 'mnemosyne_list_notes', desc: 'List all notes', method: 'tools/call' },
+    { name: 'mnemosyne_chat', desc: 'Chat with memory', method: 'tools/call' },
+    { name: 'mnemosyne_get_related', desc: 'Get related notes', method: 'tools/call' },
+    { name: 'mnemosyne_detect_patterns', desc: 'Detect memory patterns', method: 'tools/call' },
+    { name: 'mnemosyne_add_decision', desc: 'Record a decision', method: 'tools/call' },
   ]
 
   return (
@@ -2491,7 +2491,7 @@ function ApiHubView() {
           API Hub
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Memorix as a middle provider — API for everybody, no backend needed. SaaS/IaaS ready.
+          Mnemosyne as a middle provider — API for everybody, no backend needed. SaaS/IaaS ready.
         </p>
       </div>
 
@@ -2504,7 +2504,7 @@ function ApiHubView() {
             <div>
               <p className="text-sm font-semibold text-emerald-500">Bring Your Own Key + Free Tier</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Memorix wraps 500+ LLM models into a single unified API. Users can use Puter.js for FREE (no API key needed)
+                Mnemosyne wraps 500+ LLM models into a single unified API. Users can use Puter.js for FREE (no API key needed)
                 or bring their own API keys for premium models. Your app, your choice. No backend required.
               </p>
             </div>

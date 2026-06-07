@@ -1,12 +1,12 @@
-# MCP (Model Context Protocol) Guide — Memorix v4.0
+# MCP (Model Context Protocol) Guide — mnemosyne v4.0
 
-> Complete guide for using Memorix's MCP server to give AI assistants persistent, searchable memory.
+> Complete guide for using mnemosyne's MCP server to give AI assistants persistent, searchable memory.
 
 ---
 
 ## Table of Contents
 
-- [What is MCP and Why Memorix Supports It](#what-is-mcp-and-why-memorix-supports-it)
+- [What is MCP and Why Mnemosyne Supports It](#what-is-mcp-and-why-mnemosyne-supports-it)
 - [MCP Server Architecture](#mcp-server-architecture)
 - [Setup for Claude Desktop](#setup-for-claude-desktop)
 - [Setup for Cursor](#setup-for-cursor)
@@ -20,13 +20,13 @@
 
 ---
 
-## What is MCP and Why Memorix Supports It
+## What is MCP and Why Mnemosyne Supports It
 
 **MCP (Model Context Protocol)** is an open standard developed by Anthropic that enables AI assistants to securely connect to external data sources and tools. It uses JSON-RPC 2.0 over stdio transport to provide a standardized way for AI models to interact with external systems.
 
-### Why MCP Matters for Memorix
+### Why MCP Matters for mnemosyne
 
-Memorix is fundamentally a **memory system** — and MCP is the perfect protocol for giving AI assistants access to that memory. With Memorix's MCP server:
+Mnemosyne is fundamentally a **memory system** — and MCP is the perfect protocol for giving AI assistants access to that memory. With mnemosyne's MCP server:
 
 - **Claude** can search your notes and save new memories during conversations
 - **Cursor** can access your project knowledge base while you code
@@ -49,7 +49,7 @@ Without MCP:                        With MCP:
 └─────────────┘                    └──────┬──────┘
                                           │
                                    ┌──────▼──────┐
-                                   │  Memorix     │
+                                   │  mnemosyne     │
                                    │  MCP Server  │
                                    │              │
                                    │  Notes       │
@@ -63,7 +63,7 @@ Without MCP:                        With MCP:
 
 ## MCP Server Architecture
 
-Memorix's MCP server implements JSON-RPC 2.0 over stdio (stdin/stdout):
+mnemosyne's MCP server implements JSON-RPC 2.0 over stdio (stdin/stdout):
 
 ```
 AI Assistant (Claude/Cursor/VS Code)
@@ -71,7 +71,7 @@ AI Assistant (Claude/Cursor/VS Code)
         │ JSON-RPC 2.0 over stdio
         ▼
 ┌──────────────────────────────────┐
-│       Memorix MCP Server         │
+│       mnemosyne MCP Server         │
 │                                  │
 │  ┌────────────────────────────┐  │
 │  │  MCP Protocol Handler      │  │
@@ -82,14 +82,14 @@ AI Assistant (Claude/Cursor/VS Code)
 │             │                    │
 │  ┌──────────▼─────────────────┐  │
 │  │  Tool Implementations       │  │
-│  │  - memorix_search           │  │
-│  │  - memorix_add_note         │  │
-│  │  - memorix_get_note         │  │
-│  │  - memorix_list_notes       │  │
-│  │  - memorix_chat             │  │
-│  │  - memorix_get_related      │  │
-│  │  - memorix_detect_patterns  │  │
-│  │  - memorix_add_decision     │  │
+│  │  - mnemosyne_search           │  │
+│  │  - mnemosyne_add_note         │  │
+│  │  - mnemosyne_get_note         │  │
+│  │  - mnemosyne_list_notes       │  │
+│  │  - mnemosyne_chat             │  │
+│  │  - mnemosyne_get_related      │  │
+│  │  - mnemosyne_detect_patterns  │  │
+│  │  - mnemosyne_add_decision     │  │
 │  └──────────┬─────────────────┘  │
 │             │                    │
 │  ┌──────────▼─────────────────┐  │
@@ -103,7 +103,7 @@ AI Assistant (Claude/Cursor/VS Code)
 └─────────────┼────────────────────┘
               │
        ┌──────▼──────┐
-       │  memorix.db  │
+       │  mnemosyne.db  │
        │  (SQLite)    │
        └──────────────┘
 ```
@@ -121,7 +121,7 @@ The MCP server supports two modes:
 
 | Mode | Configuration | Use Case |
 |------|--------------|----------|
-| **Authenticated** | `MEMORIX_API_KEY` set | Production use |
+| **Authenticated** | `mnemosyne_API_KEY` set | Production use |
 | **Open** | No key + `--allow-open` flag | Local development only |
 
 ---
@@ -138,12 +138,12 @@ Add the following to your Claude Desktop configuration file:
 ```json
 {
   "mcpServers": {
-    "memorix": {
+    "mnemosyne": {
       "command": "npx",
-      "args": ["-y", "@memorix/mcp-server"],
+      "args": ["-y", "@mnemosyne/mcp-server"],
       "env": {
-        "MEMORIX_API_KEY": "your-api-key-here",
-        "DATABASE_URL": "file:./memorix.db"
+        "mnemosyne_API_KEY": "your-api-key-here",
+        "DATABASE_URL": "file:./mnemosyne.db"
       }
     }
   }
@@ -152,9 +152,9 @@ Add the following to your Claude Desktop configuration file:
 
 ### Steps
 
-1. Generate an API key from Memorix (Settings → API Keys → Create)
+1. Generate an API key from mnemosyne (Settings → API Keys → Create)
 2. Open the Claude Desktop config file
-3. Add the `memorix` MCP server configuration
+3. Add the `mnemosyne` MCP server configuration
 4. Replace `your-api-key-here` with your actual API key
 5. Restart Claude Desktop
 6. Verify: Start a new conversation and ask Claude to search your memory
@@ -166,7 +166,7 @@ You: Search my memory for notes about project architecture.
 
 Claude: I'll search your memory for architecture-related notes.
 
-[Calls memorix_search with query "project architecture"]
+[Calls mnemosyne_search with query "project architecture"]
 
 I found 3 relevant notes in your memory:
 
@@ -191,12 +191,12 @@ Add to your Cursor MCP settings (**Settings → MCP**):
 ```json
 {
   "mcpServers": {
-    "memorix": {
+    "mnemosyne": {
       "command": "npx",
-      "args": ["-y", "@memorix/mcp-server"],
+      "args": ["-y", "@mnemosyne/mcp-server"],
       "env": {
-        "MEMORIX_API_KEY": "your-api-key-here",
-        "DATABASE_URL": "file:./memorix.db"
+        "mnemosyne_API_KEY": "your-api-key-here",
+        "DATABASE_URL": "file:./mnemosyne.db"
       }
     }
   }
@@ -209,7 +209,7 @@ Add to your Cursor MCP settings (**Settings → MCP**):
 2. Navigate to the MCP section
 3. Click **Add MCP Server**
 4. Enter the configuration above
-5. Replace `your-api-key-here` with your Memorix API key
+5. Replace `your-api-key-here` with your mnemosyne API key
 6. Save and restart Cursor
 7. Verify: Open Cursor's AI chat and ask it to search your memory
 
@@ -233,12 +233,12 @@ Add to your VS Code `settings.json`:
 ```json
 {
   "continue.mcpServers": {
-    "memorix": {
+    "mnemosyne": {
       "command": "npx",
-      "args": ["-y", "@memorix/mcp-server"],
+      "args": ["-y", "@mnemosyne/mcp-server"],
       "env": {
-        "MEMORIX_API_KEY": "your-api-key-here",
-        "DATABASE_URL": "file:./memorix.db"
+        "mnemosyne_API_KEY": "your-api-key-here",
+        "DATABASE_URL": "file:./mnemosyne.db"
       }
     }
   }
@@ -252,12 +252,12 @@ Add to your VS Code `settings.json`:
 ```json
 {
   "cline.mcpServers": {
-    "memorix": {
+    "mnemosyne": {
       "command": "npx",
-      "args": ["-y", "@memorix/mcp-server"],
+      "args": ["-y", "@mnemosyne/mcp-server"],
       "env": {
-        "MEMORIX_API_KEY": "your-api-key-here",
-        "DATABASE_URL": "file:./memorix.db"
+        "mnemosyne_API_KEY": "your-api-key-here",
+        "DATABASE_URL": "file:./mnemosyne.db"
       }
     }
   }
@@ -269,7 +269,7 @@ Add to your VS Code `settings.json`:
 1. Install Continue or Cline extension from VS Code marketplace
 2. Open VS Code settings (`Cmd+,` on macOS, `Ctrl+,` on Windows)
 3. Search for the extension's MCP server configuration
-4. Add the Memorix MCP server configuration
+4. Add the mnemosyne MCP server configuration
 5. Replace `your-api-key-here` with your API key
 6. Reload VS Code
 7. Verify: Use the extension's chat to search your memory
@@ -285,12 +285,12 @@ Add to your Windsurf MCP settings:
 ```json
 {
   "mcpServers": {
-    "memorix": {
+    "mnemosyne": {
       "command": "npx",
-      "args": ["-y", "@memorix/mcp-server"],
+      "args": ["-y", "@mnemosyne/mcp-server"],
       "env": {
-        "MEMORIX_API_KEY": "your-api-key-here",
-        "DATABASE_URL": "file:./memorix.db"
+        "mnemosyne_API_KEY": "your-api-key-here",
+        "DATABASE_URL": "file:./mnemosyne.db"
       }
     }
   }
@@ -301,7 +301,7 @@ Add to your Windsurf MCP settings:
 
 1. Open Windsurf Settings
 2. Navigate to MCP configuration
-3. Add the Memorix MCP server entry
+3. Add the mnemosyne MCP server entry
 4. Replace `your-api-key-here` with your API key
 5. Save and restart Windsurf
 6. Verify: Start a conversation and test memory access
@@ -310,7 +310,7 @@ Add to your Windsurf MCP settings:
 
 ## Available MCP Tools
 
-### `memorix_search`
+### `mnemosyne_search`
 
 Search the user's memory for notes matching a query. Returns ranked results with relevance scores.
 
@@ -325,7 +325,7 @@ Search the user's memory for notes matching a query. Returns ranked results with
 
 ```json
 {
-  "name": "memorix_search",
+  "name": "mnemosyne_search",
   "arguments": {
     "query": "machine learning pipeline",
     "limit": 5
@@ -353,7 +353,7 @@ The `searchType` field indicates whether vector-based or keyword-based search wa
 
 ---
 
-### `memorix_add_note`
+### `mnemosyne_add_note`
 
 Add a new note to memory. Notes are automatically linked to existing notes with shared tags.
 
@@ -369,7 +369,7 @@ Add a new note to memory. Notes are automatically linked to existing notes with 
 
 ```json
 {
-  "name": "memorix_add_note",
+  "name": "mnemosyne_add_note",
   "arguments": {
     "title": "API Rate Limiting Strategy",
     "content": "We decided to implement sliding window rate limiting with Redis...",
@@ -389,7 +389,7 @@ Add a new note to memory. Notes are automatically linked to existing notes with 
 
 ---
 
-### `memorix_get_note`
+### `mnemosyne_get_note`
 
 Retrieve a specific note by its ID with full content and metadata.
 
@@ -403,7 +403,7 @@ Retrieve a specific note by its ID with full content and metadata.
 
 ```json
 {
-  "name": "memorix_get_note",
+  "name": "mnemosyne_get_note",
   "arguments": { "noteId": "clx123" }
 }
 ```
@@ -425,7 +425,7 @@ Retrieve a specific note by its ID with full content and metadata.
 
 ---
 
-### `memorix_list_notes`
+### `mnemosyne_list_notes`
 
 List all notes with pagination support.
 
@@ -440,7 +440,7 @@ List all notes with pagination support.
 
 ```json
 {
-  "name": "memorix_list_notes",
+  "name": "mnemosyne_list_notes",
   "arguments": { "limit": 10, "offset": 0 }
 }
 ```
@@ -463,7 +463,7 @@ List all notes with pagination support.
 
 ---
 
-### `memorix_chat`
+### `mnemosyne_chat`
 
 Chat with your memory. Ask questions and get AI-powered responses grounded in your stored knowledge. Supports multi-turn conversations with RAG (Retrieval-Augmented Generation).
 
@@ -478,7 +478,7 @@ Chat with your memory. Ask questions and get AI-powered responses grounded in yo
 
 ```json
 {
-  "name": "memorix_chat",
+  "name": "mnemosyne_chat",
   "arguments": {
     "message": "What architecture decisions have we made about the database?"
   }
@@ -497,7 +497,7 @@ Chat with your memory. Ask questions and get AI-powered responses grounded in yo
 
 ---
 
-### `memorix_get_related`
+### `mnemosyne_get_related`
 
 Get notes related to a specific note based on shared tags, content similarity, and explicit memory links.
 
@@ -512,7 +512,7 @@ Get notes related to a specific note based on shared tags, content similarity, a
 
 ```json
 {
-  "name": "memorix_get_related",
+  "name": "mnemosyne_get_related",
   "arguments": { "noteId": "clx123", "limit": 3 }
 }
 ```
@@ -534,7 +534,7 @@ Get notes related to a specific note based on shared tags, content similarity, a
 
 ---
 
-### `memorix_detect_patterns`
+### `mnemosyne_detect_patterns`
 
 Detect patterns and themes across your memory. Identifies recurring topics, temporal trends, and knowledge clusters.
 
@@ -544,7 +544,7 @@ Detect patterns and themes across your memory. Identifies recurring topics, temp
 
 ```json
 {
-  "name": "memorix_detect_patterns",
+  "name": "mnemosyne_detect_patterns",
   "arguments": {}
 }
 ```
@@ -565,7 +565,7 @@ Detect patterns and themes across your memory. Identifies recurring topics, temp
 
 ---
 
-### `memorix_add_decision`
+### `mnemosyne_add_decision`
 
 Record a decision with full context and reasoning. Decisions are tracked separately from notes for easy retrieval.
 
@@ -582,7 +582,7 @@ Record a decision with full context and reasoning. Decisions are tracked separat
 
 ```json
 {
-  "name": "memorix_add_decision",
+  "name": "mnemosyne_add_decision",
   "arguments": {
     "title": "Use SQLite for primary storage",
     "context": "Building a personal AI memory app that needs to work offline",
@@ -605,13 +605,13 @@ Record a decision with full context and reasoning. Decisions are tracked separat
 
 ## MCP as API
 
-The Memorix MCP server can also serve as a programmatic API endpoint, not just an AI assistant integration. This enables powerful automation patterns:
+The mnemosyne MCP server can also serve as a programmatic API endpoint, not just an AI assistant integration. This enables powerful automation patterns:
 
 ### Direct Invocation
 
 ```bash
 # Search memory from the command line
-echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"memorix_search","arguments":{"query":"architecture"}}}' | npx @memorix/mcp-server
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"mnemosyne_search","arguments":{"query":"architecture"}}}' | npx @mnemosyne/mcp-server
 ```
 
 ### Integration Patterns
@@ -633,7 +633,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"memorix_se
 │         └───────┬───────┘                            │
 │                 │ JSON-RPC 2.0                        │
 │         ┌───────▼───────┐                            │
-│         │ Memorix MCP   │                            │
+│         │ mnemosyne MCP   │                            │
 │         │ Server        │                            │
 │         └───────────────┘                            │
 └──────────────────────────────────────────────────────┘
@@ -643,15 +643,15 @@ echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"memorix_se
 
 1. **Automated Documentation** — CI pipeline adds deployment notes to memory
 2. **Incident Tracking** — Monitoring systems record incidents as decisions
-3. **Knowledge Base Sync** — External tools sync content into Memorix
+3. **Knowledge Base Sync** — External tools sync content into mnemosyne
 4. **Data Pipeline** — ETL processes store transformation results in memory
-5. **Custom Chatbots** — Build your own AI assistant with Memorix as the memory layer
+5. **Custom Chatbots** — Build your own AI assistant with mnemosyne as the memory layer
 
 ---
 
 ## Custom MCP Tools
 
-You can extend the Memorix MCP server with custom tools by modifying the `mcp-server/index.ts` file.
+You can extend the mnemosyne MCP server with custom tools by modifying the `mcp-server/index.ts` file.
 
 ### Adding a Custom Tool
 
@@ -661,7 +661,7 @@ You can extend the Memorix MCP server with custom tools by modifying the `mcp-se
 const TOOLS: ToolDefinition[] = [
   // ... existing tools ...
   {
-    name: "memorix_custom_action",
+    name: "mnemosyne_custom_action",
     description: "Perform a custom action on the user's memory.",
     inputSchema: {
       type: "object",
@@ -692,7 +692,7 @@ async function toolCustomAction(
   const target = String(params.target || "")
 
   // Your custom logic here
-  // You have full access to Prisma, the database, and all Memorix data
+  // You have full access to Prisma, the database, and all mnemosyne data
 
   return {
     success: true,
@@ -706,7 +706,7 @@ async function toolCustomAction(
 ```typescript
 const toolHandlers: Record<string, (params: Record<string, unknown>) => Promise<unknown>> = {
   // ... existing handlers ...
-  memorix_custom_action: toolCustomAction,
+  mnemosyne_custom_action: toolCustomAction,
 }
 ```
 
@@ -717,7 +717,7 @@ const toolHandlers: Record<string, (params: Record<string, unknown>) => Promise<
 - Return structured JSON objects, not plain strings
 - Include meaningful error messages in the response
 - Use Prisma for all database operations
-- Follow the existing naming convention: `memorix_<action>`
+- Follow the existing naming convention: `mnemosyne_<action>`
 
 ---
 
@@ -727,27 +727,27 @@ const toolHandlers: Record<string, (params: Record<string, unknown>) => Promise<
 
 #### 1. MCP Server Not Connecting
 
-**Symptoms:** The AI assistant cannot find or connect to the Memorix MCP server.
+**Symptoms:** The AI assistant cannot find or connect to the mnemosyne MCP server.
 
 **Solutions:**
 - Verify `npx` is available in your PATH
-- Check that the command path is correct: `npx -y @memorix/mcp-server`
+- Check that the command path is correct: `npx -y @mnemosyne/mcp-server`
 - Ensure Node.js 18+ is installed
-- Try running the server manually: `npx @memorix/mcp-server`
+- Try running the server manually: `npx @mnemosyne/mcp-server`
 
 #### 2. Authentication Errors
 
-**Symptoms:** `Authentication required` or `Invalid MEMORIX_API_KEY` errors.
+**Symptoms:** `Authentication required` or `Invalid mnemosyne_API_KEY` errors.
 
 **Solutions:**
 - Verify the API key in the `env` configuration
-- Check that the key exists in the Memorix database (`ApiKey` table)
+- Check that the key exists in the mnemosyne database (`ApiKey` table)
 - For local development, use the `--allow-open` flag (never in production!)
 - Ensure the API key hasn't been revoked
 
 #### 3. Empty Search Results
 
-**Symptoms:** `memorix_search` returns no results even when notes exist.
+**Symptoms:** `mnemosyne_search` returns no results even when notes exist.
 
 **Solutions:**
 - Check that the user has notes in the database
@@ -773,13 +773,13 @@ bun run db:push       # Create database tables
 **Symptoms:** First connection times out while npx downloads the package.
 
 **Solutions:**
-- Install globally first: `npm install -g @memorix/mcp-server`
-- Use the global command in the config: `"command": "memorix-mcp"`
-- Or use the `-y` flag: `npx -y @memorix/mcp-server`
+- Install globally first: `npm install -g @mnemosyne/mcp-server`
+- Use the global command in the config: `"command": "mnemosyne-mcp"`
+- Or use the `-y` flag: `npx -y @mnemosyne/mcp-server`
 
 #### 6. Claude Desktop Not Recognizing Tools
 
-**Symptoms:** Claude doesn't show Memorix tools after configuration.
+**Symptoms:** Claude doesn't show mnemosyne tools after configuration.
 
 **Solutions:**
 - Restart Claude Desktop completely (quit, not just close window)
@@ -805,17 +805,17 @@ bun run db:push       # Create database tables
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `MEMORIX_API_KEY` | No* | *(none)* | API key for authentication. Required in production. |
-| `DATABASE_URL` | No | `file:../db/memorix.db` | Prisma database connection string. SQLite by default. |
+| `mnemosyne_API_KEY` | No* | *(none)* | API key for authentication. Required in production. |
+| `DATABASE_URL` | No | `file:../db/mnemosyne.db` | Prisma database connection string. SQLite by default. |
 | `EMBEDDING_API_URL` | No | *(none)* | External embedding API URL for vector search. |
 | `EMBEDDING_API_KEY` | No | *(none)* | API key for the embedding service. |
 | `EMBEDDING_MODEL` | No | `nomic-embed-text` | Model name for embedding generation. |
 | `EMBEDDING_DIMENSION` | No | `768` | Embedding vector dimension size. |
-| `NODE_ENV` | No | `development` | Environment mode. Production requires `MEMORIX_API_KEY`. |
+| `NODE_ENV` | No | `development` | Environment mode. Production requires `mnemosyne_API_KEY`. |
 
 ### Security Configuration Matrix
 
-| `NODE_ENV` | `MEMORIX_API_KEY` | `--allow-open` | Behavior |
+| `NODE_ENV` | `mnemosyne_API_KEY` | `--allow-open` | Behavior |
 |------------|-------------------|-----------------|----------|
 | development | Set | — | API key validated against database |
 | development | Not set | Not set | **Refuses to start** (requires explicit opt-in) |
@@ -828,16 +828,16 @@ bun run db:push       # Create database tables
 
 | Database | URL Format |
 |----------|-----------|
-| SQLite (relative) | `file:./memorix.db` |
-| SQLite (absolute) | `file:/home/user/memorix/db/memorix.db` |
-| PostgreSQL | `postgresql://user:pass@localhost:5432/memorix` |
+| SQLite (relative) | `file:./mnemosyne.db` |
+| SQLite (absolute) | `file:/home/user/mnemosyne/db/mnemosyne.db` |
+| PostgreSQL | `postgresql://user:pass@localhost:5432/mnemosyne` |
 
 ### Running from Source
 
 ```bash
 # Clone and setup
-git clone https://github.com/mulkymalikuldhrs/memorix.git
-cd memorix/mcp-server
+git clone https://github.com/mulkymalikuldhrs/mnemosyne.git
+cd mnemosyne/mcp-server
 
 # Install dependencies
 bun install
@@ -860,4 +860,4 @@ bun run mcp-server/index.ts --allow-open
 
 ---
 
-*Memorix v4.0 — The Biggest Free Multi-LLM Hub. MCP for AI assistant memory integration.*
+*mnemosyne v4.0 — The Biggest Free Multi-LLM Hub. MCP for AI assistant memory integration.*

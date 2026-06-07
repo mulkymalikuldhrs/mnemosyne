@@ -1,10 +1,10 @@
 {
-  "name": "@memorix/mcp-server",
+  "name": "@mnemosyne/mcp-server",
   "version": "1.0.0",
-  "description": "Memorix MCP Server - AI Memory Integration for AI Assistants",
+  "description": "mnemosyne MCP Server - AI Memory Integration for AI Assistants",
   "main": "dist/index.js",
   "bin": {
-    "memorix-mcp": "./cli.js"
+    "mnemosyne-mcp": "./cli.js"
   },
   "scripts": {
     "start": "node dist/index.js",
@@ -21,7 +21,7 @@
     "prisma": "^6.11.1",
     "typescript": "^5"
   },
-  "keywords": ["mcp", "ai-memory", "memorix", "semantic-search", "rag"],
+  "keywords": ["mcp", "ai-memory", "mnemosyne", "semantic-search", "rag"],
   "author": "Mulky Malikul Dhaher <mulkymalikuldhaher@email.com>",
   "license": "MIT"
 }

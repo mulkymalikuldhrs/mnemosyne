@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX v3.0.0 — Cloud Storage Adapter Layer Types
+// MNEMOSYNE v1.0.0 — Cloud Storage Adapter Layer Types
 // Universal AI/Human Memory Hub
 //
 // Defines TypeScript types and interfaces for the cloud storage
@@ -213,7 +213,7 @@ export function isDocumentMimeType(mimeType: string): boolean {
 }
 
 /**
- * Determine if a file can be ingested into Memorix memory
+ * Determine if a file can be ingested into Mnemosyne memory
  * based on its MIME type.
  */
 export function isIngestibleMimeType(mimeType: string): boolean {

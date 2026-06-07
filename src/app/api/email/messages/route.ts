@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX v3.0.0 — Email Messages API
+// mnemosyne v3.0.0 — Email Messages API
 // GET  /api/email/messages  — List email messages (pagination, filters, search)
 // POST /api/email/messages  — Send an email
 // ============================================================

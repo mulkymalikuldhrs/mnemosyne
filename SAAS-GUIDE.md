@@ -1,12 +1,12 @@
-# Memorix — SaaS/IaaS Deployment Guide
+# Mnemosyne — SaaS/IaaS Deployment Guide
 
-> How to deploy Memorix as a SaaS (Software as a Service) or IaaS (Infrastructure as a Service) LLM platform.
+> How to deploy mnemosyne as a SaaS (Software as a Service) or IaaS (Infrastructure as a Service) LLM platform.
 
 ---
 
 ## SaaS Model Overview
 
-Memorix can be deployed as a multi-tenant SaaS platform, offering LLM access, AI agent execution, and memory services to end-users through a subscription model. The architecture supports three tiers:
+mnemosyne can be deployed as a multi-tenant SaaS platform, offering LLM access, AI agent execution, and memory services to end-users through a subscription model. The architecture supports three tiers:
 
 ### Free Tier
 
@@ -40,14 +40,14 @@ Memorix can be deployed as a multi-tenant SaaS platform, offering LLM access, AI
 
 ---
 
-## IaaS: Memorix as an API Gateway
+## IaaS: mnemosyne as an API Gateway
 
-Memorix can serve as an LLM API gateway (Infrastructure as a Service), similar to OpenRouter but with a free tier. Other applications can consume Memorix's API endpoints directly:
+mnemosyne can serve as an LLM API gateway (Infrastructure as a Service), similar to OpenRouter but with a free tier. Other applications can consume mnemosyne's API endpoints directly:
 
 ### Universal Chat API
 
 ```bash
-curl -X POST https://your-memorix-instance.com/api/llm/chat \
+curl -X POST https://your-mnemosyne-instance.com/api/llm/chat \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer mx_your_api_key" \
   -d '{
@@ -59,7 +59,7 @@ curl -X POST https://your-memorix-instance.com/api/llm/chat \
 ### Agent Execution API
 
 ```bash
-curl -X POST https://your-memorix-instance.com/api/llm/agent \
+curl -X POST https://your-mnemosyne-instance.com/api/llm/agent \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer mx_your_api_key" \
   -d '{
@@ -72,7 +72,7 @@ curl -X POST https://your-memorix-instance.com/api/llm/agent \
 ### Multi-Model Comparison API
 
 ```bash
-curl -X POST https://your-memorix-instance.com/api/llm/compare \
+curl -X POST https://your-mnemosyne-instance.com/api/llm/compare \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer mx_your_api_key" \
   -d '{
@@ -85,7 +85,7 @@ curl -X POST https://your-memorix-instance.com/api/llm/compare \
 
 ## Multi-Tenancy Architecture
 
-For SaaS deployment, Memorix supports multi-tenancy through user isolation:
+For SaaS deployment, Mnemosyne supports multi-tenancy through user isolation:
 
 ### Database Isolation
 
@@ -149,7 +149,7 @@ UPSTASH_REDIS_TOKEN=your-token
 ### Health Check Endpoint
 
 ```bash
-curl https://your-memorix-instance.com/api/health
+curl https://your-mnemosyne-instance.com/api/health
 ```
 
 Returns system status, version, uptime, and model availability.
@@ -201,7 +201,7 @@ Returns system status, version, uptime, and model availability.
 
 - [ ] Set `NODE_ENV=production`
 - [ ] Generate strong `NEXTAUTH_SECRET`
-- [ ] Set `MEMORIX_API_KEY` for MCP auth
+- [ ] Set `mnemosyne_API_KEY` for MCP auth
 - [ ] Configure Stripe for billing
 - [ ] Set up Redis for rate limiting
 - [ ] Enable HTTPS via Caddy/Nginx
@@ -214,4 +214,4 @@ Returns system status, version, uptime, and model availability.
 
 ---
 
-*Last updated: 2026 · Memorix v4.0.0*
+*Last updated: 2026 · Mnemosyne v1.0.0*

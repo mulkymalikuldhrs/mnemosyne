@@ -1,4 +1,4 @@
-# Memorix — Product Requirements Document
+# Mnemosyne — Product Requirements Document
 
 > **The Biggest Free Multi-LLM Hub** — Version 4.0.0
 > Free access to 500+ AI models, BYOK support, AI Agent, MCP, Semantic Memory & RAG
@@ -22,17 +22,17 @@
 
 ## 1. Product Vision
 
-Memorix is the world's biggest free multi-LLM center. Our mission is to democratize AI access by providing a unified, free gateway to 500+ large language models — surpassing Obsidian, Context7, 9Drive, TeraBox, and any other platform in breadth and accessibility.
+Mnemosyne is the world's biggest free multi-LLM center. Our mission is to democratize AI access by providing a unified, free gateway to 500+ large language models — surpassing Obsidian, Context7, 9Drive, TeraBox, and any other platform in breadth and accessibility.
 
-We believe that AI should be free, open, and accessible to everyone. Memorix achieves this through:
+We believe that AI should be free, open, and accessible to everyone. Mnemosyne achieves this through:
 
 - **Puter.js Integration**: 500+ models at zero cost, no API key needed
-- **BYOK Freedom**: Bring your own keys for any provider, with Memorix as the unified middle layer
+- **BYOK Freedom**: Bring your own keys for any provider, with mnemosyne as the unified middle layer
 - **AI Agent Built-In**: A fully functional AI agent with tool execution, semantic memory, and web search
 - **MCP Protocol**: Standard Model Context Protocol support for interoperability
 - **Semantic Memory & RAG**: Intelligent note-taking with AI-powered connections and retrieval
 
-Memorix is not just another chatbot — it is an **AI infrastructure platform** that makes every LLM accessible from a single, beautiful interface.
+Mnemosyne is not just another chatbot — it is an **AI infrastructure platform** that makes every LLM accessible from a single, beautiful interface.
 
 ---
 
@@ -60,11 +60,11 @@ Memorix is not just another chatbot — it is an **AI infrastructure platform** 
 
 ## 3. Core Problems Solved
 
-| Problem | Impact | Memorix Solution |
+| Problem | Impact | Mnemosyne Solution |
 |---------|--------|------------------|
 | **Expensive API keys** | Developers spend $50-500+/month on LLM APIs | Free access via Puter.js to 500+ models |
 | **Fragmented LLM access** | Each provider has different APIs, SDKs, and auth | Unified API with auto-routing across all providers |
-| **No unified free hub** | No single platform offers free multi-LLM access | Memorix as the biggest free multi-LLM middle provider |
+| **No unified free hub** | No single platform offers free multi-LLM access | Mnemosyne as the biggest free multi-LLM middle provider |
 | **Vendor lock-in** | Switching providers requires rewriting code | BYOK with provider-agnostic abstraction layer |
 | **No AI memory** | Chat history lost, no persistent knowledge | Semantic memory with RAG for persistent AI knowledge |
 | **No free AI agents** | Agent platforms charge per execution | Built-in AI agent with 7 tools, free via Puter.js |
@@ -194,7 +194,7 @@ Memorix is not just another chatbot — it is an **AI infrastructure platform** 
 
 ## 7. Non-Goals
 
-Memorix explicitly does NOT aim to:
+mnemosyne explicitly does NOT aim to:
 
 1. **Be a chatbot company** — We are an AI infrastructure platform, not a consumer chatbot
 2. **Replace LLM providers** — We are a middle provider that routes to existing providers
@@ -282,7 +282,7 @@ Memorix explicitly does NOT aim to:
 
 ### Freemium Model
 
-Memorix follows a freemium model where the core product is free and always will be. Premium tiers unlock advanced features, higher limits, and enterprise capabilities.
+mnemosyne follows a freemium model where the core product is free and always will be. Premium tiers unlock advanced features, higher limits, and enterprise capabilities.
 
 ### Pricing Tiers
 

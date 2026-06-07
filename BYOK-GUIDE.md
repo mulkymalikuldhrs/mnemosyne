@@ -1,6 +1,6 @@
-# BYOK (Bring Your Own Key) Guide — Memorix v4.0
+# BYOK (Bring Your Own Key) Guide — mnemosyne v4.0
 
-> Complete guide for using your own API keys with Memorix. Supports OpenAI, Anthropic, Google, DeepSeek, OpenRouter, Ollama, and custom OpenAI-compatible endpoints.
+> Complete guide for using your own API keys with mnemosyne. Supports OpenAI, Anthropic, Google, DeepSeek, OpenRouter, Ollama, and custom OpenAI-compatible endpoints.
 
 ---
 
@@ -19,7 +19,7 @@
 
 ## What is BYOK and Why It Matters
 
-**BYOK (Bring Your Own Key)** means you bring your own API keys from LLM providers and use them through Memorix's unified interface. Instead of being limited to the free Puter.js tier, you can use your paid API keys for:
+**BYOK (Bring Your Own Key)** means you bring your own API keys from LLM providers and use them through mnemosyne's unified interface. Instead of being limited to the free Puter.js tier, you can use your paid API keys for:
 
 - **Guaranteed uptime** — No dependency on Puter.com availability
 - **Higher rate limits** — Paid API keys typically have much higher limits
@@ -28,11 +28,11 @@
 - **SLA compliance** — Enterprise-grade availability and support from providers
 - **Cost control** — Direct visibility into your API spending
 
-### How BYOK Works in Memorix
+### How BYOK Works in mnemosyne
 
 ```
 ┌─────────────────────────────────────────────────┐
-│              Memorix LLM Router                  │
+│              mnemosyne LLM Router                  │
 │                                                  │
 │   Request comes in with model + API key          │
 │          │                                       │
@@ -90,7 +90,7 @@ OpenAI provides GPT-4o, GPT-5.4, and o-series reasoning models.
 5. Copy the key (starts with `sk-...`)
 6. Add billing details and credit your account
 
-#### Configure in Memorix
+#### Configure in mnemosyne
 
 ```typescript
 // Via API call
@@ -136,7 +136,7 @@ Anthropic provides the Claude family of models (Opus, Sonnet, Haiku).
 5. Copy the key (starts with `sk-ant-...`)
 6. Add credits to your account
 
-#### Configure in Memorix
+#### Configure in mnemosyne
 
 ```typescript
 const response = await fetch('/api/llm/chat', {
@@ -174,7 +174,7 @@ Google provides the Gemini family with massive context windows (up to 2M tokens)
 4. Create a new project or select an existing one
 5. Copy the API key
 
-#### Configure in Memorix
+#### Configure in mnemosyne
 
 ```typescript
 const response = await fetch('/api/llm/chat', {
@@ -213,7 +213,7 @@ DeepSeek provides cost-effective models with strong reasoning capabilities.
 5. Copy the key (starts with `sk-...`)
 6. Add credits (very affordable — see cost comparison below)
 
-#### Configure in Memorix
+#### Configure in mnemosyne
 
 ```typescript
 const response = await fetch('/api/llm/chat', {
@@ -252,7 +252,7 @@ OpenRouter provides a unified API for 100+ models from multiple providers.
 5. Copy the key
 6. Add credits to your account
 
-#### Configure in Memorix
+#### Configure in mnemosyne
 
 ```typescript
 const response = await fetch('/api/llm/chat', {
@@ -272,7 +272,7 @@ const response = await fetch('/api/llm/chat', {
 #### OpenRouter-Specific Notes
 
 - Uses OpenAI-compatible API format
-- Sends `HTTP-Referer: https://memorix.app` and `X-Title: Memorix` headers
+- Sends `HTTP-Referer: https://mnemosyne.app` and `X-Title: mnemosyne` headers
 - Supports model routing and fallback
 - Access to models from OpenAI, Anthropic, Google, Meta, and more through a single key
 
@@ -297,7 +297,7 @@ Ollama runs models locally on your machine — completely free, completely priva
    ollama pull codellama
    ```
 
-#### Configure in Memorix
+#### Configure in mnemosyne
 
 ```typescript
 const response = await fetch('/api/llm/chat', {
@@ -329,7 +329,7 @@ const response = await fetch('/api/llm/chat', {
 
 Connect to any API that implements the OpenAI chat completions format.
 
-#### Configure in Memorix
+#### Configure in mnemosyne
 
 ```typescript
 const response = await fetch('/api/llm/chat', {
@@ -361,13 +361,13 @@ const response = await fetch('/api/llm/chat', {
 
 ## API Key Security
 
-### How Memorix Handles Your Keys
+### How mnemosyne Handles Your Keys
 
-Memorix takes API key security seriously:
+mnemosyne takes API key security seriously:
 
 | Measure | Implementation |
 |---------|---------------|
-| **Local Storage** | API keys are stored in user settings (local browser storage), never sent to Memorix servers |
+| **Local Storage** | API keys are stored in user settings (local browser storage), never sent to mnemosyne servers |
 | **UI Masking** | Keys are masked in the settings UI (e.g., `sk-...abc123`) |
 | **No Server Storage** | Keys are never persisted in the database |
 | **Request-Only** | Keys are only included in the LLM API request, never logged or cached server-side |
@@ -445,7 +445,7 @@ Pricing per 1M tokens (USD) as of 2025:
 - You're running server-side (Node.js) code
 - You need enterprise-grade SLA
 - You need specific models not on Puter.js
-- You're building a production SaaS on top of Memorix
+- You're building a production SaaS on top of mnemosyne
 - Privacy regulations require direct API contracts
 
 ### Decision Flowchart
@@ -547,7 +547,7 @@ curl http://localhost:11434/api/tags
 
 **Cause:** Browser CORS policies block direct Anthropic API calls.
 
-**Solution:** Memorix sets the `anthropic-dangerous-direct-browser-access` header automatically. If issues persist, route through the server-side API.
+**Solution:** mnemosyne sets the `anthropic-dangerous-direct-browser-access` header automatically. If issues persist, route through the server-side API.
 
 ---
 
@@ -610,7 +610,7 @@ curl -N -X POST http://localhost:3000/api/llm/chat \
 ```python
 import requests
 
-# OpenAI via Memorix
+# OpenAI via mnemosyne
 response = requests.post('http://localhost:3000/api/llm/chat', json={
     'model': 'byok/openai-gpt-4o',
     'provider': 'openai',
@@ -655,7 +655,7 @@ for line in response.iter_lines():
 ### JavaScript Examples
 
 ```javascript
-// OpenAI chat via Memorix API
+// OpenAI chat via mnemosyne API
 const response = await fetch('/api/llm/chat', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
@@ -746,4 +746,4 @@ for await (const chunk of LLMRouter.stream(
 
 ---
 
-*Memorix v4.0 — The Biggest Free Multi-LLM Hub. BYOK for when you need more than free.*
+*mnemosyne v4.0 — The Biggest Free Multi-LLM Hub. BYOK for when you need more than free.*

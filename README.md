@@ -1,12 +1,12 @@
 <div align="center">
 
-# 🧠 Memorix
+# 🧠 mnemosyne
 
 ### The Biggest Free Multi-LLM Hub
 
 **500+ AI Models · Zero API Key · Bring Your Own Key · Built-in Agent**
 
-[![Version](https://img.shields.io/badge/version-4.0.0-purple.svg)](https://github.com/mulkymalikuldhrs/memorix)
+[![Version](https://img.shields.io/badge/version-4.0.0-purple.svg)](https://github.com/mulkymalikuldhrs/mnemosyne)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://typescriptlang.org)
@@ -14,7 +14,7 @@
 [![Puter.js](https://img.shields.io/badge/Puter.js-500%2B%20Models-ff69b4.svg)](https://puter.com)
 [![PWA](https://img.shields.io/badge/PWA-Ready-cyan.svg)](https://web.dev/progressive-web-apps/)
 
-[Report Bug](https://github.com/mulkymalikuldhrs/memorix/issues) · [Request Feature](https://github.com/mulkymalikuldhrs/memorix/issues) · [API Docs](API.md) · [Architecture](ARCHITECTURE.md)
+[Report Bug](https://github.com/mulkymalikuldhrs/mnemosyne/issues) · [Request Feature](https://github.com/mulkymalikuldhrs/mnemosyne/issues) · [API Docs](API.md) · [Architecture](ARCHITECTURE.md)
 
 </div>
 
@@ -22,7 +22,7 @@
 
 ## Overview
 
-Memorix is the world's biggest free multi-LLM hub — a single platform that gives you **free access to 500+ AI models** via Puter.js with zero API keys, alongside BYOK (Bring Your Own Key) support for every major provider. It includes a built-in AI Agent with 7 tools, semantic memory, RAG, an MCP server, and multi-cloud storage — all in one portable Next.js application.
+Mnemosyne is the world's biggest free multi-LLM hub — a single platform that gives you **free access to 500+ AI models** via Puter.js with zero API keys, alongside BYOK (Bring Your Own Key) support for every major provider. It includes a built-in AI Agent with 7 tools, semantic memory, RAG, an MCP server, and multi-cloud storage — all in one portable Next.js application.
 
 **No backend needed.** Puter.js handles authentication and billing on the client side (user-pays model), so you get GPT-5.5 Pro, Claude Opus 4.8, Gemini 3.1 Pro, and hundreds more — completely free for developers.
 
@@ -38,7 +38,7 @@ Memorix is the world's biggest free multi-LLM hub — a single platform that giv
 | 📚 **RAG** | Retrieval-Augmented Generation injects your memories into LLM conversations |
 | ☁️ **Multi-Cloud Storage** | Google Drive, TeraBox, S3, Puter.js FS, and local storage with file ingestion |
 | 📱 **PWA** | Install as a Progressive Web App for offline-capable, native-like experience |
-| 🏢 **SaaS/IaaS Ready** | Middle-provider architecture — wrap Memorix as your own LLM API service |
+| 🏢 **SaaS/IaaS Ready** | Middle-provider architecture — wrap mnemosyne as your own LLM API service |
 
 ---
 
@@ -46,7 +46,7 @@ Memorix is the world's biggest free multi-LLM hub — a single platform that giv
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                     Memorix v4.0 — Multi-LLM Hub                     │
+│                     mnemosyne v4.0 — Multi-LLM Hub                     │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                      │
 │  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐            │
@@ -100,8 +100,8 @@ Memorix is the world's biggest free multi-LLM hub — a single platform that giv
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/mulkymalikuldhrs/memorix.git
-cd memorix
+git clone https://github.com/mulkymalikuldhrs/mnemosyne.git
+cd mnemosyne
 
 # 2. Install dependencies
 bun install
@@ -166,7 +166,7 @@ All models below are available **completely free** via Puter.js. No API key, no 
 
 ## BYOK — Bring Your Own Key
 
-Have your own API keys? Memorix supports direct connections to all major providers:
+Have your own API keys? Mnemosyne supports direct connections to all major providers:
 
 | Provider | Models | Authentication |
 |----------|--------|---------------|
@@ -198,7 +198,7 @@ The LLM Router automatically falls back: **Puter.js (free) → BYOK (if key prov
 
 ## AI Agent
 
-Memorix includes a built-in AI Agent that can use any LLM from the pool and execute 7 built-in tools:
+Mnemosyne includes a built-in AI Agent that can use any LLM from the pool and execute 7 built-in tools:
 
 | Tool | Description |
 |------|-------------|
@@ -218,7 +218,7 @@ The agent uses an **agentic execution loop**: it calls the LLM, if the LLM retur
 
 ## MCP Server Setup
 
-Connect Memorix to any MCP-compatible AI assistant via JSON-RPC 2.0 over stdio transport.
+Connect mnemosyne to any MCP-compatible AI assistant via JSON-RPC 2.0 over stdio transport.
 
 ### Claude Desktop
 
@@ -227,12 +227,12 @@ Add to your `claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
-    "memorix": {
+    "mnemosyne": {
       "command": "bun",
-      "args": ["run", "/path/to/memorix/mcp-server/index.ts"],
+      "args": ["run", "/path/to/mnemosyne/mcp-server/index.ts"],
       "env": {
-        "DATABASE_URL": "file:/path/to/memorix/prisma/db/memorix.db",
-        "MEMORIX_API_KEY": "mx_your_api_key_here"
+        "DATABASE_URL": "file:/path/to/mnemosyne/prisma/db/mnemosyne.db",
+        "mnemosyne_API_KEY": "mx_your_api_key_here"
       }
     }
   }
@@ -246,12 +246,12 @@ Add to your `.cursor/mcp.json`:
 ```json
 {
   "mcpServers": {
-    "memorix": {
+    "mnemosyne": {
       "command": "bun",
-      "args": ["run", "/path/to/memorix/mcp-server/index.ts"],
+      "args": ["run", "/path/to/mnemosyne/mcp-server/index.ts"],
       "env": {
-        "DATABASE_URL": "file:/path/to/memorix/prisma/db/memorix.db",
-        "MEMORIX_API_KEY": "mx_your_api_key_here"
+        "DATABASE_URL": "file:/path/to/mnemosyne/prisma/db/mnemosyne.db",
+        "mnemosyne_API_KEY": "mx_your_api_key_here"
       }
     }
   }
@@ -262,20 +262,20 @@ Add to your `.cursor/mcp.json`:
 
 | Tool | Description |
 |------|-------------|
-| `memorix_search` | Semantic + keyword search across notes |
-| `memorix_add_note` | Add a note (auto-creates relations) |
-| `memorix_get_note` | Get a specific note with full content |
-| `memorix_list_notes` | List all notes with pagination |
-| `memorix_chat` | Chat with your memory (RAG-powered) |
-| `memorix_get_related` | Get related notes with relation scores |
-| `memorix_detect_patterns` | Detect tag frequency, keyword trends, clusters |
-| `memorix_add_decision` | Record a decision with context and reasoning |
+| `mnemosyne_search` | Semantic + keyword search across notes |
+| `mnemosyne_add_note` | Add a note (auto-creates relations) |
+| `mnemosyne_get_note` | Get a specific note with full content |
+| `mnemosyne_list_notes` | List all notes with pagination |
+| `mnemosyne_chat` | Chat with your memory (RAG-powered) |
+| `mnemosyne_get_related` | Get related notes with relation scores |
+| `mnemosyne_detect_patterns` | Detect tag frequency, keyword trends, clusters |
+| `mnemosyne_add_decision` | Record a decision with context and reasoning |
 
 ---
 
 ## API Documentation
 
-Memorix exposes a comprehensive REST API for programmatic access. Key endpoints:
+mnemosyne exposes a comprehensive REST API for programmatic access. Key endpoints:
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -316,7 +316,7 @@ Memorix exposes a comprehensive REST API for programmatic access. Key endpoints:
 ## Project Structure
 
 ```
-memorix/
+mnemosyne/
 ├── src/
 │   ├── ai/                          # AI Memory Engine
 │   │   ├── chunker.ts               # Text chunking (paragraph → sentence → word)
@@ -405,14 +405,14 @@ memorix/
 │   └── middleware.ts                # Security headers, rate limiting, CORS
 ├── mcp-server/                      # Standalone MCP server
 │   ├── index.ts                     # JSON-RPC 2.0 server (8 tools)
-│   ├── cli.js                       # CLI entry point for npx memorix-mcp
+│   ├── cli.js                       # CLI entry point for npx mnemosyne-mcp
 │   ├── package.json                 # Independent npm package
 │   └── tsconfig.json                # TypeScript config
 ├── prisma/
 │   ├── schema.prisma                # Main database schema (15+ models)
 │   └── seed.ts                      # Demo data seeder
 ├── public/
-│   ├── logo.svg                     # Memorix logo
+│   ├── logo.svg                     # mnemosyne logo
 │   ├── sw.js                        # Service worker
 │   └── fonts/                       # Inter font
 ├── Dockerfile                       # Multi-stage Docker build
@@ -438,8 +438,8 @@ memorix/
 
 ```bash
 # Clone the repository
-git clone https://github.com/mulkymalikuldhrs/memorix.git
-cd memorix
+git clone https://github.com/mulkymalikuldhrs/mnemosyne.git
+cd mnemosyne
 
 # Set environment variables
 cp .env.example .env
@@ -456,11 +456,11 @@ This starts two services:
 - **app** — Next.js web application on port 3000
 - **mcp** — MCP server on port 4000
 
-Data is persisted in a Docker volume (`memorix-data`).
+Data is persisted in a Docker volume (`mnemosyne-data`).
 
 ### Vercel
 
-Memorix can be deployed to Vercel with some adjustments:
+mnemosyne can be deployed to Vercel with some adjustments:
 
 1. Fork the repository
 2. Connect to Vercel
@@ -480,7 +480,7 @@ bun run db:push
 bun run build
 
 # Start production server
-DATABASE_URL=file:./data/memorix.db \
+DATABASE_URL=file:./data/mnemosyne.db \
 NEXTAUTH_SECRET=your-secret \
 NEXTAUTH_URL=https://your-domain.com \
 NODE_ENV=production \
@@ -497,7 +497,7 @@ bun run start
 | `NEXTAUTH_SECRET` | Yes | `change-me-in-production` | JWT session secret (`openssl rand -base64 32`) |
 | `NEXTAUTH_URL` | Yes | `http://localhost:3000` | Public URL for auth callbacks |
 | `OPENROUTER_API_KEY` | No | — | OpenRouter API key for additional LLM access |
-| `MEMORIX_API_KEY` | No | — | API key for MCP server authentication |
+| `mnemosyne_API_KEY` | No | — | API key for MCP server authentication |
 | `MCP_SERVER_PORT` | No | `4000` | MCP server port |
 | `UPSTASH_REDIS_URL` | No | — | Redis URL for production rate limiting |
 | `UPSTASH_REDIS_TOKEN` | No | — | Redis token for production rate limiting |

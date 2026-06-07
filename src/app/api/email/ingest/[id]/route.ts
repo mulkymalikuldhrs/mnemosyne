@@ -1,10 +1,10 @@
 // ============================================================
-// MEMORIX v3.0.0 — Email Ingest API
+// mnemosyne v3.0.0 — Email Ingest API
 // POST /api/email/ingest/[id]  — Ingest an email into memory
 //
 // This endpoint triggers the full ingestion pipeline:
 //   1. Extract text content from the email (plain text → HTML fallback)
-//   2. Create a Memorix Note with email metadata
+//   2. Create a Mnemosyne Note with email metadata
 //   3. Store the note content as chunks with embeddings (via storeMemory)
 //   4. Link the Note back to the EmailMessage
 // ============================================================

@@ -1,6 +1,6 @@
-# Memorix — Deployment Guide
+# Mnemosyne — Deployment Guide
 
-> Comprehensive deployment guide for Memorix v4.0 — The Biggest Free Multi-LLM Hub
+> Comprehensive deployment guide for mnemosyne v4.0 — The Biggest Free Multi-LLM Hub
 
 ---
 
@@ -20,7 +20,7 @@
 
 ### Vercel (Recommended for Web)
 
-The easiest way to deploy the Memorix web dashboard. Ideal for the free tier and BYOK use cases.
+The easiest way to deploy the mnemosyne web dashboard. Ideal for the free tier and BYOK use cases.
 
 ```bash
 # Install Vercel CLI
@@ -48,11 +48,11 @@ vercel --prod
 - `DATABASE_URL` — SQLite path (use Turso or PlanetScale for serverless)
 - `NEXTAUTH_SECRET` — NextAuth session encryption key
 - `NEXTAUTH_URL` — Your deployment URL
-- `MEMORIX_API_KEY` — API authentication key
+- `mnemosyne_API_KEY` — API authentication key
 
 ### Docker
 
-Build and run Memorix as a Docker container:
+Build and run mnemosyne as a Docker container:
 
 ```dockerfile
 FROM oven/bun:1 AS base
@@ -80,16 +80,16 @@ CMD ["bun", "run", "start"]
 
 ```bash
 # Build image
-docker build -t memorix .
+docker build -t mnemosyne .
 
 # Run container
 docker run -p 3000:3000 \
-  -e DATABASE_URL=file:./data/memorix.db \
+  -e DATABASE_URL=file:./data/mnemosyne.db \
   -e NEXTAUTH_SECRET=your-secret-here \
   -e NEXTAUTH_URL=http://localhost:3000 \
-  -e MEMORIX_API_KEY=your-api-key \
-  -v memorix-data:/app/data \
-  memorix
+  -e mnemosyne_API_KEY=your-api-key \
+  -v mnemosyne-data:/app/data \
+  mnemosyne
 ```
 
 ### Standalone (Node.js / Bun)
@@ -124,33 +124,33 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=file:/app/data/memorix.db
+      - DATABASE_URL=file:/app/data/mnemosyne.db
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:?Set NEXTAUTH_SECRET in .env}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
-      - MEMORIX_API_KEY=${MEMORIX_API_KEY:-}
+      - mnemosyne_API_KEY=${mnemosyne_API_KEY:-}
     volumes:
-      - memorix-data:/app/data
+      - mnemosyne-data:/app/data
     restart: unless-stopped
 
   # MCP server uses stdio (stdin/stdout), not HTTP
   # Run with: docker compose run --rm -i mcp
-  # Or standalone: docker run -i --rm memorix-mcp
+  # Or standalone: docker run -i --rm mnemosyne-mcp
   mcp:
     build:
       context: .
       dockerfile: Dockerfile.mcp
     stdin_open: true
     environment:
-      - DATABASE_URL=file:/app/data/memorix.db
-      - MEMORIX_API_KEY=${MEMORIX_API_KEY:-}
+      - DATABASE_URL=file:/app/data/mnemosyne.db
+      - mnemosyne_API_KEY=${mnemosyne_API_KEY:-}
     volumes:
-      - memorix-data:/app/data:ro
+      - mnemosyne-data:/app/data:ro
     profiles:
       - mcp
 
 volumes:
-  memorix-data:
+  mnemosyne-data:
 ```
 
 ### Running with Docker Compose
@@ -187,11 +187,11 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=file:/app/data/memorix.db
+      - DATABASE_URL=file:/app/data/mnemosyne.db
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - NEXTAUTH_URL=https://memorix.yourdomain.com
+      - NEXTAUTH_URL=https://mnemosyne.yourdomain.com
     volumes:
-      - memorix-data:/app/data
+      - mnemosyne-data:/app/data
     restart: unless-stopped
 
   caddy:
@@ -208,7 +208,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  memorix-data:
+  mnemosyne-data:
   caddy-data:
   caddy-config:
 ```
@@ -216,7 +216,7 @@ volumes:
 **Caddyfile**:
 
 ```
-memorix.yourdomain.com {
+mnemosyne.yourdomain.com {
     reverse_proxy app:3000
 
     # Security headers
@@ -237,10 +237,10 @@ memorix.yourdomain.com {
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `DATABASE_URL` | Database connection string | `file:./data/memorix.db` (SQLite) or `postgresql://...` |
+| `DATABASE_URL` | Database connection string | `file:./data/mnemosyne.db` (SQLite) or `postgresql://...` |
 | `NEXTAUTH_SECRET` | NextAuth session encryption key | Generate with `openssl rand -base64 32` |
-| `NEXTAUTH_URL` | Public URL of your Memorix instance | `https://memorix.yourdomain.com` |
-| `MEMORIX_API_KEY` | API authentication key | Generate with `openssl rand -hex 32` |
+| `NEXTAUTH_URL` | Public URL of your mnemosyne instance | `https://mnemosyne.yourdomain.com` |
+| `mnemosyne_API_KEY` | API authentication key | Generate with `openssl rand -hex 32` |
 
 ### Optional — BYOK Provider Keys
 
@@ -277,7 +277,7 @@ memorix.yourdomain.com {
 # Generate NEXTAUTH_SECRET
 openssl rand -base64 32
 
-# Generate MEMORIX_API_KEY
+# Generate mnemosyne_API_KEY
 openssl rand -hex 32
 
 # Example output: a1b2c3d4e5f6... (64 hex characters)
@@ -292,7 +292,7 @@ openssl rand -hex 32
 - [ ] Set `NODE_ENV=production`
 - [ ] Set `NEXTAUTH_SECRET` to a strong, unique key (not the default)
 - [ ] Set `NEXTAUTH_URL` to your public URL
-- [ ] Set `MEMORIX_API_KEY` to a strong, unique key
+- [ ] Set `mnemosyne_API_KEY` to a strong, unique key
 - [ ] Run `bun run lint` — no errors
 - [ ] Run `bun run test` — all tests pass
 - [ ] Run `bun run build` — build succeeds
@@ -303,7 +303,7 @@ openssl rand -hex 32
 
 ### Security
 
-- [ ] API key is set and tested (`MEMORIX_API_KEY`)
+- [ ] API key is set and tested (`mnemosyne_API_KEY`)
 - [ ] HTTPS is enabled (via Caddy, Nginx, or Vercel)
 - [ ] CORS is configured for allowed origins only
 - [ ] Rate limiting is configured (Upstash Redis recommended)
@@ -335,7 +335,7 @@ openssl rand -hex 32
 
 ### API Key Authentication
 
-Memorix validates API keys on protected endpoints via `src/lib/auth.ts`:
+mnemosyne validates API keys on protected endpoints via `src/lib/auth.ts`:
 
 ```typescript
 // Authentication methods (checked in order):
@@ -343,8 +343,8 @@ Memorix validates API keys on protected endpoints via `src/lib/auth.ts`:
 // 2. Authorization: Bearer header
 // 3. api_key query parameter
 
-// In development without MEMORIX_API_KEY: all requests allowed
-// In production without MEMORIX_API_KEY: 401 Unauthorized
+// In development without mnemosyne_API_KEY: all requests allowed
+// In production without mnemosyne_API_KEY: 401 Unauthorized
 ```
 
 ### HTTPS Configuration
@@ -352,7 +352,7 @@ Memorix validates API keys on protected endpoints via `src/lib/auth.ts`:
 Always use HTTPS in production. Caddy provides automatic HTTPS with Let's Encrypt:
 
 ```
-memorix.yourdomain.com {
+mnemosyne.yourdomain.com {
     reverse_proxy localhost:3000
 
     # Security headers
@@ -370,7 +370,7 @@ memorix.yourdomain.com {
 
 #### Application-Level (Upstash Redis)
 
-Memorix includes built-in rate limiting via `src/lib/rate-limit.ts`:
+Mnemosyne includes built-in rate limiting via `src/lib/rate-limit.ts`:
 
 ```bash
 # Configure in .env
@@ -381,11 +381,11 @@ UPSTASH_REDIS_TOKEN=your-token
 #### Proxy-Level (Caddy)
 
 ```
-memorix.yourdomain.com {
+mnemosyne.yourdomain.com {
     reverse_proxy localhost:3000
 
     rate_limit {
-        zone memorix_zone {
+        zone mnemosyne_zone {
             key    {remote_host}
             events 100
             window 1m
@@ -419,8 +419,8 @@ Configure allowed origins in your reverse proxy or Next.js middleware:
 ```typescript
 // next.config.ts or middleware.ts
 const allowedOrigins = [
-  'https://memorix.yourdomain.com',
-  'https://app.memorix.yourdomain.com',
+  'https://mnemosyne.yourdomain.com',
+  'https://app.mnemosyne.yourdomain.com',
 ]
 ```
 
@@ -430,7 +430,7 @@ const allowedOrigins = [
 
 ### Multi-Tenancy Architecture
 
-When deploying Memorix as a SaaS platform (v5.0+):
+When deploying mnemosyne as a SaaS platform (v5.0+):
 
 1. **Database Isolation**: Use PostgreSQL with schema-per-tenant or database-per-tenant
 2. **API Gateway**: Deploy a dedicated API gateway (Kong, Traefik) for request routing
@@ -467,7 +467,7 @@ STRIPE_ENTERPRISE_PRICE_ID=price_...
 
 For SaaS deployments allowing custom domains:
 
-1. Use a wildcard SSL certificate (`*.memorix.yourdomain.com`)
+1. Use a wildcard SSL certificate (`*.mnemosyne.yourdomain.com`)
 2. Configure DNS CNAME for each tenant
 3. Route requests based on Host header
 4. Apply tenant-specific configuration dynamically
@@ -485,10 +485,10 @@ For production deployments with multiple users, migrate from SQLite to PostgreSQ
 sudo apt install postgresql postgresql-contrib
 
 # 2. Create database
-sudo -u postgres createdb memorix
+sudo -u postgres createdb mnemosyne
 
 # 3. Update DATABASE_URL
-DATABASE_URL="postgresql://memorix:password@localhost:5432/memorix"
+DATABASE_URL="postgresql://mnemosyne:password@localhost:5432/mnemosyne"
 
 # 4. Run migrations
 bun run db:push

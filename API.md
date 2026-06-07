@@ -1,6 +1,6 @@
-# Memorix AI Memory — API Reference
+# Mnemosyne AI Memory — API Reference
 
-> Comprehensive API documentation for Memorix AI Memory. All endpoints are under `/api/`.
+> Comprehensive API documentation for mnemosyne AI Memory. All endpoints are under `/api/`.
 
 ---
 
@@ -27,11 +27,11 @@
 
 ### API Key Authentication
 
-Critical API routes require an API key. Set the `MEMORIX_API_KEY` environment variable in production.
+Critical API routes require an API key. Set the `mnemosyne_API_KEY` environment variable in production.
 
-**Development Mode**: If `MEMORIX_API_KEY` is not set and `NODE_ENV=development`, authentication is skipped.
+**Development Mode**: If `mnemosyne_API_KEY` is not set and `NODE_ENV=development`, authentication is skipped.
 
-**Production Mode**: `MEMORIX_API_KEY` must be set. Requests without a valid key receive `401 Unauthorized`.
+**Production Mode**: `mnemosyne_API_KEY` must be set. Requests without a valid key receive `401 Unauthorized`.
 
 ### Providing the API Key
 
@@ -130,7 +130,7 @@ System health check. Returns system status, version, and device counts.
 {
   "success": true,
   "data": {
-    "system": "Memorix AI Memory",
+    "system": "mnemosyne AI Memory",
     "version": "2.0.0",
     "mode": "simulation",
     "uptime": {
@@ -163,7 +163,7 @@ Get system configuration and status.
 {
   "success": true,
   "data": {
-    "name": "MEMORIX IOT",
+    "name": "mnemosyne IOT",
     "version": "2.0.0",
     "mode": "simulation",
     "region": "Aceh Utara",
@@ -1080,7 +1080,7 @@ Robot assembly step management.
 
 **URL**: `ws://localhost:8081` (or via Caddy gateway with `?XTransformPort=8081`)
 
-**Purpose**: Real-time communication between IDE extensions and the Memorix AI Memory platform.
+**Purpose**: Real-time communication between IDE extensions and the mnemosyne AI Memory platform.
 
 **Events**:
 

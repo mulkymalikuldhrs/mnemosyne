@@ -1,9 +1,9 @@
 /**
- * Memorix v4.0 — BYOK (Bring Your Own Key) Provider
+ * Mnemosyne v1.0 — BYOK (Bring Your Own Key) Provider
  *
- * Users bring their own API keys and Memorix becomes the middle provider.
+ * Users bring their own API keys and Mnemosyne becomes the middle provider.
  * Supports: OpenAI, Anthropic, Google, DeepSeek, OpenRouter, and any OpenAI-compatible API.
- * This is the key to SaaS/IaaS — Memorix wraps everything into a unified API.
+ * This is the key to SaaS/IaaS — Mnemosyne wraps everything into a unified API.
  */
 
 import type { LLMConfig, LLMMessage, LLMResponse, LLMStreamChunk } from './providers'
@@ -51,8 +51,8 @@ async function openaiCompatibleChat(
 
   // OpenRouter specific headers
   if (config.provider === 'openrouter') {
-    headers['HTTP-Referer'] = 'https://memorix.app'
-    headers['X-Title'] = 'Memorix'
+    headers['HTTP-Referer'] = 'https://mnemosyne.app'
+    headers['X-Title'] = 'Mnemosyne'
   }
 
   const response = await fetch(baseUrl, {

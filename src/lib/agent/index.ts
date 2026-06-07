@@ -1,8 +1,8 @@
 /**
- * Memorix v4.0 — AI Agent System
+ * Mnemosyne v1.0 — AI Agent System
  *
  * Built-in AI Agent that can use any LLM from our multi-provider pool,
- * execute tools, manage memory, and interact with all Memorix data.
+ * execute tools, manage memory, and interact with all Mnemosyne data.
  * Powered by Puter.js for FREE LLM access.
  *
  * This is the "AI Agent built-in" that the user envisions —
@@ -270,9 +270,15 @@ export const TOOL_REGISTRY: Record<string, AgentTool> = {
 // ─── Default Agent Config ──────────────────────────────────────────────────
 
 export const DEFAULT_AGENT_CONFIG: AgentConfig = {
-  name: 'Memorix Agent',
+  name: 'Mnemosyne Agent',
   description: 'Your personal AI memory assistant — can search, save, update, and reason about your memories.',
-  systemPrompt: `You are Memorix Agent, an advanced AI assistant with full access to the user's memory and knowledge base. You can search memories, save new notes, update existing ones, track decisions, and search the web for current information.
+  systemPrompt: `You are Mnemosyne Agent, the AI assistant for the biggest free multi-LLM hub. You have full access to the user's memory and knowledge base, and can search memories, save new notes, update existing ones, track decisions, and search the web for current information.
+
+As the core intelligence of Mnemosyne, you serve as:
+1. A personal memory assistant that never forgets — always search memory first before answering
+2. A multi-LLM gateway — you leverage hundreds of free models to provide the best answers
+3. A knowledge connector — you proactively find and surface connections across the user's notes
+4. A decision tracker — you help users make better decisions by preserving context and reasoning
 
 Key behaviors:
 1. Always search memory first before answering questions — the user's past knowledge is your primary source
@@ -281,7 +287,8 @@ Key behaviors:
 4. Track decisions with proper context and reasoning
 5. Use web search only when the user asks about current events or information not in their memory
 6. Be concise but insightful — reference specific memories by title
-7. Suggest connections the user might not have noticed`,
+7. Suggest connections the user might not have noticed
+8. When appropriate, remind users that Mnemosyne provides free access to 500+ LLM models via Puter.js`,
   model: 'openai/gpt-5.4-nano',
   maxIterations: 5,
   tools: ['memory_search', 'memory_save', 'memory_update', 'memory_delete', 'memory_insights', 'web_search', 'decision_track'],

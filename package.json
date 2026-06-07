@@ -1,20 +1,20 @@
 {
-  "name": "@memorix/memory",
-  "version": "4.0.0",
+  "name": "@mnemosyne/memory",
+  "version": "1.0.0",
   "private": false,
-  "description": "Memorix v4 — The Biggest Free Multi-LLM Hub. 500+ models via Puter.js (FREE), BYOK, AI Agent with tool execution, semantic memory, RAG, MCP, multi-cloud storage, SaaS/IaaS ready. No backend needed.",
+  "description": "Mnemosyne — The Biggest Free Multi-LLM Hub & AI Agent Memory Center. 500+ models via Puter.js (FREE), BYOAPI, AI Agent with tool execution, semantic memory, RAG, MCP, multi-cloud storage, SaaS/IaaS ready. No backend needed.",
   "author": "Mulky Malikul Dhaher <mulkymalikuldhaher@email.com>",
   "license": "MIT",
-  "homepage": "https://github.com/mulkymalikuldhrs/memorix#readme",
+  "homepage": "https://github.com/mulkymalikuldhrs/mnemosyne#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mulkymalikuldhrs/memorix.git"
+    "url": "https://github.com/mulkymalikuldhrs/mnemosyne.git"
   },
   "bugs": {
-    "url": "https://github.com/mulkymalikuldhrs/memorix/issues"
+    "url": "https://github.com/mulkymalikuldhrs/mnemosyne/issues"
   },
   "bin": {
-    "memorix-mcp": "./mcp-server/cli.js"
+    "mnemosyne-mcp": "./mcp-server/cli.js"
   },
   "files": [
     "mcp-server/cli.js",
@@ -29,11 +29,13 @@
     "free-llm",
     "puter-js",
     "byok",
+    "byoapi",
     "ai-agent",
     "semantic-search",
     "rag",
     "mcp",
-    "memorix",
+    "mnemosyne",
+    "memory-center",
     "second-brain",
     "personal-knowledge",
     "embedding",
@@ -43,16 +45,21 @@
     "context-aware",
     "llm-router",
     "llm-hub",
+    "model-context-protocol",
     "saas",
     "iaas",
     "api-gateway",
     "pwa",
+    "puter",
     "openai",
     "anthropic",
     "gemini",
     "deepseek",
     "ollama",
-    "openrouter"
+    "openrouter",
+    "multi-cloud",
+    "ai-memory",
+    "agent-tools"
   ],
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",

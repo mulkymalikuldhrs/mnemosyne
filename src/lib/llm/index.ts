@@ -1,9 +1,9 @@
 /**
- * Memorix v4.0 — Unified LLM Router
+ * Mnemosyne v1.0 — Unified LLM Router
  *
- * THE core of Memorix as a multi-LLM middle provider.
+ * THE core of Mnemosyne as a multi-LLM middle provider.
  * Routes requests to the correct provider (Puter.js FREE or BYOK).
- * This is what makes Memorix the biggest free multi-LLM hub.
+ * This is what makes Mnemosyne the biggest free multi-LLM hub.
  *
  * Usage:
  *   import { LLMRouter } from '@/lib/llm'

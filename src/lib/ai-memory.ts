@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX — AI Memory Service
+// mnemosyne — AI Memory Service
 // Offline-first memory for AI agents, sync when online
 //
 // Features:
@@ -17,8 +17,8 @@ import type { AiMemoryCategory, AiMemoryEntry } from './types'
 
 // --- Sync Configuration ---
 
-/** Default cloud endpoint — override via MEMORIX_CLOUD_SYNC_URL env var */
-const DEFAULT_CLOUD_SYNC_URL = process.env.MEMORIX_CLOUD_SYNC_URL || ''
+/** Default cloud endpoint — override via mnemosyne_CLOUD_SYNC_URL env var */
+const DEFAULT_CLOUD_SYNC_URL = process.env.mnemosyne_CLOUD_SYNC_URL || ''
 
 const SYNC_BATCH_SIZE = 25
 const MAX_RETRY_ATTEMPTS = 5
@@ -570,7 +570,7 @@ export class AiMemoryService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Memorix-Sync-Version': '1.0.0',
+          'X-Mnemosyne-Sync-Version': '1.0.0',
         },
         body: JSON.stringify(payload),
         signal: AbortSignal.timeout(SYNC_TIMEOUT_MS),

@@ -1,4 +1,4 @@
-# Memorix — AI Memory SaaS Worklog
+# Mnemosyne — AI Memory SaaS Worklog
 
 ---
 Task ID: 1
@@ -8,7 +8,7 @@ Task: Initialize Next.js project + fullstack-dev skill setup
 Work Log:
 - Ran fullstack init script
 - Cleaned old Nanggroe IoT directories
-- Created new project directory structure for Memorix
+- Created new project directory structure for mnemosyne
 
 Stage Summary:
 - Project initialized with Next.js 16, TypeScript, Tailwind CSS 4
@@ -144,7 +144,7 @@ Work Log:
 - Health API: responding correctly
 - Registration API: working
 - MCP Server: initialize handshake verified
-- Page rendering: title "Memorix — AI Memory Infrastructure" confirmed
+- Page rendering: title "mnemosyne — AI Memory Infrastructure" confirmed
 - Database: seeded with demo data
 - All 60 source files in place
 
@@ -203,7 +203,7 @@ Stage Summary:
 ### BUG-05: Auth bypass — demo user with no password allows login without verification
 - **Severity**: CRITICAL
 - **File**: `src/lib/auth.ts`, lines 33-37
-- **Description**: The auth logic allows any user record with `password: null` to log in with hardcoded credentials `demo@memorix.ai` / `demo123`. This means: (1) an attacker knowing these credentials gets access to the demo account, (2) any user created without a password (bug or migration) is vulnerable, (3) the bypass checks email only after checking `!user.password`, meaning any passwordless user whose email happens to be `demo@memorix.ai` gets access.
+- **Description**: The auth logic allows any user record with `password: null` to log in with hardcoded credentials `demo@mnemosyne.ai` / `demo123`. This means: (1) an attacker knowing these credentials gets access to the demo account, (2) any user created without a password (bug or migration) is vulnerable, (3) the bypass checks email only after checking `!user.password`, meaning any passwordless user whose email happens to be `demo@mnemosyne.ai` gets access.
 - **Fix**: Remove the legacy demo bypass. Either seed the demo user with a bcrypt-hashed password, or use a separate authentication path for demo accounts.
 
 ---
@@ -374,7 +374,7 @@ Stage Summary:
 
 ### MCP-C2: bin field points to TypeScript source — npm package will NOT work
 - **Severity**: CRITICAL
-- **Description**: Root `package.json` has `"bin": { "memorix-mcp": "./mcp-server/index.ts" }` and MCP `package.json` has `"bin": { "memorix-mcp": "./index.ts" }`. When installed via npm, the bin entry must point to a compiled JavaScript file. TypeScript `.ts` files cannot be executed by Node.js directly. This means `npx @memorix/mcp-server` will fail with a syntax error.
+- **Description**: Root `package.json` has `"bin": { "mnemosyne-mcp": "./mcp-server/index.ts" }` and MCP `package.json` has `"bin": { "mnemosyne-mcp": "./index.ts" }`. When installed via npm, the bin entry must point to a compiled JavaScript file. TypeScript `.ts` files cannot be executed by Node.js directly. This means `npx @mnemosyne/mcp-server` will fail with a syntax error.
 - **Fix**: Add a build step that compiles TypeScript to JavaScript, then point bin to `./dist/index.js`. Add a `prepublishOnly` script to build before publishing.
 
 ### MCP-C3: No build/compile step for MCP server TypeScript
@@ -387,9 +387,9 @@ Stage Summary:
 - **Description**: `Dockerfile.mcp` has `EXPOSE 4000` and `docker-compose.yml` maps port `4000:4000`, but the MCP server code only communicates via stdin/stdout (stdio transport). There is no HTTP server listening on any port. Docker deployment as currently configured will not work — an MCP client cannot connect to the container over TCP.
 - **Fix**: Either (a) add an SSE/HTTP transport mode to the MCP server that listens on the configured port, or (b) change the Docker setup to use stdin/stdout streaming (e.g., `docker run -i`), or (c) remove the port exposure and document that Docker MCP usage requires `docker run -i --rm` with stdin piping.
 
-### MCP-C5: MCP server's `memorix_chat` does not use an LLM — misleading tool description
+### MCP-C5: MCP server's `mnemosyne_chat` does not use an LLM — misleading tool description
 - **Severity**: CRITICAL
-- **Description**: The `memorix_chat` tool description says "Chat with the memory system. Ask questions and get AI-powered responses grounded in your stored memories." However, the implementation only does keyword matching and assembles a hardcoded template response string. It never calls any LLM or AI model. This is fundamentally different from the main app's `/api/chat` endpoint which uses `chatWithMemory()` (RAG pipeline with LLM). The MCP chat tool is essentially just a search+format wrapper.
+- **Description**: The `mnemosyne_chat` tool description says "Chat with the memory system. Ask questions and get AI-powered responses grounded in your stored memories." However, the implementation only does keyword matching and assembles a hardcoded template response string. It never calls any LLM or AI model. This is fundamentally different from the main app's `/api/chat` endpoint which uses `chatWithMemory()` (RAG pipeline with LLM). The MCP chat tool is essentially just a search+format wrapper.
 - **Fix**: Either (a) integrate the LLM SDK (z-ai-web-dev-sdk) into the MCP server for actual AI chat, or (b) change the tool description to accurately reflect that it only retrieves and formats relevant memories without AI generation, e.g., "Search your memory and format relevant results as a conversational response."
 
 ## HIGH Issues (6)
@@ -411,12 +411,12 @@ Stage Summary:
 
 ### MCP-H4: Shebang uses `bun` instead of `node` — breaks Node.js execution
 - **Severity**: HIGH
-- **Description**: `mcp-server/index.ts` line 1 has `#!/usr/bin/env bun`. This requires Bun to be installed. If the package is published to npm and installed by a Node.js user (the typical case), `npx @memorix/mcp-server` will fail because `bun` is not found. The MCP README even recommends `npx` usage.
+- **Description**: `mcp-server/index.ts` line 1 has `#!/usr/bin/env bun`. This requires Bun to be installed. If the package is published to npm and installed by a Node.js user (the typical case), `npx @mnemosyne/mcp-server` will fail because `bun` is not found. The MCP README even recommends `npx` usage.
 - **Fix**: After adding a build step, the compiled `dist/index.js` should use `#!/usr/bin/env node`. The source `.ts` file can keep the `bun` shebang for local development.
 
 ### MCP-H5: Authentication is effectively a no-op
 - **Severity**: HIGH
-- **Description**: The `validateApiKey()` function only checks if `process.env.MEMORIX_API_KEY` is set and non-empty. It does NOT validate incoming requests against stored API keys. The function returns `true` when no key is configured ("open mode") and returns `true` when a key IS configured (as long as the string is non-empty). There is no per-request authentication — any client connecting via stdio has full access. The MCP server doesn't even receive an API key from the client; it only checks its own environment variable at startup.
+- **Description**: The `validateApiKey()` function only checks if `process.env.mnemosyne_API_KEY` is set and non-empty. It does NOT validate incoming requests against stored API keys. The function returns `true` when no key is configured ("open mode") and returns `true` when a key IS configured (as long as the string is non-empty). There is no per-request authentication — any client connecting via stdio has full access. The MCP server doesn't even receive an API key from the client; it only checks its own environment variable at startup.
 - **Fix**: Implement actual request-level authentication: (1) accept an API key as a parameter in the `initialize` handshake or as an environment variable that gets validated against the `ApiKey` table in the database, (2) reject requests from unauthenticated clients.
 
 ### MCP-H6: MCP server's Note model has no userId — no multi-tenancy
@@ -426,10 +426,10 @@ Stage Summary:
 
 ## MEDIUM Issues (5)
 
-### MCP-M1: `MEMORIX_API_KEY` missing from `.env.example`
+### MCP-M1: `mnemosyne_API_KEY` missing from `.env.example`
 - **Severity**: MEDIUM
-- **Description**: The MCP server requires `MEMORIX_API_KEY` for authentication, but this variable is not listed in `.env.example`. Users won't know to configure it.
-- **Fix**: Add `MEMORIX_API_KEY=""` to `.env.example` under the MCP Server section.
+- **Description**: The MCP server requires `mnemosyne_API_KEY` for authentication, but this variable is not listed in `.env.example`. Users won't know to configure it.
+- **Fix**: Add `mnemosyne_API_KEY=""` to `.env.example` under the MCP Server section.
 
 ### MCP-M2: `MCP_SERVER_PORT` env var referenced but unused by MCP server
 - **Severity**: MEDIUM
@@ -532,7 +532,7 @@ Stage Summary:
 8. **Decisions are local-only** — `DecisionsView` calls `addDecision()` / `updateDecision()` from Zustand. Never calls `POST /api/decisions`. Decisions lost on refresh.
    - Fix: Call `POST /api/decisions` and `PUT /api/decisions/[id]` instead.
 
-9. **Settings page is static** — All fields are hardcoded ("Demo User", "demo@memorix.ai", "FREE" plan). No `GET /api/settings` to load real data, no `PUT /api/settings` to save changes.
+9. **Settings page is static** — All fields are hardcoded ("Demo User", "demo@mnemosyne.ai", "FREE" plan). No `GET /api/settings` to load real data, no `PUT /api/settings` to save changes.
    - Fix: Fetch settings on mount, wire form submissions to `PUT /api/settings`.
 
 10. **Memory insights use hardcoded data** — `useMemoryStore` has a static `insights` object. Never calls `GET /api/memory` or `GET /api/memory/patterns`. The "Detected Patterns", "Top Topics", and "Weekly Growth" are all fake.
@@ -625,7 +625,7 @@ Work Log:
 - Added pagination limit cap: `Math.min(..., 100)` on GET handler
 
 ### Fix 7: Removed auth bypass for demo credentials
-- Removed the `else` branch that allowed `demo@memorix.ai` / `demo123` login for passwordless users
+- Removed the `else` branch that allowed `demo@mnemosyne.ai` / `demo123` login for passwordless users
 - Now: if `user.password` is null, `authorize()` returns `null` immediately — OAuth-only users cannot log in via credentials
 - The demo user seeded in `prisma/seed.ts` already has a bcrypt-hashed password, so it still works normally
 
@@ -709,7 +709,7 @@ Fixes Applied:
 
 ## 6. Fixed authentication in MCP server (MCP-H5)
 - Replaced fake validateApiKey() that only checked env var existence
-- New validateAndAuthenticate() looks up MEMORIX_API_KEY in ApiKey table
+- New validateAndAuthenticate() looks up mnemosyne_API_KEY in ApiKey table
 - Sets authenticatedUserId and authenticatedApiKeyId on success
 - Updates ApiKey.lastUsedAt timestamp
 - Creates McpSession record on connect
@@ -729,12 +729,12 @@ Fixes Applied:
 - Added profiles: [mcp] so it doesn't auto-start
 - Removed restart policy — MCP runs on-demand
 
-## 9. Added MEMORIX_API_KEY to .env.example (MCP-M1)
-- Added MEMORIX_API_KEY="mx_your_api_key_here" under MCP Server section
+## 9. Added mnemosyne_API_KEY to .env.example (MCP-M1)
+- Added mnemosyne_API_KEY="mx_your_api_key_here" under MCP Server section
 
 ## 10. Fixed MCP server to use real AI chat (MCP-C5)
 - Integrated z-ai-web-dev-sdk for LLM chat
-- memorix_chat now: (1) searches relevant notes, (2) builds memory context,
+- mnemosyne_chat now: (1) searches relevant notes, (2) builds memory context,
   (3) loads conversation history from separate Message model, (4) calls LLM
   via z-ai-web-dev-sdk, (5) falls back to keyword-based response if LLM unavailable
 - Chat uses conversation persistence with separate Message model (not JSON string)
@@ -760,8 +760,8 @@ Verification:
 - bun run lint: PASS (0 errors, 0 warnings)
 - MCP server runtime test: initialize handshake returns correct response
 - MCP server tools/list: all 8 tools returned with correct schemas
-- MCP server memorix_search: returns ranked results from database
-- MCP server memorix_list_notes: returns paginated notes with tags
+- MCP server mnemosyne_search: returns ranked results from database
+- MCP server mnemosyne_list_notes: returns paginated notes with tags
 - Main app dev server: still running and responding correctly
 
 Stage Summary:
@@ -828,13 +828,13 @@ Stage Summary:
 ## E2E Test Results: 15 PASSED / 0 FAILED / 7 WARNINGS
 
 ### Passed Tests (15/15)
-1. ✅ Landing page loads — Title contains "Memorix"
+1. ✅ Landing page loads — Title contains "mnemosyne"
 2. ✅ Unauthenticated users redirected to login — Auth guard working
 3. ✅ Login page renders correctly — Email, password, submit elements found
 4. ✅ Register page renders correctly — Email, password, submit elements found
 5. ✅ User can register — Form fills and submits, page navigates
 6. ✅ User can login — Credentials accepted, redirect to main page
-7. ✅ Dashboard has expected elements — Memorix + Welcome text present
+7. ✅ Dashboard has expected elements — mnemosyne + Welcome text present
 8. ✅ Sidebar navigation works — 7 navigation items found
 9. ✅ Notes section accessible — Click handler works, page responds
 10. ✅ Chat section accessible — Click handler works, page responds
@@ -846,7 +846,7 @@ Stage Summary:
 
 ### Warnings (7 — informational, not failures)
 1. ⚠️ Login redirect: After login, URL is http://localhost:3002/ (expected behavior)
-2. ⚠️ Dashboard content: Has Memorix text: true, Has Welcome text: true
+2. ⚠️ Dashboard content: Has mnemosyne text: true, Has Welcome text: true
 3. ⚠️ Sidebar items: Found 7 navigation items
 4. ⚠️ Notes section: URL after notes click: http://localhost:3002/login (session expired)
 5. ⚠️ Chat section: URL after chat click: http://localhost:3002/login (session expired)
@@ -981,7 +981,7 @@ Work Log:
 - Verified dev server running on port 3000
 - Pushed Prisma schema (already in sync)
 - Discovered and fixed CRITICAL bug: missing NEXTAUTH_SECRET in .env causing JWEDecryptionFailed in all authenticated API routes
-- Registered test user (testuser@memorix.ai) and obtained session cookie via NextAuth CSRF flow
+- Registered test user (testuser@mnemosyne.ai) and obtained session cookie via NextAuth CSRF flow
 - Systematically tested all 23 API endpoints with proper authentication
 - Tested all 20 authenticated endpoints without cookies — all correctly return 401
 - Tested input validation on all POST/PUT endpoints — all Zod schemas working correctly
@@ -1021,19 +1021,19 @@ Work Log:
 - Logic verification found 21 bugs (3 CRITICAL, 8 HIGH, 6 MEDIUM, 4 LOW)
 - Integration testing: ALL 23 API endpoints PASSING, 5 bugs fixed inline
 - Fixed ALL 3 CRITICAL bugs, 5 HIGH bugs, 3 MEDIUM bugs
-- Created memorix repo on GitHub and pushed all code
+- Created mnemosyne repo on GitHub and pushed all code
 
 Stage Summary:
 - CRITICAL fixes: Pattern descriptions, Decision status persistence, Search metadata, API key exposure, Race condition, MCP stale schema
 - HIGH fixes: Embedding cache collision, Template injection, Decision form fields
 - MEDIUM fixes: Toaster component, Dashboard hardcoded stats, Conversation count
 - All 23 API endpoints verified working with proper auth, validation, and error handling
-- Code pushed to https://github.com/mulkymalikuldhrs/memorix
+- Code pushed to https://github.com/mulkymalikuldhrs/mnemosyne
 
 ---
 Task ID: 1d
 Agent: Quick Switcher + Store + API + Sidebar + Page Updater
-Task: Build Quick Switcher and Update Store, API, Sidebar, Main Page for Memorix
+Task: Build Quick Switcher and Update Store, API, Sidebar, Main Page for mnemosyne
 
 Work Log:
 - Rewrote `/home/z/my-project/src/components/quick-switcher.tsx` with enhanced features:
@@ -1078,7 +1078,7 @@ Stage Summary:
 ---
 Task ID: 1b
 Agent: Subagent (Knowledge Graph + Canvas Builder)
-Task: Build Knowledge Graph and Canvas components for Memorix
+Task: Build Knowledge Graph and Canvas components for mnemosyne
 
 Work Log:
 - Rewrote `/src/components/graph/knowledge-graph.tsx` — complete interactive knowledge graph
@@ -1142,7 +1142,7 @@ Stage Summary:
 ---
 Task ID: 1c
 Agent: Subagent (full-stack-developer)
-Task: Build Daily Notes, Templates, and Smart Tags for Memorix
+Task: Build Daily Notes, Templates, and Smart Tags for mnemosyne
 
 Work Log:
 - Rewrote `/home/z/my-project/src/components/daily/daily-notes.tsx`
@@ -1225,7 +1225,7 @@ Stage Summary:
 ---
 Task ID: 1a
 Agent: API Route Builder
-Task: Build all new API routes for Memorix AI Memory SaaS
+Task: Build all new API routes for mnemosyne AI Memory SaaS
 
 Work Log:
 - Read worklog.md and existing project patterns
@@ -1336,7 +1336,7 @@ Stage Summary:
 ---
 Task ID: final-upgrade
 Agent: Super Z (main)
-Task: Upgrade Memorix to surpass Obsidian, build check, push to GitHub
+Task: Upgrade mnemosyne to surpass Obsidian, build check, push to GitHub
 
 Work Log:
 - Read all existing code (schema, API routes, components, stores, MCP server)
@@ -1347,7 +1347,7 @@ Work Log:
 - Installed all missing dependencies (radix, recharts, d3, tiptap, etc.)
 - Fixed TypeScript type errors across multiple files
 - Updated .gitignore to exclude credentials, env, database
-- Committed and pushed to GitHub: mulkymalikuldhrs/memorix
+- Committed and pushed to GitHub: mulkymalikuldhrs/mnemosyne
 
 Stage Summary:
 - Build passes successfully (npm run build completes)
@@ -1355,7 +1355,7 @@ Stage Summary:
 - New features: Knowledge Graph, Canvas, Daily Notes, Templates, Rich Editor, Quick Switcher, Backlinks, Outline, Smart Tags, Favorites
 - 12 new API routes created
 - 5 new Prisma models added
-- Pushed to: https://github.com/mulkymalikuldhrs/memorix
+- Pushed to: https://github.com/mulkymalikuldhrs/mnemosyne
 
 ---
 Task ID: 2
@@ -1363,10 +1363,10 @@ Agent: Bug Fix & Security Agent
 Task: Fix CRITICAL bugs and security issues
 
 Work Log:
-- Replaced src/lib/types.ts (832 lines of IoT garbage) with clean Memorix types (~175 lines)
+- Replaced src/lib/types.ts (832 lines of IoT garbage) with clean mnemosyne types (~175 lines)
 - Deleted src/components/McpTab.tsx (IoT remnant referencing mavlink_command, telemetry_query)
 - Updated Dashboard.tsx and MobileLayout.tsx to remove McpTab imports
-- Rewrote src/app/docs/page.tsx: changed title from "Nanggroe IoT" to "Memorix", removed external script/CSS from unpkg.com, created self-contained styled API docs
+- Rewrote src/app/docs/page.tsx: changed title from "Nanggroe IoT" to "mnemosyne", removed external script/CSS from unpkg.com, created self-contained styled API docs
 - Fixed src/lib/rate-limit.ts: rateLimit() now uses pre-configured singleton instances instead of creating new RateLimiter on every call
 - Fixed XSS in rich-editor.tsx: added sanitizeHtml() function stripping script/iframe/event handlers before dangerouslySetInnerHTML
 - Added security documentation to src/lib/auth.ts: documented plain text API key storage issue and SHA-256 migration path
@@ -1376,7 +1376,7 @@ Work Log:
 Stage Summary:
 - 7 security/bug fixes completed + 2 bonus pre-existing fixes
 - Lint: 0 new errors from changed files (remaining 2 errors + 9 warnings are pre-existing in IoT remnant files)
-- All changes are backward-compatible; no breaking changes to Memorix app functionality
+- All changes are backward-compatible; no breaking changes to mnemosyne app functionality
 
 ---
 Task ID: 3
@@ -1403,7 +1403,7 @@ Stage Summary:
 ---
 Task ID: final
 Agent: Main Agent (Super Z)
-Task: Comprehensive audit, fix, upgrade, and GitHub push for Memorix AI Memory SaaS
+Task: Comprehensive audit, fix, upgrade, and GitHub push for mnemosyne AI Memory SaaS
 
 Work Log:
 - Performed deep audit of entire codebase - identified 28+ issues across security, code quality, IoT contamination, and feature gaps
@@ -1414,8 +1414,8 @@ Work Log:
 - Added production safety check for NEXTAUTH_SECRET in env.ts
 - Documented API key hashing migration path in auth.ts
 - Removed external script loading from docs page (supply chain attack prevention)
-- Replaced 832-line IoT types.ts with clean Memorix types
-- Fixed docs page title from 'Nanggroe IoT' to 'Memorix'
+- Replaced 832-line IoT types.ts with clean mnemosyne types
+- Fixed docs page title from 'Nanggroe IoT' to 'mnemosyne'
 - Added auto-save with debounce (1.5s) in note editor
 - Added delete confirmation dialogs for notes, canvases, templates
 - Fixed Settings "Reset" button with confirmation dialog and API handler
@@ -1423,7 +1423,7 @@ Work Log:
 - Fixed character count in editor status bar
 - Removed .env from git tracking
 - Updated capacitor.config.ts and playwright.config.ts references
-- Pushed to GitHub: https://github.com/mulkymalikuldhrs/memorix
+- Pushed to GitHub: https://github.com/mulkymalikuldhrs/mnemosyne
 
 Stage Summary:
 - 109 files changed, 14089 insertions, 2224 deletions
@@ -1447,7 +1447,7 @@ Work Log:
   5. `@/hooks/use-toast` imports — NONE FOUND (components use `@/lib/hooks/use-toast`)
   6. `@/hooks/use-sse` and `@/hooks/usePlatform` imports — NONE FOUND
   7. `@/lib/sentry` imports — NONE FOUND
-  8. Fixed `src/lib/ai-memory.ts` header: "MEMORIX IOT" → "MEMORIX — AI Memory Service"
+  8. Fixed `src/lib/ai-memory.ts` header: "mnemosyne IOT" → "mnemosyne — AI Memory Service"
   9. Added missing `AiMemoryCategory` and `AiMemoryEntry` types to `src/lib/types.ts`
   10. Verified `src/app/api/chat/route.ts` correctly imports from `@/ai/llm`
 
@@ -1462,7 +1462,7 @@ Stage Summary:
 - Dev server running cleanly
 
 Fixes Applied:
-1. `src/lib/ai-memory.ts`: Header comment updated from "MEMORIX IOT - AI Memory & Sync Service" to "MEMORIX — AI Memory Service"
+1. `src/lib/ai-memory.ts`: Header comment updated from "mnemosyne IOT - AI Memory & Sync Service" to "mnemosyne — AI Memory Service"
 2. `src/lib/types.ts`: Added `AiMemoryCategory` type and `AiMemoryEntry` interface (imported by ai-memory.ts but previously missing)
 3. `src/hooks/use-ws.ts`: Deleted (broken import to non-existent `@/lib/websocket`)
 4. `src/app/api/testing/route.ts`: Deleted (broken import to non-existent `@/lib/testing`, IoT leftover)
@@ -1501,12 +1501,12 @@ The project has improved significantly since the initial audits. Several critica
 
 ### Category A: Orphaned IoT file `src/lib/ai-memory.ts` — 35 errors
 - **File**: `src/lib/ai-memory.ts` (615 lines)
-- **Issue**: References `db.aiMemory` and `db.syncQueue` which do NOT exist in `prisma/schema.prisma`. Also imports `AiMemoryCategory` and `AiMemoryEntry` from `./types` which are not exported by `src/lib/types.ts`. File header says "MEMORIX IOT".
+- **Issue**: References `db.aiMemory` and `db.syncQueue` which do NOT exist in `prisma/schema.prisma`. Also imports `AiMemoryCategory` and `AiMemoryEntry` from `./types` which are not exported by `src/lib/types.ts`. File header says "mnemosyne IOT".
 - **Impact**: This file cannot compile and will break `next build`.
 - **Fix**: Delete this file and its consumer `src/app/api/ai-memory/route.ts` (162 lines). These are IoT remnant code with no place in a memory SaaS. The main memory system uses `src/ai/memory.ts` + `src/ai/llm.ts`.
 
 ### Category B: Orphaned IoT files with missing dependencies — 3 errors
-- `src/app/api/testing/route.ts` (2 errors): Imports `@/lib/testing` which does not exist. File header says "MEMORIX IOT". References IoT-specific actions (`generate_hardware`, `generate_firmware`, `verify_hardware`).
+- `src/app/api/testing/route.ts` (2 errors): Imports `@/lib/testing` which does not exist. File header says "mnemosyne IOT". References IoT-specific actions (`generate_hardware`, `generate_firmware`, `verify_hardware`).
 - `src/hooks/use-ws.ts` (1 error): Imports `@/lib/websocket` which does not exist. WebSocket hook with no backend.
 - **Fix**: Delete both files. They are IoT remnants.
 
@@ -1617,7 +1617,7 @@ Now includes database connectivity check (`"db":"ok"`). Previously identified BU
 
 | File | Lines | Issue |
 |------|-------|-------|
-| `src/lib/ai-memory.ts` | 615 | References non-existent Prisma models (`aiMemory`, `syncQueue`). Header: "MEMORIX IOT" |
+| `src/lib/ai-memory.ts` | 615 | References non-existent Prisma models (`aiMemory`, `syncQueue`). Header: "mnemosyne IOT" |
 | `src/app/api/testing/route.ts` | 416 | Imports non-existent `@/lib/testing`. IoT testing with hardware/firmware actions |
 | `src/hooks/use-ws.ts` | 44 | Imports non-existent `@/lib/websocket`. WebSocket hook with no backend |
 | `src/app/api/ai-memory/route.ts` | 162 | Depends on broken `@/lib/ai-memory` |

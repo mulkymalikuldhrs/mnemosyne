@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX v3.0.0 — Google Drive Storage Adapter
+// MNEMOSYNE v1.0.0 — Google Drive Storage Adapter
 // Universal AI/Human Memory Hub
 //
 // Implements CloudStorageProviderInterface for Google Drive
@@ -265,7 +265,7 @@ export class GoogleDriveProvider implements CloudStorageProviderInterface {
 
     return withRetry(async () => {
       // Use multipart upload for metadata + content
-      const boundary = `memorix_boundary_${Date.now()}_${Math.random().toString(36).slice(2)}`
+      const boundary = `mnemosyne_boundary_${Date.now()}_${Math.random().toString(36).slice(2)}`
 
       const metadata = {
         name: fileName,

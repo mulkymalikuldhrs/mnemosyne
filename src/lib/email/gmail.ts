@@ -1,5 +1,5 @@
 // ============================================================
-// MEMORIX v3.0.0 — Gmail Email Provider
+// MNEMOSYNE v1.0.0 — Gmail Email Provider
 // Universal AI/Human Memory Hub: Email Integration Layer
 //
 // Implements EmailProviderInterface for Gmail via the
