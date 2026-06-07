@@ -259,6 +259,7 @@ model WikiLink {
 
 model AiMemory {
   id          String   @id @default(cuid())
+  userId      String   @default("system")  // Owner of this memory — prevents cross-user data leaks
   category    String   // conversation | decision | learning | pattern | preference
   key         String
   value       String   // JSON-serialized value
@@ -274,6 +275,7 @@ model AiMemory {
   @@index([category])
   @@index([key])
   @@index([isSynced])
+  @@index([userId])
 }
 
 model SyncQueue {

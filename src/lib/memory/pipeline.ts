@@ -96,16 +96,16 @@ export class MemoryPipeline {
    */
   async retrieveExistingMemories(
     queryEmbedding: number[],
-    userId?: string,
+    userId: string,
     agentId?: string,
     topK: number = 10
   ): Promise<Array<{ id: string; text: string; score: number }>> {
     const takeLimit = Math.max(1, Math.min(topK, 1000))
-    // Search NoteChunks using cosine similarity
+    // Search NoteChunks using cosine similarity (always filter by userId)
     const allChunks = await db.noteChunk.findMany({
       where: {
         note: {
-          ...(userId ? { userId } : {}),
+          userId,
         },
       },
       take: takeLimit,
@@ -310,18 +310,18 @@ export class MemoryPipeline {
    */
   async linkEntities(
     records: MemoryRecord[],
-    userId?: string
+    userId: string
   ): Promise<void> {
     for (const record of records) {
       const entities = this.extractEntities(record.text)
 
       for (const entity of entities) {
         try {
-          // Search for existing entity
+          // Search for existing entity (always filter by userId)
           const existing = await db.memoryEntity.findFirst({
             where: {
               name: { contains: entity.text },
-              ...(userId ? { userId } : {}),
+              userId,
             },
           })
 
@@ -344,7 +344,7 @@ export class MemoryPipeline {
             // Create new entity
             await db.memoryEntity.create({
               data: {
-                userId: userId ?? 'system',
+                userId,
                 name: entity.text,
                 type: this.mapEntityType(entity.entityType),
                 description: `Extracted from memory: ${record.text.slice(0, 100)}`,
@@ -372,9 +372,9 @@ export class MemoryPipeline {
     const sessionScope = this.buildSessionScope(input)
     console.log(`[MemoryPipeline] Processing: ${sessionScope}`)
 
-    // Phase 1: Get existing memory hashes for dedup
+    // Phase 1: Get existing memory hashes for dedup (always filter by userId)
     const existingMemories = await db.aiMemory.findMany({
-      where: { category: { in: ['conversation', 'agent_memory'] } },
+      where: { category: { in: ['conversation', 'agent_memory'] }, userId: input.userId || 'system' },
       select: { key: true },
     })
     const existingHashes = new Set(existingMemories.map((m) => m.key))
@@ -401,8 +401,8 @@ export class MemoryPipeline {
     // Phase 6: Persist
     await this.batchPersist(records)
 
-    // Phase 7: Entity linking
-    await this.linkEntities(records, input.userId)
+    // Phase 7: Entity linking (userId is required)
+    await this.linkEntities(records, input.userId || 'system')
 
     // Phase 8: Return
     return records
@@ -414,12 +414,12 @@ export class MemoryPipeline {
    */
   async search(
     query: string,
-    userId?: string,
+    userId: string,
     topK: number = 10,
     threshold: number = 0.3
   ): Promise<Array<{ id: string; text: string; score: number }>> {
     // Generate query embedding
-    const queryEmbedding = await generateEmbedding(query, userId ?? 'system')
+    const queryEmbedding = await generateEmbedding(query, userId)
 
     // Semantic search via NoteChunks
     const overFetch = Math.min(topK * 4, 200)
@@ -430,10 +430,10 @@ export class MemoryPipeline {
       overFetch
     )
 
-    // Keyword boost: simple text matching
+    // Keyword boost: simple text matching (always filter by userId)
     const keywordResults = await db.note.findMany({
       where: {
-        ...(userId ? { userId } : {}),
+        userId,
         tags: { contains: 'ai-memory' },
         OR: [
           { content: { contains: query } },

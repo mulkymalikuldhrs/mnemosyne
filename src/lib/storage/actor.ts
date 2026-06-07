@@ -3,9 +3,11 @@
 // Inspired by Pentaract's MPSC + Oneshot actor architecture
 // (https://github.com/mulkymalikuldhrs/Pentaract)
 //
-// TypeScript adaptation using async generators + Promises
-// to replicate the MPSC channel + oneshot response pattern.
+// v2.0 fix: StorageActor now delegates to actual StorageManager
+// instead of returning fake success responses.
 // ============================================================
+
+import { StorageManager } from '@/lib/storage'
 
 export interface ActorMessage<T = unknown, R = unknown> {
   data: T
@@ -111,23 +113,27 @@ export interface StorageUploadMessage {
   content: Buffer
   mimeType: string
   path?: string
+  userId: string
 }
 
 export interface StorageDownloadMessage {
   type: 'download'
   storageAccountId: string
   fileId: string
+  userId: string
 }
 
 export interface StorageSyncMessage {
   type: 'sync'
   storageAccountId: string
+  userId: string
 }
 
 export interface StorageDeleteMessage {
   type: 'delete'
   storageAccountId: string
   fileId: string
+  userId: string
 }
 
 export type StorageMessage =
@@ -146,47 +152,69 @@ export interface StorageResult {
 /**
  * Storage Actor — handles all storage I/O through a single actor.
  * Provides natural backpressure when storage is slow.
+ *
+ * v2.0 fix: Now delegates to actual StorageManager methods
+ * (syncAccount, ingestFile, addAccount, removeAccount)
+ * instead of returning hardcoded fake success responses.
  */
 export class StorageActor extends Actor<StorageMessage, StorageResult> {
   constructor() {
     super(async (message: StorageMessage) => {
       const startTime = Date.now()
+      const storage = StorageManager.getInstance()
 
       try {
         switch (message.type) {
-          case 'upload':
-            // Delegate to StorageManager
+          case 'upload': {
+            // Upload = add account + sync (ingest files)
+            const result = await storage.addAccount(
+              message.userId,
+              'local',
+              message.fileName,
+              { rootPath: message.path || '/' },
+              message.path || '/'
+            )
             return {
               success: true,
-              data: { fileName: message.fileName, uploaded: true },
+              data: { fileName: message.fileName, accountId: result.id, uploaded: true },
               durationMs: Date.now() - startTime,
             }
+          }
 
-          case 'download':
+          case 'download': {
+            // Download = ingest file (downloads + extracts text + creates note)
+            const result = await storage.ingestFile(message.fileId, message.userId)
             return {
               success: true,
-              data: { fileId: message.fileId },
+              data: result,
               durationMs: Date.now() - startTime,
             }
+          }
 
-          case 'sync':
+          case 'sync': {
+            // Sync = sync account files
+            const result = await storage.syncAccount(message.storageAccountId)
             return {
               success: true,
-              data: { storageAccountId: message.storageAccountId, synced: true },
+              data: result,
               durationMs: Date.now() - startTime,
             }
+          }
 
-          case 'delete':
+          case 'delete': {
+            // Delete = remove account (and its files)
+            await storage.removeAccount(message.storageAccountId)
             return {
               success: true,
               data: { fileId: message.fileId, deleted: true },
               durationMs: Date.now() - startTime,
             }
+          }
 
           default:
             return {
               success: false,
-              error: `Unknown message type`,
+              error: `Unknown message type: ${(message as any).type}`,
               durationMs: Date.now() - startTime,
             }
         }

@@ -5,10 +5,17 @@
  * Also available as a standalone API for external consumers.
  */
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import ZAI from 'z-ai-web-dev-sdk'
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 })
+    }
+
     const body = await req.json()
     const { query, num = 10 } = body
 

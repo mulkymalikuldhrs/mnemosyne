@@ -13,7 +13,7 @@
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export type LLMProvider = 'puter' | 'openai' | 'anthropic' | 'google' | 'deepseek' | 'openrouter' | 'ollama' | 'custom'
+export type LLMProvider = 'puter' | 'z-ai-server' | 'openai' | 'anthropic' | 'google' | 'deepseek' | 'openrouter' | 'ollama' | 'custom'
 
 export interface LLMModel {
   id: string               // e.g. "openai/gpt-5.4-nano"

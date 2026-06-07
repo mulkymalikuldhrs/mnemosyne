@@ -6,20 +6,26 @@
  * Uses any LLM from our multi-provider pool (Puter.js = FREE).
  */
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { AgentEngine, DEFAULT_AGENT_CONFIG, TOOL_REGISTRY } from '@/lib/agent'
 import type { AgentConfig } from '@/lib/agent'
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ success: false, error: 'Authentication required' }, { status: 401 })
+    }
+
     const body = await req.json()
-    const { message, userId, model, tools, systemPrompt, maxIterations, apiKey, provider } = body
+    const { message, model, tools, systemPrompt, maxIterations, apiKey, provider } = body
+
+    // Always use session user ID — never trust client-supplied userId
+    const userId = (session.user as any).id
 
     if (!message) {
       return NextResponse.json({ success: false, error: 'Message is required' }, { status: 400 })
-    }
-
-    if (!userId) {
-      return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 })
     }
 
     const config: AgentConfig = {

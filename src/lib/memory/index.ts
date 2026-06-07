@@ -127,7 +127,7 @@ export class MemoryEngine {
   async add(input: AddMemoryInput): Promise<MemoryItem[]> {
     const { messages, userId, agentId, runId, metadata = {} } = input
 
-    // Phase 0: Fetch existing memories for context
+    // Phase 0: Fetch existing memories for context (filtered by userId)
     const existingMemories = await this.getRecentMemories(userId, 10)
     const existingHashes = new Set(existingMemories.map((m) => m.hash))
 
@@ -185,6 +185,7 @@ export class MemoryEngine {
     for (const memory of newMemories) {
       const record = await db.aiMemory.create({
         data: {
+          userId,
           category: 'extracted_fact',
           key: memory.hash,
           value: memory.memory,
@@ -226,6 +227,7 @@ export class MemoryEngine {
     const allMemories = await db.aiMemory.findMany({
       where: {
         category: 'extracted_fact',
+        userId,
       },
       orderBy: { updatedAt: 'desc' },
       take: 200, // Limit for performance
@@ -291,7 +293,7 @@ export class MemoryEngine {
 
   async getAll(userId: string, options?: { agentId?: string; limit?: number }): Promise<MemoryItem[]> {
     const memories = await db.aiMemory.findMany({
-      where: { category: 'extracted_fact', projectId: options?.agentId || undefined },
+      where: { category: 'extracted_fact', userId, projectId: options?.agentId || undefined },
       orderBy: { updatedAt: 'desc' },
       take: options?.limit || 100,
     })
@@ -390,7 +392,7 @@ export class MemoryEngine {
 
   private async getRecentMemories(userId: string, limit: number): Promise<MemoryItem[]> {
     const memories = await db.aiMemory.findMany({
-      where: { category: 'extracted_fact' },
+      where: { category: 'extracted_fact', userId },
       orderBy: { updatedAt: 'desc' },
       take: limit,
     })

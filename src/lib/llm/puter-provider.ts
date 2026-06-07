@@ -1,9 +1,12 @@
 /**
- * Mnemosyne v1.0 — Puter.js LLM Provider
+ * Mnemosyne v2.0 — Puter.js LLM Provider
  *
  * FREE access to 500+ AI models with zero API key.
  * User-Pays model: end-users cover their own usage via Puter.com accounts.
- * This makes Mnemosyne the biggest free multi-LLM hub in the world.
+ *
+ * v2.0 fix: Added server-side fallback using z-ai-web-dev-sdk.
+ * Puter.js only works in the browser (depends on window.puter).
+ * When called from server-side API routes, we use z-ai-web-dev-sdk instead.
  */
 
 import type { LLMConfig, LLMMessage, LLMResponse, LLMStreamChunk, LLMTool, ToolCall } from './providers'
@@ -19,11 +22,18 @@ declare global {
 let puterLoaded = false
 
 /**
+ * Check if we're running in a browser environment
+ */
+function isBrowser(): boolean {
+  return typeof window !== 'undefined'
+}
+
+/**
  * Load Puter.js SDK dynamically (for PWA/client-side usage)
  */
 export function loadPuterSDK(): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (typeof window === 'undefined') {
+    if (!isBrowser()) {
       reject(new Error('Puter.js is only available in browser environment'))
       return
     }
@@ -51,7 +61,7 @@ export function loadPuterSDK(): Promise<void> {
 }
 
 /**
- * Ensure Puter.js is loaded and return the client
+ * Ensure Puter.js is loaded and return the client (browser only)
  */
 async function getPuterClient(): Promise<any> {
   if (!puterLoaded && !window.puter) {
@@ -60,12 +70,108 @@ async function getPuterClient(): Promise<any> {
   return window.puter
 }
 
+// ─── Server-side LLM Fallback ──────────────────────────────────────────────
+
+/**
+ * Use z-ai-web-dev-sdk for server-side LLM calls.
+ * This is the fallback when Puter.js is not available (server environment).
+ */
+async function serverSideChat(config: LLMConfig, messages: LLMMessage[]): Promise<LLMResponse> {
+  const ZAI = (await import('z-ai-web-dev-sdk')).default
+  const zai = await ZAI.create()
+
+  const formattedMessages = messages
+    .filter(m => m.role !== 'tool')
+    .map(m => ({
+      role: m.role as 'system' | 'user' | 'assistant',
+      content: m.content,
+    }))
+
+  const completion = await zai.chat.completions.create({
+    model: config.model || 'gpt-4o-mini',
+    messages: formattedMessages,
+    temperature: config.temperature ?? 0.7,
+    max_tokens: config.maxTokens || 2048,
+  })
+
+  const content = completion.choices?.[0]?.message?.content || ''
+  const toolCalls = completion.choices?.[0]?.message?.tool_calls?.map((tc: any) => ({
+    id: tc.id || `tc_${Date.now()}`,
+    type: 'function' as const,
+    function: {
+      name: tc.function?.name || '',
+      arguments: typeof tc.function?.arguments === 'string'
+        ? tc.function.arguments
+        : JSON.stringify(tc.function?.arguments || {}),
+    },
+  }))
+
+  return {
+    content,
+    model: config.model,
+    provider: 'z-ai-server',
+    toolCalls: toolCalls?.length > 0 ? toolCalls : undefined,
+    usage: completion.usage ? {
+      promptTokens: completion.usage.prompt_tokens || 0,
+      completionTokens: completion.usage.completion_tokens || 0,
+      totalTokens: completion.usage.total_tokens || 0,
+    } : undefined,
+    finishReason: completion.choices?.[0]?.finish_reason || 'stop',
+  }
+}
+
+/**
+ * Server-side streaming fallback using z-ai-web-dev-sdk
+ */
+async function* serverSideStream(config: LLMConfig, messages: LLMMessage[]): AsyncGenerator<LLMStreamChunk> {
+  const ZAI = (await import('z-ai-web-dev-sdk')).default
+  const zai = await ZAI.create()
+
+  const formattedMessages = messages
+    .filter(m => m.role !== 'tool')
+    .map(m => ({
+      role: m.role as 'system' | 'user' | 'assistant',
+      content: m.content,
+    }))
+
+  const completion = await zai.chat.completions.create({
+    model: config.model || 'gpt-4o-mini',
+    messages: formattedMessages,
+    temperature: config.temperature ?? 0.7,
+    max_tokens: config.maxTokens || 2048,
+    stream: true,
+  })
+
+  // Handle streaming response
+  if (completion && typeof completion === 'object' && Symbol.asyncIterator in completion) {
+    for await (const chunk of completion as AsyncIterable<any>) {
+      const delta = chunk.choices?.[0]?.delta
+      if (delta?.content) {
+        yield { content: delta.content }
+      }
+      if (chunk.choices?.[0]?.finish_reason) {
+        yield { finishReason: chunk.choices[0].finish_reason }
+      }
+    }
+  } else {
+    // Non-streaming fallback
+    const content = (completion as any)?.choices?.[0]?.message?.content || ''
+    yield { content }
+    yield { finishReason: 'stop' }
+  }
+}
+
 // ─── Chat Completions ──────────────────────────────────────────────────────
 
 /**
- * Send a chat completion request via Puter.js (FREE)
+ * Send a chat completion request via Puter.js (FREE) or server fallback
  */
 export async function puterChat(config: LLMConfig, messages: LLMMessage[]): Promise<LLMResponse> {
+  // Server-side: use z-ai-web-dev-sdk instead of Puter.js
+  if (!isBrowser()) {
+    return serverSideChat(config, messages)
+  }
+
   const puter = await getPuterClient()
 
   const puterMessages = messages
@@ -95,12 +201,18 @@ export async function puterChat(config: LLMConfig, messages: LLMMessage[]): Prom
 }
 
 /**
- * Stream a chat completion via Puter.js (FREE)
+ * Stream a chat completion via Puter.js (FREE) or server fallback
  */
 export async function* puterChatStream(
   config: LLMConfig,
   messages: LLMMessage[]
 ): AsyncGenerator<LLMStreamChunk> {
+  // Server-side: use z-ai-web-dev-sdk instead of Puter.js
+  if (!isBrowser()) {
+    yield* serverSideStream(config, messages)
+    return
+  }
+
   const puter = await getPuterClient()
 
   const puterMessages = messages
@@ -140,7 +252,6 @@ export async function puterGenerateImage(prompt: string, model: string = 'gpt-im
   const puter = await getPuterClient()
   try {
     const imageElement = await puter.ai.txt2img(prompt, { model })
-    // Return the image src
     return imageElement?.src || imageElement?.toString()
   } catch (error: any) {
     throw new Error(`Puter.js image generation error: ${error.message}`)
@@ -174,6 +285,7 @@ export async function puterSpeechToText(audioBlob: Blob): Promise<string> {
 // ─── List Models ───────────────────────────────────────────────────────────
 
 export async function puterListModels(): Promise<any[]> {
+  if (!isBrowser()) return []
   const puter = await getPuterClient()
   try {
     const models = await puter.ai.listModels()
@@ -253,7 +365,6 @@ function parsePuterResponse(response: any, model: string): LLMResponse {
       content = response.message
     } else if (response.message.content) {
       if (Array.isArray(response.message.content)) {
-        // Anthropic format: [{type: 'text', text: '...'}]
         const textBlocks = response.message.content.filter((b: any) => b.type === 'text')
         content = textBlocks.map((b: any) => b.text).join('')
       } else if (typeof response.message.content === 'string') {

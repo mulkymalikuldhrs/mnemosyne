@@ -6,7 +6,7 @@
 
 **500+ AI Models · Zero API Key · BYOAPI · Built-in Agent · Memory Engine**
 
-[![Version](https://img.shields.io/badge/version-1.0.0-purple.svg)](https://github.com/mulkymalikuldhrs/mnemosyne)
+[![Version](https://img.shields.io/badge/version-2.0.0-purple.svg)](https://github.com/mulkymalikuldhrs/mnemosyne)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://typescriptlang.org)
@@ -288,7 +288,6 @@ mnemosyne exposes a comprehensive REST API for programmatic access. Key endpoint
 | POST | `/api/notes` | Create note + memory storage |
 | GET | `/api/search` | Semantic search |
 | POST | `/api/chat` | Chat with memory context |
-| POST | `/api/mcp/transport` | MCP JSON-RPC 2.0 transport |
 
 > See [API.md](API.md) for the complete API reference.
 
@@ -613,20 +612,6 @@ SOFTWARE.
 
 - Email: mulkymalikudhr@mail.com
 - GitHub: [@mulkymalikuldhrs](https://github.com/mulkymalikuldhrs)
-
----
-
-## Acknowledgments & Inspirations
-
-Mnemosyne v2.0.0 incorporates architectural patterns and implementation ideas from the following open-source projects:
-
-| Project | What We Learned | Implementation |
-|---------|----------------|----------------|
-| **[mem0](https://github.com/mem0ai/mem0)** | V3 additive extraction pipeline (8-phase), hybrid semantic+BM25+entity search, entity linking system, memory payload schema, user/agent/session scoping | `src/lib/memory/pipeline.ts` — Full 8-phase memory pipeline with entity extraction, hash dedup, batch embed, and hybrid search |
-| **[9Drive](https://github.com/mulkymalikuldhrs/9drive)** | Google Drive integration, multi-cloud provider abstraction, encrypted credential storage (AES-256-GCM), smart upload routing (most-space-first), token-based public sharing, virtual folder hierarchy | `src/lib/storage/` — Enhanced multi-cloud storage with provider abstraction, credential encryption, and smart routing |
-| **[Pentaract](https://github.com/mulkymalikuldhrs/Pentaract)** | Actor architecture (MPSC + oneshot channels), chunking system (20MB), storage workers with rate limiting, database-backed sliding window rate limiter, 3-tier RBAC (R/W/A), virtual filesystem | `src/lib/storage/actor.ts` — Actor-based storage I/O with backpressure; `src/lib/rate-limiter-v2.ts` — Sliding window rate limiter with least-loaded scheduling; `src/lib/rbac.ts` — 5-tier RBAC system |
-
-We are grateful to the maintainers and contributors of these projects for their excellent work that helped shape Mnemosyne's architecture.
 
 ---
 

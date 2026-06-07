@@ -241,13 +241,13 @@ function hasAllowOpenFlag(): boolean {
 }
 
 /**
- * Validate the API key from the mnemosyne_API_KEY environment variable
+ * Validate the API key from the MNEMOSYNE_API_KEY environment variable
  * against the ApiKey table in the database.
  *
  * Security behavior:
- * - If mnemosyne_API_KEY is set: validate against the ApiKey table in the database
- * - If mnemosyne_API_KEY is NOT set AND NODE_ENV is "production": REFUSE to start
- * - If mnemosyne_API_KEY is NOT set AND NODE_ENV is not "production": allow open mode
+ * - If MNEMOSYNE_API_KEY is set: validate against the ApiKey table in the database
+ * - If MNEMOSYNE_API_KEY is NOT set AND NODE_ENV is "production": REFUSE to start
+ * - If MNEMOSYNE_API_KEY is NOT set AND NODE_ENV is not "production": allow open mode
  *   with a clear WARNING (requires --allow-open flag for explicit opt-in)
  *
  * - Looks up the key in the database
@@ -256,7 +256,7 @@ function hasAllowOpenFlag(): boolean {
  * - Creates an McpSession record
  */
 async function validateAndAuthenticate(): Promise<boolean> {
-  const apiKey = process.env.mnemosyne_API_KEY;
+  const apiKey = process.env.MNEMOSYNE_API_KEY;
   const isProduction = process.env.NODE_ENV === "production";
   const allowOpen = hasAllowOpenFlag();
 
@@ -264,15 +264,15 @@ async function validateAndAuthenticate(): Promise<boolean> {
   if (!apiKey) {
     // PRODUCTION: Refuse to start without an API key
     if (isProduction) {
-      log("FATAL: mnemosyne_API_KEY is not set and NODE_ENV is 'production'.");
+      log("FATAL: MNEMOSYNE_API_KEY is not set and NODE_ENV is 'production'.");
       log("  The MCP server REFUSES to run in open mode in production.");
-      log("  Set the mnemosyne_API_KEY environment variable to a valid API key.");
+      log("  Set the MNEMOSYNE_API_KEY environment variable to a valid API key.");
       return false;
     }
 
     // DEVELOPMENT: Require --allow-open flag for explicit opt-in
     if (!allowOpen) {
-      log("ERROR: mnemosyne_API_KEY is not set and --allow-open flag is not provided.");
+      log("ERROR: MNEMOSYNE_API_KEY is not set and --allow-open flag is not provided.");
       log("  In development mode, you must explicitly opt in to open (unauthenticated)");
       log("  mode by passing the --allow-open flag:");
       log("    bun run mcp-server/index.ts --allow-open");
@@ -282,7 +282,7 @@ async function validateAndAuthenticate(): Promise<boolean> {
     }
 
     // Open mode with explicit opt-in (development only)
-    log("⚠️  WARNING: Running in OPEN MODE (no mnemosyne_API_KEY set, --allow-open flag provided).");
+    log("⚠️  WARNING: Running in OPEN MODE (no MNEMOSYNE_API_KEY set, --allow-open flag provided).");
     log("  This grants unauthenticated access to the first user's data.");
     log("  NEVER use this in production!");
 
@@ -294,7 +294,7 @@ async function validateAndAuthenticate(): Promise<boolean> {
       log("Running in open mode — using first user");
       return true;
     }
-    log("ERROR: No users in database and no mnemosyne_API_KEY set");
+    log("ERROR: No users in database and no MNEMOSYNE_API_KEY set");
     return false;
   }
 
@@ -305,7 +305,7 @@ async function validateAndAuthenticate(): Promise<boolean> {
   });
 
   if (!keyRecord) {
-    log("ERROR: Invalid mnemosyne_API_KEY — not found in database");
+    log("ERROR: Invalid MNEMOSYNE_API_KEY — not found in database");
     return false;
   }
 
@@ -339,7 +339,7 @@ function requireUserId(): string {
   if (!authenticatedUserId) {
     throw {
       code: RPC_ERROR.AUTH_REQUIRED,
-      message: "Authentication required. Set mnemosyne_API_KEY environment variable.",
+      message: "Authentication required. Set MNEMOSYNE_API_KEY environment variable.",
     };
   }
   return authenticatedUserId;
@@ -1702,11 +1702,11 @@ async function main(): Promise<void> {
   // Validate and authenticate using the API key
   const authSuccess = await validateAndAuthenticate();
   if (!authSuccess) {
-    log("ERROR: Authentication failed. Set mnemosyne_API_KEY to a valid API key from the mnemosyne app.");
+    log("ERROR: Authentication failed. Set MNEMOSYNE_API_KEY to a valid API key from the mnemosyne app.");
     process.exit(1);
   }
 
-  const apiKeyStatus = process.env.mnemosyne_API_KEY
+  const apiKeyStatus = process.env.MNEMOSYNE_API_KEY
     ? "configured (authenticated)"
     : "not set (open mode — using first user)";
   log(`mnemosyne MCP Server starting...`);

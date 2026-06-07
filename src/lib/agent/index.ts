@@ -1,16 +1,17 @@
 /**
- * Mnemosyne v1.0 — AI Agent System
+ * Mnemosyne v2.0 — AI Agent System
  *
  * Built-in AI Agent that can use any LLM from our multi-provider pool,
  * execute tools, manage memory, and interact with all Mnemosyne data.
- * Powered by Puter.js for FREE LLM access.
  *
- * This is the "AI Agent built-in" that the user envisions —
- * a full agent with tool execution, no backend needed.
+ * v2.0 fix: Agent tools now use direct DB calls instead of relative fetch()
+ * to avoid "Invalid URL" crashes when running server-side.
+ * Web search uses z-ai-web-dev-sdk directly instead of HTTP roundtrip.
  */
 
 import type { LLMConfig, LLMMessage, LLMResponse, LLMTool, ToolCall } from '@/lib/llm/providers'
 import { LLMRouter } from '@/lib/llm'
+import db from '@/lib/db'
 
 // ─── Agent Types ───────────────────────────────────────────────────────────
 
@@ -60,7 +61,7 @@ export interface AgentRunResult {
   iterations: number
 }
 
-// ─── Built-in Tools ────────────────────────────────────────────────────────
+// ─── Built-in Tools (Direct DB — No HTTP) ──────────────────────────────────
 
 const MEMORY_SEARCH_TOOL: AgentTool = {
   name: 'memory_search',
@@ -75,14 +76,33 @@ const MEMORY_SEARCH_TOOL: AgentTool = {
   },
   execute: async (args, context) => {
     try {
-      const res = await fetch(`/api/search?q=${encodeURIComponent(args.query)}&limit=${args.limit || 5}`)
-      const data = await res.json()
-      if (data.success && data.data?.results) {
-        return JSON.stringify(data.data.results.map((r: any) => ({
-          id: r.id, title: r.title, snippet: r.content?.slice(0, 200), score: r.score,
-        })))
-      }
-      return 'No results found.'
+      const limit = Math.min(args.limit || 5, 20)
+      const query = args.query?.toLowerCase() || ''
+      const queryTerms = query.split(/\s+/).filter(Boolean)
+
+      // Search notes by keyword matching on title and content
+      const notes = await db.note.findMany({
+        where: {
+          userId: context.userId,
+          isArchived: false,
+          OR: queryTerms.map(term => [
+            { title: { contains: term } },
+            { content: { contains: term } },
+            { tags: { contains: term } },
+          ]).flat(),
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: limit,
+      })
+
+      if (notes.length === 0) return 'No results found.'
+
+      return JSON.stringify(notes.map(n => ({
+        id: n.id,
+        title: n.title,
+        snippet: n.content.slice(0, 200),
+        tags: n.tags,
+      })))
     } catch (err: any) {
       return `Search error: ${err.message}`
     }
@@ -103,17 +123,18 @@ const MEMORY_SAVE_TOOL: AgentTool = {
   },
   execute: async (args, context) => {
     try {
-      const res = await fetch('/api/notes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: args.title, content: args.content, tags: args.tags || '' }),
+      const note = await db.note.create({
+        data: {
+          userId: context.userId,
+          title: args.title,
+          content: args.content,
+          markdown: args.content,
+          tags: args.tags || '',
+        },
       })
-      const data = await res.json()
-      if (data.success && data.data?.note) {
-        context.memoryRefs.push(data.data.note.id)
-        return `Note saved: "${args.title}" (ID: ${data.data.note.id})`
-      }
-      return `Failed to save note: ${data.error || 'Unknown error'}`
+
+      context.memoryRefs.push(note.id)
+      return `Note saved: "${args.title}" (ID: ${note.id})`
     } catch (err: any) {
       return `Save error: ${err.message}`
     }
@@ -135,14 +156,19 @@ const MEMORY_UPDATE_TOOL: AgentTool = {
   },
   execute: async (args, context) => {
     try {
-      const res = await fetch(`/api/notes/${args.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: args.title, content: args.content, tags: args.tags }),
+      // Verify ownership
+      const existing = await db.note.findFirst({
+        where: { id: args.id, userId: context.userId },
       })
-      const data = await res.json()
-      if (data.success) return `Note updated: ${args.id}`
-      return `Failed to update: ${data.error || 'Unknown error'}`
+      if (!existing) return `Note not found or access denied: ${args.id}`
+
+      const data: Record<string, string> = {}
+      if (args.title) data.title = args.title
+      if (args.content) { data.content = args.content; data.markdown = args.content }
+      if (args.tags) data.tags = args.tags
+
+      await db.note.update({ where: { id: args.id }, data })
+      return `Note updated: ${args.id}`
     } catch (err: any) {
       return `Update error: ${err.message}`
     }
@@ -161,10 +187,14 @@ const MEMORY_DELETE_TOOL: AgentTool = {
   },
   execute: async (args, context) => {
     try {
-      const res = await fetch(`/api/notes/${args.id}`, { method: 'DELETE' })
-      const data = await res.json()
-      if (data.success) return `Note deleted: ${args.id}`
-      return `Failed to delete: ${data.error || 'Unknown error'}`
+      // Verify ownership before delete
+      const existing = await db.note.findFirst({
+        where: { id: args.id, userId: context.userId },
+      })
+      if (!existing) return `Note not found or access denied: ${args.id}`
+
+      await db.note.delete({ where: { id: args.id } })
+      return `Note deleted: ${args.id}`
     } catch (err: any) {
       return `Delete error: ${err.message}`
     }
@@ -183,12 +213,41 @@ const MEMORY_INSIGHTS_TOOL: AgentTool = {
   },
   execute: async (args, context) => {
     try {
-      const endpoint = args.type === 'patterns' ? '/api/memory/patterns' :
-                        args.type === 'temporal' ? '/api/graph/temporal' :
-                        '/api/memory'
-      const res = await fetch(endpoint)
-      const data = await res.json()
-      return JSON.stringify(data.data || data)
+      if (args.type === 'patterns') {
+        // Analyze tag patterns
+        const notes = await db.note.findMany({
+          where: { userId: context.userId, isArchived: false },
+          select: { tags: true, title: true },
+          take: 100,
+        })
+
+        const tagFreq: Record<string, number> = {}
+        for (const note of notes) {
+          if (!note.tags) continue
+          for (const tag of note.tags.split(',').map(t => t.trim()).filter(Boolean)) {
+            tagFreq[tag] = (tagFreq[tag] || 0) + 1
+          }
+        }
+
+        const topTags = Object.entries(tagFreq)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10)
+
+        return JSON.stringify({
+          totalNotes: notes.length,
+          topTags: topTags.map(([tag, count]) => ({ tag, count })),
+        })
+      }
+
+      // Default: list recent memories
+      const recentNotes = await db.note.findMany({
+        where: { userId: context.userId, isArchived: false },
+        orderBy: { updatedAt: 'desc' },
+        take: 10,
+        select: { id: true, title: true, tags: true, updatedAt: true },
+      })
+
+      return JSON.stringify(recentNotes)
     } catch (err: any) {
       return `Insights error: ${err.message}`
     }
@@ -206,16 +265,18 @@ const WEB_SEARCH_TOOL: AgentTool = {
     },
     required: ['query'],
   },
-  execute: async (args, context) => {
+  execute: async (args, _context) => {
     try {
-      const res = await fetch('/api/llm/web-search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: args.query, num: args.num || 5 }),
+      // Use z-ai-web-dev-sdk directly instead of HTTP roundtrip
+      const ZAI = (await import('z-ai-web-dev-sdk')).default
+      const zai = await ZAI.create()
+      const results = await zai.functions.invoke('web_search', {
+        query: args.query,
+        num: args.num || 5,
       })
-      const data = await res.json()
-      if (data.success && data.data?.results) {
-        return JSON.stringify(data.data.results.map((r: any) => ({
+
+      if (Array.isArray(results) && results.length > 0) {
+        return JSON.stringify(results.map((r: any) => ({
           title: r.name, url: r.url, snippet: r.snippet,
         })))
       }
@@ -241,14 +302,16 @@ const DECISION_TRACK_TOOL: AgentTool = {
   },
   execute: async (args, context) => {
     try {
-      const res = await fetch('/api/decisions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(args),
+      const decision = await db.decision.create({
+        data: {
+          userId: context.userId,
+          title: args.title,
+          context: args.context,
+          decision: args.decision,
+          reasoning: args.reasoning || '',
+        },
       })
-      const data = await res.json()
-      if (data.success) return `Decision tracked: "${args.title}"`
-      return `Failed: ${data.error || 'Unknown error'}`
+      return `Decision tracked: "${args.title}" (ID: ${decision.id})`
     } catch (err: any) {
       return `Decision track error: ${err.message}`
     }
