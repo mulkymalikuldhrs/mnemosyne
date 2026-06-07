@@ -1,8 +1,8 @@
 {
   "name": "@memorix/memory",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "private": false,
-  "description": "Memorix v3 — Universal AI/Human Memory Hub. Semantic memory, RAG, MCP, multi-cloud storage, email, temporal knowledge graph, PWA. SaaS/IaaS ready.",
+  "description": "Memorix v4 — The Biggest Free Multi-LLM Hub. 500+ models via Puter.js (FREE), BYOK, AI Agent with tool execution, semantic memory, RAG, MCP, multi-cloud storage, SaaS/IaaS ready. No backend needed.",
   "author": "Mulky Malikul Dhaher <mulkymalikuldhaher@email.com>",
   "license": "MIT",
   "homepage": "https://github.com/mulkymalikuldhrs/memorix#readme",
@@ -59,6 +59,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@heyputer/puter.js": "^2.5.1",
     "@hookform/resolvers": "^5.1.1",
     "@prisma/client": "^6.11.1",
     "@radix-ui/react-accordion": "^1.2.12",

@@ -8,7 +8,7 @@ const agentCreateSchema = z.object({
   name: z.string().min(1).max(200),
   description: z.string().max(2000).optional(),
   systemPrompt: z.string().max(10000).optional(),
-  capabilities: z.record(z.unknown()).optional(),
+  capabilities: z.record(z.string(), z.unknown()).optional(),
   mcpEnabled: z.boolean().optional(),
 })
 

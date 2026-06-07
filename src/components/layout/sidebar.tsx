@@ -24,6 +24,10 @@ import {
   Puzzle,
   History,
   Bot,
+  Sparkles,
+  Wrench,
+  Globe,
+  Zap,
 } from 'lucide-react'
 import { useUIStore, useNotesStore, useFavoritesStore, type ActiveSection } from '@/lib/store'
 import { api } from '@/lib/api'
@@ -36,23 +40,31 @@ import {
 } from '@/components/ui/tooltip'
 import { Separator } from '@/components/ui/separator'
 
-const navItems: { icon: React.ElementType; label: string; section: ActiveSection }[] = [
+const navItems: { icon: React.ElementType; label: string; section: ActiveSection; badge?: string }[] = [
   { icon: LayoutDashboard, label: 'Dashboard', section: 'dashboard' },
+  // ─── AI/LLM Hub (v4.0) ───
+  { icon: Sparkles, label: 'LLM Marketplace', section: 'llm-marketplace', badge: 'NEW' },
+  { icon: Bot, label: 'Agent Chat', section: 'agent-chat', badge: 'FREE' },
+  { icon: Globe, label: 'API Hub', section: 'api-hub', badge: 'NEW' },
+  // ─── Core ───
   { icon: FileText, label: 'Notes', section: 'notes' },
   { icon: MessageSquare, label: 'Chat', section: 'chat' },
   { icon: Search, label: 'Search', section: 'search' },
   { icon: Network, label: 'Knowledge Graph', section: 'graph' },
+  // ─── Productivity ───
   { icon: Calendar, label: 'Daily Notes', section: 'daily' },
   { icon: LayoutGrid, label: 'Canvas', section: 'canvas' },
   { icon: FileCode2, label: 'Templates', section: 'templates' },
+  { icon: GitBranch, label: 'Decisions', section: 'decisions' },
+  // ─── Integrations ───
   { icon: Cloud, label: 'Storage', section: 'storage' },
   { icon: Mail, label: 'Email', section: 'email' },
   { icon: Puzzle, label: 'Integrations', section: 'integrations' },
   { icon: History, label: 'Temporal Graph', section: 'temporal' },
-  { icon: Bot, label: 'Agents', section: 'agents' },
-  { icon: GitBranch, label: 'Decisions', section: 'decisions' },
-  { icon: Settings, label: 'Settings', section: 'settings' },
+  { icon: Bot, label: 'Agent Profiles', section: 'agents' },
+  // ─── System ───
   { icon: Plug, label: 'MCP Server', section: 'mcp' },
+  { icon: Settings, label: 'Settings', section: 'settings' },
 ]
 
 export function Sidebar() {
@@ -127,6 +139,12 @@ export function Sidebar() {
               onClick={() => setActiveSection(item.section)}
             >
               <Icon className={cn('w-[18px] h-[18px] shrink-0', isActive && 'text-primary')} />
+              {item.badge && (
+                <span className={cn(
+                  'text-[7px] font-bold px-1 py-0.5 rounded-full leading-none',
+                  item.badge === 'FREE' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-primary/10 text-primary'
+                )}>{item.badge}</span>
+              )}
               <AnimatePresence>
                 {!sidebarCollapsed && (
                   <motion.span

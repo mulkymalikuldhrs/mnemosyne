@@ -21,7 +21,7 @@ const addAccountSchema = z.object({
     { message: `Invalid provider. Must be one of: ${VALID_PROVIDERS.join(', ')}` }
   ),
   name: z.string().min(1, 'Account name is required').max(100, 'Account name too long'),
-  credentials: z.record(z.unknown()).refine(
+  credentials: z.record(z.string(), z.unknown()).refine(
     (val) => Object.keys(val).length > 0,
     { message: 'Credentials object must not be empty' }
   ),
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
         userId,
         provider,
         name,
-        credentials as StorageCredentials,
+        credentials as unknown as StorageCredentials,
         folderPath ?? '/'
       )
 

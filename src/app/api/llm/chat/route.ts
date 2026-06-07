@@ -1,166 +1,103 @@
-// ============================================================
-// MEMORIX — LLM Chat Stream API Route
-// POST /api/llm/chat — Streaming & non-streaming chat with AI
-// Uses z-ai-web-dev-sdk with memory context injection
-// ============================================================
-
+/**
+ * POST /api/llm/chat — Universal Chat API
+ *
+ * The middle-provider API that routes to Puter.js (free) or BYOK.
+ * This is the "API for everybody" — can be called from anywhere.
+ * No backend needed because Puter.js handles auth client-side.
+ *
+ * Request body:
+ *   model: string (e.g., "openai/gpt-5.4-nano")
+ *   messages: { role, content }[]
+ *   temperature?: number
+ *   maxTokens?: number
+ *   stream?: boolean
+ *   tools?: LLMTool[]
+ *   apiKey?: string (for BYOK)
+ *   provider?: string
+ */
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { chatWithMemory, type ChatMessage } from '@/ai/llm'
-import { validateApiKey } from '@/lib/auth'
-import { authOptions } from '@/lib/auth'
+import { LLMRouter } from '@/lib/llm'
+import { getModelById } from '@/lib/llm/providers'
 
-// --- Request/Response Types ---
-
-interface ChatRequestBody {
-  messages: ChatMessage[]
-  conversationId?: string
-  stream?: boolean
-}
-
-// ============================================================
-// POST: Chat endpoint with memory context
-// ============================================================
-
-export async function POST(request: NextRequest) {
-  // Authentication: Try session first, then API key
-  let userId: string | null = null
-
-  const session = await getServerSession(authOptions)
-  if (session?.user?.id) {
-    userId = session.user.id
-  } else {
-    // Try API key authentication
-    const authHeader = request.headers.get('authorization')
-    const apiKey = authHeader?.replace('Bearer ', '') || request.headers.get('x-api-key')
-
-    if (apiKey) {
-      userId = await validateApiKey(apiKey as string)
-    }
-  }
-
-  if (!userId) {
-    return NextResponse.json(
-      { success: false, error: 'Authentication required' },
-      { status: 401 }
-    )
-  }
-
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json() as ChatRequestBody
+    const body = await req.json()
+    const { model, messages, temperature, maxTokens, stream, tools, apiKey, provider } = body
 
-    // Validate required fields
-    if (!body.messages || !Array.isArray(body.messages) || body.messages.length === 0) {
+    if (!model) {
       return NextResponse.json(
-        { success: false, error: 'messages array is required and must not be empty' },
+        { success: false, error: 'Model is required' },
         { status: 400 }
       )
     }
 
-    // Validate message format
-    for (const msg of body.messages) {
-      if (!msg.role || !msg.content) {
-        return NextResponse.json(
-          { success: false, error: 'Each message must have role and content' },
-          { status: 400 }
-        )
-      }
-      if (!['system', 'user', 'assistant'].includes(msg.role)) {
-        return NextResponse.json(
-          { success: false, error: `Invalid message role: ${msg.role}` },
-          { status: 400 }
-        )
-      }
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Messages array is required' },
+        { status: 400 }
+      )
     }
 
-    // --- Streaming Response ---
-    if (body.stream) {
-      return handleStreamResponse(body.messages, userId, body.conversationId)
+    const modelInfo = getModelById(model)
+    const resolvedProvider = provider || modelInfo?.provider || 'puter'
+
+    const config = {
+      provider: resolvedProvider as any,
+      model,
+      temperature: temperature ?? 0.7,
+      maxTokens: maxTokens || 2048,
+      stream: false,
+      tools,
+      apiKey,
     }
 
-    // --- Non-Streaming Response ---
-    const result = await chatWithMemory(body.messages, userId, body.conversationId)
+    // For streaming, return a streaming response
+    if (stream) {
+      const encoder = new TextEncoder()
+      const stream = new ReadableStream({
+        async start(controller) {
+          try {
+            for await (const chunk of LLMRouter.stream(config, messages)) {
+              const data = JSON.stringify(chunk)
+              controller.enqueue(encoder.encode(`data: ${data}\n\n`))
+            }
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'))
+            controller.close()
+          } catch (error: any) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: error.message })}\n\n`))
+            controller.close()
+          }
+        },
+      })
+
+      return new Response(stream, {
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      })
+    }
+
+    // Non-streaming
+    const response = await LLMRouter.chat(config, messages)
 
     return NextResponse.json({
       success: true,
       data: {
-        content: result.content,
-        memoryRefs: result.memoryRefs,
-        tokenUsage: result.tokenUsage,
+        content: response.content,
+        model: response.model,
+        provider: response.provider,
+        toolCalls: response.toolCalls,
+        usage: response.usage,
+        finishReason: response.finishReason,
       },
     })
-  } catch (error) {
+  } catch (error: any) {
+    console.error('LLM chat error:', error)
     return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Chat request failed',
-      },
+      { success: false, error: error.message || 'Internal server error' },
       { status: 500 }
     )
   }
-}
-
-// ============================================================
-// Streaming Response Handler
-// ============================================================
-
-async function handleStreamResponse(
-  messages: ChatMessage[],
-  userId: string,
-  conversationId?: string
-): Promise<NextResponse> {
-  const { chatWithMemory } = await import('@/ai/llm')
-
-  // For streaming, we first get the full response then stream it
-  // This is because the z-ai-web-dev-sdk doesn't support streaming directly
-  const encoder = new TextEncoder()
-
-  const stream = new ReadableStream({
-    async start(controller) {
-      try {
-        const result = await chatWithMemory(messages, userId, conversationId)
-
-        // Stream the content word by word for a typing effect
-        const words = result.content.split(' ')
-        for (let i = 0; i < words.length; i++) {
-          const chunk = {
-            type: 'content',
-            content: i === 0 ? words[i] : ' ' + words[i],
-            memoryRefs: i === words.length - 1 ? result.memoryRefs : undefined,
-          }
-          const sseData = `event: content\ndata: ${JSON.stringify(chunk)}\n\n`
-          controller.enqueue(encoder.encode(sseData))
-
-          // Small delay for typing effect
-          await new Promise((resolve) => setTimeout(resolve, 20))
-        }
-
-        // Send final done event with metadata
-        const doneData = {
-          type: 'done',
-          tokenUsage: result.tokenUsage,
-          memoryRefs: result.memoryRefs,
-        }
-        controller.enqueue(encoder.encode(`event: done\ndata: ${JSON.stringify(doneData)}\n\n`))
-      } catch (error) {
-        const errorData = {
-          type: 'error',
-          error: error instanceof Error ? error.message : 'Stream failed',
-        }
-        controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify(errorData)}\n\n`))
-      } finally {
-        controller.close()
-      }
-    },
-  })
-
-  return new NextResponse(stream, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache, no-transform',
-      Connection: 'keep-alive',
-      'X-Accel-Buffering': 'no',
-    },
-  })
 }

@@ -110,8 +110,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const results = []
-    const errors = []
+    const results: Array<{ accountId: string; provider: string; email: string; synced: number; errors: number; cursor: string }> = []
+    const errors: Array<{ accountId: string; email: string; error: string }> = []
 
     for (const account of accounts) {
       try {

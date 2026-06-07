@@ -160,7 +160,7 @@ export class EmailManager {
 
     if (!account) {
       throw new EmailProviderError(
-        account?.provider as EmailProvider ?? 'gmail',
+        'gmail' as EmailProvider,
         'CONFIGURATION_ERROR',
         `Email account not found: ${emailAccountId}`
       )
@@ -340,7 +340,7 @@ export class EmailManager {
     const accounts = await db.emailAccount.findMany({
       where: { userId },
       include: {
-        emailMessages: {
+        messages: {
           where: {
             OR: [
               { subject: { contains: query } },
@@ -358,7 +358,7 @@ export class EmailManager {
     const results: EmailMessage[] = []
 
     for (const account of accounts) {
-      for (const msg of account.emailMessages) {
+      for (const msg of account.messages) {
         results.push({
           id: msg.id,
           messageId: msg.messageId,
@@ -526,6 +526,7 @@ ${options?.customPrompt ?? ''}`
     const account = await db.emailAccount.create({
       data: {
         userId,
+        email: config.emailAddress,
         provider: config.provider,
         emailAddress: config.emailAddress,
         displayName: config.displayName ?? '',
@@ -608,9 +609,9 @@ ${options?.customPrompt ?? ''}`
     accessToken: string
     refreshToken: string
     imapHost: string | null
-    imapPort: number
+    imapPort: number | null
     smtpHost: string | null
-    smtpPort: number
+    smtpPort: number | null
   }): EmailAccountConfig {
     const config: EmailAccountConfig = {
       provider: account.provider as EmailProvider,
@@ -622,11 +623,11 @@ ${options?.customPrompt ?? ''}`
 
     if (account.imapHost) {
       config.imapHost = account.imapHost
-      config.imapPort = account.imapPort
+      config.imapPort = account.imapPort ?? undefined
     }
     if (account.smtpHost) {
       config.smtpHost = account.smtpHost
-      config.smtpPort = account.smtpPort
+      config.smtpPort = account.smtpPort ?? undefined
     }
 
     return config
@@ -638,7 +639,8 @@ ${options?.customPrompt ?? ''}`
    */
   private async upsertEmailMessage(
     emailAccountId: string,
-    message: EmailMessage
+    message: EmailMessage,
+    userId?: string
   ): Promise<void> {
     await db.emailMessage.upsert({
       where: {
@@ -648,8 +650,11 @@ ${options?.customPrompt ?? ''}`
         },
       },
       create: {
+        userId: userId ?? '',
         emailAccountId,
         messageId: message.messageId,
+        fromAddr: message.from.address,
+        toAddr: message.to[0]?.address ?? '',
         fromAddress: message.from.address,
         fromName: message.from.name ?? '',
         toAddresses: JSON.stringify(
@@ -665,6 +670,8 @@ ${options?.customPrompt ?? ''}`
         snippet: message.bodyText.slice(0, 200),
       },
       update: {
+        fromAddr: message.from.address,
+        toAddr: message.to[0]?.address ?? '',
         fromAddress: message.from.address,
         fromName: message.from.name ?? '',
         subject: message.subject,

@@ -55,7 +55,7 @@ export interface MemoryInsight {
   weeklyGrowth: { week: string; notes: number }[]
 }
 
-export type ActiveSection = 'dashboard' | 'notes' | 'chat' | 'search' | 'decisions' | 'settings' | 'mcp' | 'graph' | 'daily' | 'canvas' | 'templates' | 'storage' | 'email' | 'integrations' | 'temporal' | 'agents'
+export type ActiveSection = 'dashboard' | 'notes' | 'chat' | 'search' | 'decisions' | 'settings' | 'mcp' | 'graph' | 'daily' | 'canvas' | 'templates' | 'storage' | 'email' | 'integrations' | 'temporal' | 'agents' | 'llm-marketplace' | 'agent-chat' | 'api-hub'
 
 // ─── UI Store ────────────────────────────────────────────────────────────────
 

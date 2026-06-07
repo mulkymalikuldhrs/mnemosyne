@@ -105,6 +105,8 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { useUIStore, useNotesStore, useDecisionsStore } from '@/lib/store'
+import { LLMMarketplace } from '@/components/llm/marketplace'
+import { AgentChatPanel } from '@/components/llm/agent-chat'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow } from 'date-fns'
@@ -236,8 +238,8 @@ function DashboardView() {
               <Brain className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold">Welcome to Memorix v3</h1>
-              <p className="text-sm text-muted-foreground">Universal AI/Human Memory Hub — storage, email, integrations & more</p>
+              <h1 className="text-xl md:text-2xl font-bold">Welcome to Memorix v4</h1>
+              <p className="text-sm text-muted-foreground">The Biggest Free Multi-LLM Hub — Memory, AI Agent, BYOK, SaaS/IaaS Ready</p>
             </div>
           </div>
           <p className="text-sm text-muted-foreground max-w-lg leading-relaxed">
@@ -2476,6 +2478,144 @@ function CompactSidebarToggle() {
   )
 }
 
+// ─── v4.0 — API Hub View ───────────────────────────────────────────────────
+
+function ApiHubView() {
+  const { setActiveSection } = useUIStore()
+
+  return (
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 max-w-5xl mx-auto">
+      <div>
+        <h1 className="text-xl font-bold flex items-center gap-2">
+          <Globe className="w-5 h-5 text-primary" />
+          API Hub
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Memorix as a middle provider — API for everybody, no backend needed. SaaS/IaaS ready.
+        </p>
+      </div>
+
+      <Card className="border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-transparent">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+              <Zap className="w-5 h-5 text-emerald-500" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-emerald-500">Bring Your Own Key + Free Tier</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Memorix wraps 500+ LLM models into a single unified API. Users can use Puter.js for FREE (no API key needed)
+                or bring their own API keys for premium models. Your app, your choice. No backend required.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-4">
+        {[
+          {
+            method: 'POST',
+            endpoint: '/api/llm/chat',
+            title: 'Universal Chat API',
+            desc: 'Send messages to any LLM model. Auto-routes to Puter.js (free) or BYOK. Supports streaming, tool calling, and multi-turn conversations.',
+            body: `{
+  "model": "openai/gpt-5.4-nano",
+  "messages": [{ "role": "user", "content": "Hello!" }],
+  "stream": false,
+  "tools": [...]
+}`,
+          },
+          {
+            method: 'POST',
+            endpoint: '/api/llm/agent',
+            title: 'AI Agent API',
+            desc: 'Run the built-in AI agent with automatic tool execution. The agent can search memories, save notes, track decisions, and search the web. Zero setup required.',
+            body: `{
+  "message": "What do I know about machine learning?",
+  "userId": "user-id",
+  "model": "openai/gpt-5.4-nano"
+}`,
+          },
+          {
+            method: 'POST',
+            endpoint: '/api/llm/compare',
+            title: 'Multi-Model Comparison',
+            desc: 'Run the same prompt across multiple models simultaneously. Compare responses side-by-side from GPT, Claude, Gemini, DeepSeek, and more.',
+            body: `{
+  "prompt": "Explain quantum computing",
+  "models": ["openai/gpt-5.4-nano", "anthropic/claude-sonnet-4-6", "google/gemini-3.1-flash-lite"]
+}`,
+          },
+          {
+            method: 'GET',
+            endpoint: '/api/llm/models',
+            title: 'List Available Models',
+            desc: 'Get the full model registry including free models, BYOK models, capabilities, context windows, and pricing info.',
+            body: null,
+          },
+          {
+            method: 'POST',
+            endpoint: '/api/llm/web-search',
+            title: 'Web Search API',
+            desc: 'Search the web for current information. Used by the AI agent internally, also available as a standalone API.',
+            body: `{
+  "query": "latest AI news",
+  "num": 10
+}`,
+          },
+        ].map((api, i) => (
+          <motion.div
+            key={api.endpoint}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+          >
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3 mb-3">
+                  <Badge className={cn(
+                    'text-[9px] h-5 font-mono',
+                    api.method === 'GET' ? 'bg-blue-500/10 text-blue-500' : 'bg-emerald-500/10 text-emerald-500'
+                  )}>
+                    {api.method}
+                  </Badge>
+                  <div>
+                    <p className="text-sm font-semibold">{api.title}</p>
+                    <code className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded">{api.endpoint}</code>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mb-2">{api.desc}</p>
+                {api.body && (
+                  <pre className="text-[10px] bg-muted/50 p-2 rounded-md overflow-x-auto">
+                    <code>{api.body}</code>
+                  </pre>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      <Card>
+        <CardContent className="p-4">
+          <p className="text-sm font-semibold mb-2">Quick Actions</p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => setActiveSection('llm-marketplace')}>
+              <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+              Browse Models
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setActiveSection('agent-chat')}>
+              <Bot className="w-3.5 h-3.5 mr-1.5" />
+              Try Agent Chat
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
 // ─── Main Page ───────────────────────────────────────────────────────────────
 
 export default function HomePage() {
@@ -2515,6 +2655,13 @@ export default function HomePage() {
         return <SettingsView />
       case 'mcp':
         return <McpServerView />
+      // ─── v4.0 — Multi-LLM Hub ───
+      case 'llm-marketplace':
+        return <LLMMarketplace />
+      case 'agent-chat':
+        return <AgentChatPanel />
+      case 'api-hub':
+        return <ApiHubView />
       default:
         return <DashboardView />
     }

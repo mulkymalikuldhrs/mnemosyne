@@ -7,7 +7,7 @@ import { z } from 'zod'
 const relationCreateSchema = z.object({
   targetEntityId: z.string().min(1),
   relationType: z.string().min(1).max(200),
-  properties: z.record(z.unknown()).optional(),
+  properties: z.record(z.string(), z.unknown()).optional(),
   validFrom: z.string().datetime().optional().nullable(),
   validTo: z.string().datetime().optional().nullable(),
   confidence: z.number().min(0).max(1).optional(),
