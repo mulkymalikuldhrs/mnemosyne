@@ -1,12 +1,12 @@
 <div align="center">
 
-# 🧠 mnemosyne
+# 🧠 Mnemosyne
 
-### The Biggest Free Multi-LLM Hub
+### The Biggest Free Multi-LLM Hub & AI Agent Memory Center
 
-**500+ AI Models · Zero API Key · Bring Your Own Key · Built-in Agent**
+**500+ AI Models · Zero API Key · BYOAPI · Built-in Agent · Memory Engine**
 
-[![Version](https://img.shields.io/badge/version-4.0.0-purple.svg)](https://github.com/mulkymalikuldhrs/mnemosyne)
+[![Version](https://img.shields.io/badge/version-1.0.0-purple.svg)](https://github.com/mulkymalikuldhrs/mnemosyne)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://typescriptlang.org)
@@ -46,7 +46,7 @@ Mnemosyne is the world's biggest free multi-LLM hub — a single platform that g
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                     mnemosyne v4.0 — Multi-LLM Hub                     │
+│                     Mnemosyne v1.0 — Multi-LLM Hub                     │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                      │
 │  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐            │
@@ -377,8 +377,15 @@ mnemosyne/
 │   │   │   └── byok-provider.ts     # BYOK integration (7 providers)
 │   │   ├── agent/                   # AI Agent System
 │   │   │   └── index.ts             # AgentEngine + 7 built-in tools
+│   │   ├── memory/                  # Memory Engine (inspired by mem0)
+│   │   │   └── index.ts             # V3 Additive Extraction + Hybrid Search
+│   │   ├── crypto/                  # Crypto Utilities (inspired by 9Drive)
+│   │   │   └── index.ts             # AES-256-GCM, token hashing, password utils
+│   │   ├── auth/                    # Auth Token System (inspired by 9Drive)
+│   │   │   └── tokens.ts            # Auth handoff, preview tokens, share tokens
 │   │   ├── storage/                 # Multi-Cloud Storage
 │   │   │   ├── index.ts             # StorageManager (orchestrator)
+│   │   │   ├── chunking.ts          # File chunking engine (inspired by Pentaract)
 │   │   │   ├── google-drive.ts      # Google Drive provider
 │   │   │   ├── terabox.ts           # TeraBox provider
 │   │   │   ├── s3-compatible.ts     # S3-compatible provider
@@ -395,6 +402,7 @@ mnemosyne/
 │   │   ├── store.ts                 # Zustand stores
 │   │   ├── api-utils.ts             # Shared API response helpers
 │   │   ├── rate-limit.ts            # In-memory rate limiter
+│   │   ├── rate-limiter.ts          # Sliding window rate limiter (inspired by Pentaract)
 │   │   ├── error-reporter.ts        # Structured error reporting
 │   │   ├── query-client.ts          # TanStack Query client
 │   │   ├── ai-memory.ts             # AI memory service
@@ -543,6 +551,29 @@ We welcome contributions! Here's how to get started:
 - Write descriptive commit messages
 - Test your changes before pushing
 - Keep PRs focused on a single concern
+
+---
+
+## Acknowledgements & Inspirations
+
+Mnemosyne stands on the shoulders of giants. The following open-source projects directly inspired key architectural decisions and implementations:
+
+| Project | What We Adapted | Link |
+|---------|----------------|------|
+| **9Drive** | Auth handoff token pattern (3-step OAuth without URL token leakage), AES-256-GCM crypto utilities, Zod-validated env config, streaming upload proxy, smart storage routing, preview/share token system, virtual folder organization | [github.com/mulkymalikuldhrs/9drive](https://github.com/mulkymalikuldhrs/9drive) |
+| **Pentaract** | File chunking engine (20MB parallel upload/download with positional reassembly), storage worker abstraction pattern, DB-based rate limiting with least-loaded selection, virtual filesystem with path-based organization, RBAC access control (R/W/A) | [github.com/mulkymalikuldhrs/Pentaract](https://github.com/mulkymalikuldhrs/Pentaract) |
+| **Mem0** | V3 Additive Extraction Pipeline (single LLM call → batch embed → hash dedup → batch persist), multi-signal hybrid search (semantic + BM25 + entity boost), entity store with linked memories, memory history/event sourcing, UUID→integer anti-hallucination pattern, session scope for message context | [github.com/mem0ai/mem0](https://github.com/mem0ai/mem0) |
+
+### Specific Implementations Derived From These Projects
+
+| Mnemosyne Module | Source | Pattern |
+|-----------------|--------|---------|
+| `src/lib/crypto/` | 9Drive | AES-256-GCM encrypt/decrypt, randomToken, hashToken, verifyToken |
+| `src/lib/auth/tokens.ts` | 9Drive | Auth handoff (one-time token exchange), preview tokens, share tokens |
+| `src/lib/env.ts` | 9Drive | Zod-validated env config with production safety checks |
+| `src/lib/storage/chunking.ts` | Pentaract | 20MB chunk splitting, parallel upload/download, positional reassembly |
+| `src/lib/rate-limiter.ts` | Pentaract | Sliding window rate limiter with least-loaded key selection |
+| `src/lib/memory/index.ts` | Mem0 | V3 Memory Engine: additive extraction, hybrid search, entity linking, history |
 
 ---
 
