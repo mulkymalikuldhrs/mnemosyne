@@ -166,9 +166,12 @@ export class EmailManager {
       )
     }
 
+    // Use non-null assertion since we checked above
+    const existingAccount = account
+
     // Check if a sync is already in progress
-    if (account.isSyncing) {
-      return { synced: 0, errors: 0, cursor: account.syncCursor }
+    if (existingAccount.isSyncing) {
+      return { synced: 0, errors: 0, cursor: existingAccount.syncCursor }
     }
 
     // Mark as syncing
@@ -182,16 +185,26 @@ export class EmailManager {
 
     try {
       const provider = await this.getProvider(
-        account.provider as EmailProvider,
+        existingAccount.provider as EmailProvider,
         emailAccountId,
-        this.buildConfigFromAccount(account)
+        this.buildConfigFromAccount({
+          provider: existingAccount.provider,
+          emailAddress: existingAccount.emailAddress || existingAccount.email,
+          displayName: existingAccount.displayName,
+          accessToken: existingAccount.accessToken,
+          refreshToken: existingAccount.refreshToken,
+          imapHost: existingAccount.imapHost,
+          imapPort: existingAccount.imapPort,
+          smtpHost: existingAccount.smtpHost,
+          smtpPort: existingAccount.smtpPort,
+        })
       )
 
       let synced = 0
       let errors = 0
-      let nextPageToken: string | null = account.syncCursor || null
+      let nextPageToken: string | null = existingAccount.syncCursor || null
       let totalSynced = 0
-      let newCursor = account.syncCursor
+      let newCursor = existingAccount.syncCursor
 
       // Sync messages in batches
       while (totalSynced < SYNC_MAX_MESSAGES) {

@@ -7,7 +7,7 @@ import { z } from 'zod'
 const integrationCreateSchema = z.object({
   provider: z.enum(['composio', 'mcp_client', 'custom']),
   name: z.string().min(1).max(200),
-  config: z.record(z.string(), z.unknown()).optional(),
+  config: z.record(z.string(), z.any()).optional(),
   isEnabled: z.boolean().optional(),
 })
 

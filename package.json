@@ -1,6 +1,6 @@
 {
   "name": "@mnemosyne/memory",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": false,
   "description": "Mnemosyne — The Biggest Free Multi-LLM Hub & AI Agent Memory Center. 500+ models via Puter.js (FREE), BYOAPI, AI Agent with tool execution, semantic memory, RAG, MCP, multi-cloud storage, SaaS/IaaS ready. No backend needed.",
   "author": "Mulky Malikul Dhaher <mulkymalikuldhaher@email.com>",

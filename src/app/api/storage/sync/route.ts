@@ -43,10 +43,10 @@ export async function GET(request: NextRequest) {
         provider: account.provider,
         name: account.name,
         isEnabled: account.isEnabled,
-        lastSyncedAt: account.lastSyncedAt?.toISOString() ?? null,
+        lastSyncedAt: account.lastSyncedAt?.toISOString() || null,
         totalFiles: account._count.files,
         isSyncing: activeSync != null && activeSync.status === 'syncing',
-        syncStartedAt: activeSync?.startedAt ?? null,
+        syncStartedAt: activeSync?.startedAt ?? null as string | null,
       }
     })
 

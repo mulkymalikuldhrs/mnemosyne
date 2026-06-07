@@ -6,7 +6,7 @@ import { z } from 'zod'
 
 const integrationUpdateSchema = z.object({
   name: z.string().min(1).max(200).optional(),
-  config: z.record(z.string(), z.unknown()).optional(),
+  config: z.record(z.string(), z.any()).optional(),
   isEnabled: z.boolean().optional(),
 })
 

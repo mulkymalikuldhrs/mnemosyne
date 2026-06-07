@@ -8,7 +8,7 @@ const entityCreateSchema = z.object({
   name: z.string().min(1).max(300),
   type: z.enum(['person', 'project', 'concept', 'topic', 'organization', 'tool', 'event']),
   description: z.string().max(5000).optional(),
-  properties: z.record(z.string(), z.unknown()).optional(),
+  properties: z.record(z.string(), z.any()).optional(),
   validFrom: z.string().datetime().optional().nullable(),
   validTo: z.string().datetime().optional().nullable(),
   confidence: z.number().min(0).max(1).optional(),

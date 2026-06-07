@@ -110,8 +110,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const results: Array<{ accountId: string; provider: string; email: string; synced: number; errors: number; cursor: string }> = []
-    const errors: Array<{ accountId: string; email: string; error: string }> = []
+    interface SyncResult { accountId: string; provider: string; email: string; synced: number; errors: number; cursor: string }
+    interface SyncError { accountId: string; email: string; error: string }
+
+    const results: SyncResult[] = []
+    const syncErrors: SyncError[] = []
 
     for (const account of accounts) {
       try {
@@ -127,7 +130,7 @@ export async function POST(request: NextRequest) {
       } catch (syncError) {
         const message =
           syncError instanceof Error ? syncError.message : 'Sync failed'
-        errors.push({
+        syncErrors.push({
           accountId: account.id,
           email: account.email,
           error: message,
@@ -136,13 +139,13 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      success: errors.length === 0,
+      success: syncErrors.length === 0,
       data: {
         results,
-        errors,
+        errors: syncErrors,
         totalAccounts: accounts.length,
         syncedAccounts: results.length,
-        failedAccounts: errors.length,
+        failedAccounts: syncErrors.length,
       },
     })
   } catch (error) {
