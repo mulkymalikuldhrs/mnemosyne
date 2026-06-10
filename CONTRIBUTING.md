@@ -1,198 +1,133 @@
-# Contributing to mnemosyne AI Memory
+# Contributing to Our Projects
 
-Thank you for your interest in contributing to **Mnemosyne** — The Biggest Free Multi-LLM Hub! We welcome contributions from developers, AI enthusiasts, researchers, and anyone passionate about making LLM access free and universal.
+First off, **thank you** for considering contributing! Every contribution matters — whether it's fixing a typo, adding a feature, improving docs, or just reporting a bug.
 
-## Table of Contents
+## Quick Start for New Contributors
 
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [How to Contribute](#how-to-contribute)
-- [Development Setup](#development-setup)
-- [Code Style & Guidelines](#code-style--guidelines)
-- [Commit Messages](#commit-messages)
-- [Pull Request Process](#pull-request-process)
-- [Reporting Bugs](#reporting-bugs)
-- [Feature Requests](#feature-requests)
-- [Contact](#contact)
+### 🟢 Easy Ways to Contribute (No Experience Required)
 
-## Code of Conduct
+| Area | How | Time |
+|------|-----|------|
+| **Fix a typo** | Find and fix typos in README, docs, or comments | 5 min |
+| **Improve documentation** | Add missing docs, clarify confusing sections | 15 min |
+| **Report a bug** | Found something broken? Open an issue! | 10 min |
+| **Suggest a feature** | Have an idea? We want to hear it | 10 min |
+| **Add tests** | Write tests for uncovered code | 30 min |
+| **Translate** | Help translate docs to your language | 30 min |
+| **Add code comments** | Make code easier to understand | 15 min |
+| **Fix a good-first-issue** | Look for issues tagged `good first issue` | 1 hour |
 
-Be respectful, inclusive, and constructive. We are building the world's biggest free multi-LLM hub, and every contributor deserves to feel welcome.
+### How to Submit Your First Contribution
 
-## Getting Started
-
-1. **Fork** the repository on GitHub
-2. **Clone** your fork locally:
+1. **Fork** the repository
+2. **Clone** your fork locally
    ```bash
-   git clone https://github.com/YOUR_USERNAME/mnemosyne.git
-   cd mnemosyne
+   git clone https://github.com/YOUR_USERNAME/REPO_NAME.git
+   cd REPO_NAME
    ```
-3. **Install** dependencies:
+3. **Create a branch** for your changes
    ```bash
-   bun install
+   git checkout -b fix/my-first-contribution
    ```
-4. **Set up** your environment:
+4. **Make your changes** and test them
+5. **Commit** with a clear message
    ```bash
-   cp .env.example .env
-   # Edit .env with your local configuration
+   git commit -m "fix: correct typo in README"
    ```
-5. **Initialize** the database:
+6. **Push** to your fork
    ```bash
-   bun run db:push
-   bun run db:generate
+   git push origin fix/my-first-contribution
    ```
-6. **Start** the development server:
-   ```bash
-   bun run dev
-   ```
+7. **Open a Pull Request** — describe what you changed and why
 
-## How to Contribute
-
-### Ways to Contribute
-
-- **Bug fixes** — Find and fix issues in existing code
-- **Feature development** — Add new LLM providers, agent tools, or storage backends
-- **Model integrations** — Add new models to the registry or improve Puter.js integration
-- **MCP tools** — Create new MCP tools for AI assistant integration
-- **Documentation** — Improve guides, API docs, and inline comments
-- **Testing** — Write and improve tests for better reliability
-- **Translations** — Help make mnemosyne accessible in more languages
-- **SaaS/IaaS features** — Build billing, rate limiting, or multi-tenancy features
-
-### Suggested Workflow
-
-1. Check existing [Issues](https://github.com/mulkymalikuldhrs/mnemosyne/issues) for something to work on
-2. If no issue exists, create one to discuss your proposed change
-3. Create a feature branch from `main`:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-4. Make your changes with clear, well-documented code
-5. Test your changes thoroughly
-6. Submit a Pull Request
+That's it! We'll review your PR and help you get it merged.
 
 ## Development Setup
 
-### Prerequisites
-
-- **Bun** runtime (v1.3+)
-- **Node.js** (v18+, for compatibility)
-- **Git** for version control
-
-### Tech Stack
-
-- **Framework**: Next.js 16 with App Router
-- **Language**: TypeScript 5 (strict mode)
-- **Styling**: Tailwind CSS 4 + shadcn/ui
-- **Database**: Prisma ORM with SQLite
-- **State**: Zustand (client) + TanStack Query (server)
-
-### Useful Commands
-
-| Command | Description |
-|---|---|
-| `bun run dev` | Start development server |
-| `bun run lint` | Run ESLint checks |
-| `bun run db:push` | Push schema changes to database |
-| `bun run db:generate` | Generate Prisma client |
-| `bun run db:migrate` | Run database migrations |
-| `bun run db:reset` | Reset database |
-
-## Code Style & Guidelines
-
-- **TypeScript everywhere** — No plain JS files; use strict typing
-- **ES6+ imports** — Use `import`/`export` syntax consistently
-- **shadcn/ui first** — Use existing UI components before building custom ones
-- **Tailwind classes** — Prefer utility classes over custom CSS
-- **Prisma schema** — All database models go in `prisma/schema.prisma`; primitive types cannot be lists
-- **API routes** — Use Next.js API routes (not server actions)
-- **Client/Server boundary** — Mark client components with `'use client'`
-
-### File Organization
-
-```
-src/
-├── app/              # Next.js App Router pages and API routes
-├── components/       # React components
-│   └── ui/           # shadcn/ui base components (do not modify directly)
-├── lib/              # Utility functions and shared logic
-├── hooks/            # Custom React hooks
-├── stores/           # Zustand stores
-└── types/            # TypeScript type definitions
+### For TypeScript/Next.js Projects
+```bash
+npm install
+cp .env.example .env
+npm run dev
 ```
 
-## Commit Messages
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/) format:
-
-```
-type(scope): description
-
-[optional body]
+### For Python Projects
+```bash
+pip install -r requirements.txt
+cp .env.example .env
+python app.py
 ```
 
-### Types
-
-| Type | Description |
-|---|---|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation changes |
-| `style` | Code style changes (formatting, semicolons) |
-| `refactor` | Code refactoring without behavior change |
-| `perf` | Performance improvements |
-| `test` | Adding or updating tests |
-| `chore` | Build, CI, or tooling changes |
-
-### Examples
-
+### For Kotlin/Android Projects
+```bash
+# Open in Android Studio
+./gradlew assembleDebug
 ```
-feat(llm): add Cohere provider to BYOK integration
-fix(agent): resolve tool execution loop timeout on large contexts
-docs(api): update LLM chat endpoint documentation
-refactor(router): optimize Puter.js to BYOK fallback logic
-```
+
+## Code Style Guidelines
+
+- **TypeScript**: Follow the existing ESLint configuration
+- **Python**: Follow PEP 8, use type hints where possible
+- **Kotlin**: Follow Kotlin coding conventions
+- **Commits**: Use [Conventional Commits](https://www.conventionalcommits.org/)
+  - `feat:` new feature
+  - `fix:` bug fix
+  - `docs:` documentation only
+  - `style:` formatting, no code change
+  - `refactor:` code restructuring
+  - `test:` adding tests
+  - `chore:` maintenance
 
 ## Pull Request Process
 
-1. **One feature per PR** — Keep PRs focused and reviewable
-2. **Update documentation** — If your change affects behavior, update relevant docs
-3. **Add to CHANGELOG** — Notable changes should be documented (when applicable)
-4. **Lint passes** — Run `bun run lint` and fix any issues before submitting
-5. **Describe your change** — Fill out the PR template with:
-   - What the change does
-   - Why it's needed
-   - How to test it
-   - Any screenshots (for UI changes)
-
-### PR Review
-
-- Maintainers will review your PR within a reasonable timeframe
-- Address review feedback by pushing additional commits
-- Once approved, a maintainer will merge your PR
+1. Update documentation if your change affects behavior
+2. Add tests for new functionality
+3. Ensure all existing tests pass
+4. Keep PRs focused — one feature/fix per PR
+5. Be patient — we'll review as soon as possible
 
 ## Reporting Bugs
 
-1. Check if the bug is already reported in [Issues](https://github.com/mulkymalikuldhrs/mnemosyne/issues)
-2. If not, create a new issue with:
-   - **Clear title** summarizing the problem
-   - **Steps to reproduce** the bug
-   - **Expected behavior** vs **actual behavior**
-   - **Environment details** (OS, Bun version, browser)
-   - **Screenshots or logs** if applicable
+When filing a bug report, please include:
 
-## Feature Requests
+1. **What happened** — describe the unexpected behavior
+2. **What you expected** — what should have happened
+3. **Steps to reproduce** — how can we see the bug?
+4. **Environment** — OS, Node.js/Python version, browser
+5. **Screenshots/logs** — if applicable
 
-1. Open a [new issue](https://github.com/mulkymalikuldhrs/mnemosyne/issues/new) with the label `enhancement`
-2. Describe the feature and the use case it solves
-3. Explain why it fits the mnemosyne multi-LLM hub vision
-4. Optionally, propose an implementation approach
+## Suggesting Features
 
-## Contact
+We love feature suggestions! Please include:
 
-- **Creator & Lead Developer**: Mulky Malikul Dhaher — mulkymalikuldhaher@email.com
-- **Issues**: [GitHub Issues](https://github.com/mulkymalikuldhrs/mnemosyne/issues)
+1. **The problem** — what are you trying to solve?
+2. **The solution** — how would you like it to work?
+3. **Alternatives** — other approaches you've considered
+4. **Additional context** — screenshots, examples, links
+
+## Community Guidelines
+
+- Be respectful and constructive
+- Help others learn and grow
+- Celebrate all contributions, no matter how small
+- Ask questions — there are no dumb questions
+- Follow our [Code of Conduct](CODE_OF_CONDUCT.md)
+
+## Recognition
+
+All contributors are valued! We recognize contributions through:
+
+- Listing in the repository's contributor list
+- Shoutouts in release notes
+- The satisfaction of building something together
+
+## Questions?
+
+Feel free to:
+- Open a [GitHub Issue](../../issues)
+- Start a [GitHub Discussion](../../discussions)
+- Email: mulkymalikudhr@mail.com
 
 ---
 
-*Thank you for helping build the future of free, universal LLM access with mnemosyne!*
+**Remember: Every expert was once a beginner. Your first contribution is always the hardest — we're here to help!**
