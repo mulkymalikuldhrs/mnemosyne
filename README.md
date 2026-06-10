@@ -1,226 +1,292 @@
+<a href="https://github.com/mulkymalikuldhrs/mnemosyne">
+  <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:1a0533,50:2e1065,100:4c1d95&height=220&section=header&text=Mnemosyne&fontSize=42&fontColor=c084fc&animation=fadeIn&fontAlignY=30&desc=Free+Multi-LLM+Hub+%26+AI+Memory+Center&descSize=16&descColor=67e8f9&descAlignY=50" />
+</a>
+
 <div align="center">
 
-# 🧠 Mnemosyne
+[![Typing SVG](https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&duration=3000&pause=1000&color=c084fc&center=true&vCenter=true&width=700&lines=500%2B+Free+AI+Models+via+Puter.js;AI+Agent+%2B+Semantic+Memory+%2B+RAG;MCP+Server+%2B+Multi-Cloud+Storage;BYOK+%2B+PWA+%E2%80%94+No+Backend+Needed)](https://git.io/typing-svg)
 
-### The Biggest Free Multi-LLM Hub & AI Agent Memory Center
+<br/>
 
-**500+ AI Models · Zero API Key · BYOAPI · Built-in Agent · Memory Engine**
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Puter.js](https://img.shields.io/badge/Puter.js-500+-ff69b4?style=for-the-badge&logo=javascript&logoColor=white)](https://puter.com/)
+[![MCP](https://img.shields.io/badge/MCP-Ready-f97316?style=for-the-badge&logo=modelcontextprotocol&logoColor=white)](https://modelcontextprotocol.io/)
+[![PWA](https://img.shields.io/badge/PWA-Installable-8B5CF6?style=for-the-badge&logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
+[![v2.0.0](https://img.shields.io/badge/Version-2.0.0-4c1d95?style=for-the-badge&logo=semanticrelease&logoColor=white)](https://github.com/mulkymalikuldhrs/mnemosyne/releases)
+[![MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
 
-[![Version](https://img.shields.io/badge/version-2.0.0-purple.svg)](https://github.com/mulkymalikuldhrs/mnemosyne)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black.svg)](https://nextjs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://typescriptlang.org)
-[![MCP](https://img.shields.io/badge/MCP-Compatible-orange.svg)](https://modelcontextprotocol.io)
-[![Puter.js](https://img.shields.io/badge/Puter.js-500%2B%20Models-ff69b4.svg)](https://puter.com)
-[![PWA](https://img.shields.io/badge/PWA-Ready-cyan.svg)](https://web.dev/progressive-web-apps/)
+<br/>
 
-[Report Bug](https://github.com/mulkymalikuldhrs/mnemosyne/issues) · [Request Feature](https://github.com/mulkymalikuldhrs/mnemosyne/issues) · [API Docs](API.md) · [Architecture](ARCHITECTURE.md)
+[![GitHub Stars](https://img.shields.io/github/stars/mulkymalikuldhrs/mnemosyne?style=for-the-badge&logo=github&color=gold)](https://github.com/mulkymalikuldhrs/mnemosyne/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/mulkymalikuldhrs/mnemosyne?style=for-the-badge&logo=github&color=blue)](https://github.com/mulkymalikuldhrs/mnemosyne/fork)
+[![GitHub Issues](https://img.shields.io/github/issues/mulkymalikuldhrs/mnemosyne?style=for-the-badge&logo=github&color=red)](https://github.com/mulkymalikuldhrs/mnemosyne/issues)
 
 </div>
 
 ---
 
-## Overview
+## 📖 Overview
 
-Mnemosyne is the world's biggest free multi-LLM hub — a single platform that gives you **free access to 500+ AI models** via Puter.js with zero API keys, alongside BYOK (Bring Your Own Key) support for every major provider. It includes a built-in AI Agent with 7 tools, semantic memory, RAG, an MCP server, and multi-cloud storage — all in one portable Next.js application.
+**Mnemosyne** is a free multi-LLM hub with 500+ models and an AI Agent Memory Center built with Next.js 16. It provides access to hundreds of AI models through Puter.js — no API keys required — alongside BYOK (Bring Your Own Key) support for every major provider. The built-in AI Agent ships with 7 tools, semantic memory powered by local vector embeddings, RAG (Retrieval-Augmented Generation), an MCP server for integration with Claude Desktop and Cursor, and multi-cloud storage across 5 providers.
 
-**No backend needed.** Puter.js handles authentication and billing on the client side (user-pays model), so you get GPT-5.5 Pro, Claude Opus 4.8, Gemini 3.1 Pro, and hundreds more — completely free for developers.
+No backend server is needed. Puter.js handles authentication and billing on the client side (user-pays model), so you can access models like GPT-4, Claude, and Gemini without managing infrastructure.
 
-### Key Features
-
-| Feature | Description |
-|---------|-------------|
-| 🤖 **Multi-LLM via Puter.js (FREE)** | 500+ models from OpenAI, Anthropic, Google, DeepSeek, xAI, Meta, Mistral, Alibaba — zero API key required |
-| 🔑 **BYOK Support** | Bring your own API keys for OpenAI, Anthropic, Google, DeepSeek, OpenRouter, Ollama, or any OpenAI-compatible endpoint |
-| 🧠 **AI Agent** | Built-in agent with 7 tools: memory search, save, update, delete, insights, web search, decision tracking |
-| 💾 **Semantic Memory** | Vector-embedded notes with automatic chunking, embedding, and intelligent retrieval |
-| 🔌 **MCP Server** | Connect to Claude Desktop, Cursor, and any MCP-compatible client via JSON-RPC 2.0 |
-| 📚 **RAG** | Retrieval-Augmented Generation injects your memories into LLM conversations |
-| ☁️ **Multi-Cloud Storage** | Google Drive, TeraBox, S3, Puter.js FS, and local storage with file ingestion |
-| 📱 **PWA** | Install as a Progressive Web App for offline-capable, native-like experience |
-| 🏢 **SaaS/IaaS Ready** | Middle-provider architecture — wrap mnemosyne as your own LLM API service |
+> **What "Free" Means Here**: You don't need your own API keys to use models — Puter.js uses a user-pays model where Puter handles the billing. Usage is subject to Puter.js rate limits and fair use policies.
 
 ---
 
-## Architecture
+## ✨ Features
+
+| # | Feature | Description |
+|---|---------|-------------|
+| 1 | **500+ Models via Puter.js** | Access GPT-4, Claude, Gemini, DeepSeek, xAI, Meta, Mistral and more — zero API keys needed |
+| 2 | **BYOK Support** | Bring your own API keys for OpenAI, Anthropic, Google, DeepSeek, OpenRouter, Ollama, or any OpenAI-compatible endpoint |
+| 3 | **AI Agent + 7 Tools** | Built-in agent with memory search, save, update, delete, insights, web search, and decision tracking |
+| 4 | **Semantic Memory** | Vector-embedded notes with automatic chunking, embedding generation, and intelligent similarity retrieval |
+| 5 | **MCP Server** | JSON-RPC 2.0 server for Claude Desktop, Cursor, and any MCP-compatible client integration |
+| 6 | **RAG Pipeline** | Retrieval-Augmented Generation injects relevant memories into LLM conversations for contextual responses |
+| 7 | **Multi-Cloud Storage** | Google Drive, TeraBox, S3, Puter.js FS, and local storage with file ingestion into memory |
+| 8 | **PWA Installable** | Works as a Progressive Web App — install on desktop or mobile for native-like experience |
+| 9 | **No Backend Required** | Fully client-side with Puter.js — deploy as a static Next.js app, no server to manage |
+
+---
+
+## 🏗️ Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                     Mnemosyne v1.0 — Multi-LLM Hub                     │
-├──────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐            │
-│  │   Web UI     │   │  MCP Clients │   │ API Consumers │            │
-│  │  (PWA/React) │   │(Claude/Cursor)│   │  (SaaS/IaaS) │            │
-│  └──────┬───────┘   └──────┬───────┘   └──────┬───────┘            │
-│         │                  │                   │                     │
-│         ▼                  ▼                   ▼                     │
-│  ┌──────────────────────────────────────────────────────┐           │
-│  │                  REST API + SSE + MCP                  │           │
-│  │  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────────┐  │           │
-│  │  │ LLM  │ │Agent │ │Notes │ │Memory│ │ Storage  │  │           │
-│  │  └──┬───┘ └──┬───┘ └──┬───┘ └──┬───┘ └────┬─────┘  │           │
-│  └─────┼────────┼────────┼────────┼───────────┼─────────┘           │
-│        │        │        │        │           │                      │
-│        ▼        ▼        ▼        ▼           ▼                      │
-│  ┌──────────────────────────────────────────────────────┐           │
-│  │                   Core Services                        │           │
-│  │  ┌───────────┐ ┌───────────┐ ┌─────────────────────┐│           │
-│  │  │LLM Router │ │  Agent    │ │   Memory Engine     ││           │
-│  │  │(Auto-Route)│ │  Engine   │ │Chunk·Embed·Search  ││           │
-│  │  └─────┬─────┘ └───────────┘ │RAG·Patterns·Graph  ││           │
-│  │        │                      └─────────────────────┘│           │
-│  │  ┌─────▼─────────────────────────────────────────┐   │           │
-│  │  │              Provider Layer                     │   │           │
-│  │  │  Puter.js FREE ── BYOK Keys ── Local/Ollama   │   │           │
-│  │  │  500+ models     OpenAI/Gl/DS/OR   localhost   │   │           │
-│  │  └────────────────────────────────────────────────┘   │           │
-│  └──────────────────────────────────────────────────────┘           │
-│        │                                                             │
-│        ▼                                                             │
-│  ┌──────────────────────────────────────────────────────┐           │
-│  │             SQLite + Prisma ORM + Puter.js Cloud      │           │
-│  │  Notes · Chunks(Vectors) · Links · Conversations     │           │
-│  │  Decisions · ApiKeys · Sessions · StorageAccounts     │           │
-│  └──────────────────────────────────────────────────────┘           │
-│                                                                      │
-└──────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                        MNEMOSYNE v2.0                          │
+│                    Next.js 16 Application                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
+│  │   Chat UI    │  │  Agent UI    │  │   Memory Dashboard   │  │
+│  │  (React/Next)│  │  (7 Tools)   │  │  (CRUD + Search)     │  │
+│  └──────┬───────┘  └──────┬───────┘  └──────────┬───────────┘  │
+│         │                 │                      │              │
+│         ▼                 ▼                      ▼              │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │                    LLM Router Layer                      │   │
+│  │  ┌─────────────┐                ┌─────────────────────┐ │   │
+│  │  │  Puter.js   │                │     BYOK Keys        │ │   │
+│  │  │ (500+ models│                │ (OpenAI/Anthropic/   │ │   │
+│  │  │  no API key)│                │  Google/DeepSeek/    │ │   │
+│  │  └─────────────┘                │  Ollama/OpenRouter)  │ │   │
+│  │                                  └─────────────────────┘ │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                          │                                      │
+│         ┌────────────────┼────────────────┐                    │
+│         ▼                ▼                ▼                    │
+│  ┌─────────────┐ ┌──────────────┐ ┌───────────────┐          │
+│  │   RAG       │ │   Semantic   │ │  MCP Server   │          │
+│  │  Pipeline   │ │   Memory     │ │ (JSON-RPC 2.0)│          │
+│  │             │ │  (Vectors)   │ │               │          │
+│  │ Memory →    │ │ Embed → Chunk│ │ Claude Desktop│          │
+│  │ Context →   │ │ → Similarity │ │ Cursor IDE    │          │
+│  │ LLM Prompt  │ │  Retrieval   │ │ MCP Clients   │          │
+│  └─────────────┘ └──────────────┘ └───────────────┘          │
+│                          │                                      │
+│         ┌────────────────┼────────────────┐                    │
+│         ▼                ▼                ▼                    │
+│  ┌───────────┐   ┌────────────┐   ┌────────────┐             │
+│  │Google Drive│   │  TeraBox   │   │  S3 / R2   │             │
+│  └───────────┘   └────────────┘   └────────────┘             │
+│  ┌───────────┐   ┌────────────┐                               │
+│  │ Puter.js  │   │   Local    │   Multi-Cloud Storage          │
+│  │    FS     │   │  Storage   │   (File Ingestion)             │
+│  └───────────┘   └────────────┘                               │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Quick Start
+## ⚠️ Honest Notes
+
+> We believe in transparency. Here are important limitations and clarifications.
+
+| Topic | Clarification |
+|-------|--------------|
+| **"Free" models** | Puter.js uses a user-pays model — you don't need API keys, but Puter handles billing. Usage is subject to rate limits and fair use policies. |
+| **500+ model count** | Includes all models available through Puter.js. The exact count may vary over time as models are added or removed. |
+| **Semantic Memory** | Uses **local vector storage** in the browser/client — it is not as powerful as dedicated vector databases (Pinecone, Weaviate, etc.) for large-scale datasets. Best suited for personal knowledge management. |
+| **MCP Server** | Requires a compatible MCP client (Claude Desktop, Cursor, etc.) to connect. The MCP server is a standalone JSON-RPC process. |
+| **No Backend** | Core features work without a backend. Self-hosted deployment still requires a Node.js runtime to serve the Next.js app. |
+| **Model Availability** | Depends on Puter.js and may change without notice. Some models may have reduced rate limits. |
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- **Bun** >= 1.0 ([install](https://bun.sh)) or **Node.js** >= 20
-- **Git** for version control
+- **Node.js** 18+ and **npm** 9+
+- A modern browser (Chrome, Firefox, Edge, Safari)
+- (Optional) API keys for BYOK providers
 
-### 3-Step Setup
+### Installation
 
 ```bash
-# 1. Clone the repository
+# Clone the repository
 git clone https://github.com/mulkymalikuldhrs/mnemosyne.git
 cd mnemosyne
 
-# 2. Install dependencies
-bun install
+# Install dependencies
+npm install
 
-# 3. Initialize and start
+# Configure environment
 cp .env.example .env
-bun run db:push
-bun run db:generate
-bun run dev
+# Edit .env with your optional BYOK keys
+
+# Start development server
+npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — you now have access to 500+ free LLM models.
+Open [http://localhost:3000](http://localhost:3000) — you're ready to chat with 500+ models.
 
-> No API keys needed for basic usage. Puter.js handles model access client-side (user-pays model).
-
-### Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `bun run dev` | Start development server on port 3000 |
-| `bun run build` | Build for production (standalone output) |
-| `bun run start` | Start production server |
-| `bun run lint` | Run ESLint checks |
-| `bun run typecheck` | Run TypeScript type checking |
-| `bun run test` | Run Vitest unit tests |
-| `bun run test:watch` | Run tests in watch mode |
-| `bun run db:push` | Push Prisma schema to database |
-| `bun run db:generate` | Generate Prisma client |
-| `bun run db:migrate` | Run database migrations |
-| `bun run db:seed` | Seed database with demo data |
-| `bun run mcp` | Start MCP server |
-| `bun run mcp:dev` | Start MCP server with hot reload |
-
----
-
-## Free Models
-
-All models below are available **completely free** via Puter.js. No API key, no credit card — just start chatting.
-
-| Model | Provider | Context Window | Capabilities |
-|-------|----------|---------------|-------------|
-| **GPT-5.5 Pro** | OpenAI | 200K | Chat, Vision, Code, Reasoning, Tool Use, Streaming |
-| **GPT-5.4** | OpenAI | 200K | Chat, Vision, Code, Reasoning, Tool Use, Streaming |
-| **GPT-5.4 Mini** | OpenAI | 128K | Chat, Code, Tool Use, Streaming |
-| **GPT-5.4 Nano** | OpenAI | 128K | Chat, Code, Tool Use, Streaming |
-| **GPT-4o** | OpenAI | 128K | Chat, Vision, Code, Tool Use, Streaming |
-| **O3** | OpenAI | 200K | Chat, Reasoning, Code, Streaming |
-| **Claude Opus 4.8** | Anthropic | 200K | Chat, Vision, Code, Reasoning, Tool Use, Streaming |
-| **Claude Opus 4.8 Fast** | Anthropic | 200K | Chat, Vision, Code, Reasoning, Tool Use, Streaming |
-| **Claude Sonnet 4.6** | Anthropic | 200K | Chat, Vision, Code, Reasoning, Tool Use, Streaming |
-| **Gemini 3.1 Pro** | Google | 2M | Chat, Vision, Code, Reasoning, Tool Use, Streaming |
-| **Gemini 3.1 Flash** | Google | 1M | Chat, Vision, Code, Tool Use, Streaming |
-| **DeepSeek R1** | DeepSeek | 128K | Chat, Reasoning, Code, Streaming |
-| **Grok 3** | xAI | 128K | Chat, Code, Reasoning, Streaming |
-| **Llama 4 Maverick** | Meta | 128K | Chat, Code, Streaming |
-| **Mistral Large** | Mistral | 128K | Chat, Code, Tool Use, Streaming |
-| **Qwen 3.7 Plus** | Alibaba | 128K | Chat, Code, Reasoning, Streaming |
-
-> **Note:** 500+ additional models are available through Puter.js beyond the curated list above. Use the Model Registry API to discover them all.
-
----
-
-## BYOK — Bring Your Own Key
-
-Have your own API keys? Mnemosyne supports direct connections to all major providers:
-
-| Provider | Models | Authentication |
-|----------|--------|---------------|
-| **OpenAI** | GPT-4o, GPT-4o Mini, O3, etc. | API Key (`sk-...`) |
-| **Anthropic** | Claude Opus, Sonnet, Haiku | API Key (`sk-ant-...`) |
-| **Google** | Gemini Pro, Flash | API Key |
-| **DeepSeek** | DeepSeek Chat, R1 | API Key |
-| **OpenRouter** | 100+ models via one key | API Key |
-| **Ollama** | Llama, Mistral, CodeLlama, etc. | Local (`http://localhost:11434`) |
-| **Custom** | Any OpenAI-compatible API | API Key + Base URL |
-
-### Using BYOK
+### Production Build
 
 ```bash
-# Via API
-curl -X POST http://localhost:3000/api/llm/chat \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "byok/openai-gpt-4o",
-    "provider": "openai",
-    "apiKey": "sk-your-key-here",
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
+npm run build
+npm start
 ```
 
-The LLM Router automatically falls back: **Puter.js (free) → BYOK (if key provided)**.
+### Docker (Optional)
+
+```bash
+docker build -t mnemosyne .
+docker run -p 3000:3000 mnemosyne
+```
 
 ---
 
-## AI Agent
+## 🤖 AI Agent — 7 Built-in Tools
 
-Mnemosyne includes a built-in AI Agent that can use any LLM from the pool and execute 7 built-in tools:
+Mnemosyne includes an AI Agent that can autonomously interact with your knowledge base and the web. The agent has 7 tools:
 
-| Tool | Description |
-|------|-------------|
-| `memory_search` | Semantic search across your notes and memories |
-| `memory_save` | Save new notes to your knowledge base |
-| `memory_update` | Update existing notes |
-| `memory_delete` | Delete notes from your knowledge base |
-| `memory_insights` | Get AI-powered insights about memory patterns and connections |
-| `web_search` | Search the web for current information |
-| `decision_track` | Track decisions with context, reasoning, and outcomes |
+### Tool Reference
 
-The agent uses an **agentic execution loop**: it calls the LLM, if the LLM returns tool calls it executes them and feeds results back, continuing until the LLM provides a final answer (up to configurable `maxIterations`).
+| # | Tool | Description | Example Use |
+|---|------|-------------|-------------|
+| 1 | **Memory Search** | Search semantic memory using natural language queries with vector similarity | *"Find notes about machine learning architectures"* |
+| 2 | **Memory Save** | Save new information to semantic memory with automatic chunking and embedding | *"Save: Transformers use self-attention mechanisms"* |
+| 3 | **Memory Update** | Update existing memory entries with new information | *"Update the ML note: add that Transformers were introduced in 2017"* |
+| 4 | **Memory Delete** | Remove outdated or incorrect memory entries | *"Delete the old note about RNN limitations"* |
+| 5 | **Memory Insights** | Generate insights and summaries from your accumulated knowledge base | *"What are the key themes in my AI research notes?"* |
+| 6 | **Web Search** | Search the web for real-time information to augment responses | *"Search for latest GPT-4 benchmark results"* |
+| 7 | **Decision Tracking** | Log and track decisions, reasoning, and outcomes for future reference | *"Track decision: chose BERT over GPT for classification task because..."* |
 
-> See [AGENTS.md](AGENTS.md) for full agent documentation.
+### How the Agent Works
+
+```
+User Message
+     │
+     ▼
+┌──────────┐     ┌───────────┐     ┌──────────┐
+│  Agent   │────▶│  Select   │────▶│  Execute │
+│  Parser  │     │   Tool    │     │   Tool   │
+└──────────┘     └───────────┘     └────┬─────┘
+                                        │
+                    ┌───────────────────┤
+                    ▼                   ▼
+             ┌───────────┐      ┌───────────┐
+             │  Memory   │      │    Web    │
+             │  Store    │      │  Search   │
+             └─────┬─────┘      └─────┬─────┘
+                   │                   │
+                   └─────────┬─────────┘
+                             ▼
+                      ┌────────────┐
+                      │  Synthesize│
+                      │  Response  │
+                      └────────────┘
+```
+
+The agent analyzes your message, selects the appropriate tool(s), executes them, and synthesizes a response that combines LLM reasoning with real data from your memory or the web.
 
 ---
 
-## MCP Server Setup
+## 🧠 Semantic Memory
 
-Connect mnemosyne to any MCP-compatible AI assistant via JSON-RPC 2.0 over stdio transport.
+Semantic memory is Mnemosyne's persistent knowledge layer. It stores your notes, documents, and conversation insights as vector embeddings, enabling intelligent retrieval based on meaning — not just keywords.
 
-### Claude Desktop
+### How It Works
+
+```
+┌────────────┐    ┌─────────────┐    ┌──────────────┐    ┌────────────┐
+│  Input Text │───▶│   Chunking  │───▶│   Embedding  │───▶│   Vector   │
+│  (Note/Doc) │    │  (Splitting)│    │  Generation  │    │   Store    │
+└────────────┘    └─────────────┘    └──────────────┘    └─────┬──────┘
+                                                              │
+                                                              ▼
+                                                       ┌────────────┐
+                                                       │  Similarity │
+                                                       │   Search    │
+                                                       │ (Cosine/KNN)│
+                                                       └────────────┘
+```
+
+1. **Input** — You save a note, upload a file, or the agent stores information
+2. **Chunking** — Text is automatically split into semantic chunks
+3. **Embedding** — Each chunk is converted to a vector embedding
+4. **Storage** — Vectors are stored in local vector storage
+5. **Retrieval** — Queries are embedded and compared via cosine similarity to find the most relevant chunks
+
+### Operations
+
+```typescript
+// Search memory
+const results = await memory.search("neural network architectures", { topK: 5 });
+
+// Save to memory
+await memory.save({
+  content: "Transformers use self-attention to process sequences in parallel",
+  metadata: { source: "research-paper", tags: ["nlp", "transformers"] }
+});
+
+// Update memory
+await memory.update(memoryId, {
+  content: "Updated content...",
+  metadata: { tags: ["nlp", "transformers", "attention"] }
+});
+
+// Delete memory
+await memory.delete(memoryId);
+```
+
+### Limitations
+
+- Uses **local vector storage** (browser/client-side) — not suitable for datasets with millions of vectors
+- For large-scale deployments, consider integrating with dedicated vector databases like Pinecone, Weaviate, or ChromaDB
+- Embedding quality depends on the model used — BYOK providers may offer better embedding models
+
+---
+
+## 🔌 MCP Server Setup
+
+Mnemosyne includes an MCP (Model Context Protocol) server that exposes your semantic memory and AI capabilities to external tools like Claude Desktop and Cursor.
+
+### What is MCP?
+
+MCP is an open protocol that enables AI applications to connect to external data sources and tools. The Mnemosyne MCP server acts as a bridge, allowing MCP-compatible clients to:
+
+- Search your semantic memory
+- Save new memories
+- Access your LLM configurations
+- Query your RAG pipeline
+
+### Starting the MCP Server
+
+```bash
+# Start the MCP server (runs on stdio by default)
+npm run mcp
+
+# Or with custom configuration
+MCP_PORT=3001 npm run mcp
+```
+
+### Claude Desktop Configuration
 
 Add to your `claude_desktop_config.json`:
 
@@ -228,362 +294,256 @@ Add to your `claude_desktop_config.json`:
 {
   "mcpServers": {
     "mnemosyne": {
-      "command": "bun",
-      "args": ["run", "/path/to/mnemosyne/mcp-server/index.ts"],
+      "command": "node",
+      "args": ["path/to/mnemosyne/mcp-server.js"],
       "env": {
-        "DATABASE_URL": "file:/path/to/mnemosyne/prisma/db/mnemosyne.db",
-        "mnemosyne_API_KEY": "mx_your_api_key_here"
+        "MCP_PORT": "3001"
       }
     }
   }
 }
 ```
 
-### Cursor
+### Cursor IDE Configuration
 
-Add to your `.cursor/mcp.json`:
+In Cursor settings, add the MCP server:
 
 ```json
 {
-  "mcpServers": {
+  "mcp.servers": {
     "mnemosyne": {
-      "command": "bun",
-      "args": ["run", "/path/to/mnemosyne/mcp-server/index.ts"],
-      "env": {
-        "DATABASE_URL": "file:/path/to/mnemosyne/prisma/db/mnemosyne.db",
-        "mnemosyne_API_KEY": "mx_your_api_key_here"
-      }
+      "command": "node",
+      "args": ["path/to/mnemosyne/mcp-server.js"]
     }
   }
 }
 ```
 
-### MCP Tools
+### Available MCP Tools
 
 | Tool | Description |
 |------|-------------|
-| `mnemosyne_search` | Semantic + keyword search across notes |
-| `mnemosyne_add_note` | Add a note (auto-creates relations) |
-| `mnemosyne_get_note` | Get a specific note with full content |
-| `mnemosyne_list_notes` | List all notes with pagination |
-| `mnemosyne_chat` | Chat with your memory (RAG-powered) |
-| `mnemosyne_get_related` | Get related notes with relation scores |
-| `mnemosyne_detect_patterns` | Detect tag frequency, keyword trends, clusters |
-| `mnemosyne_add_decision` | Record a decision with context and reasoning |
+| `memory_search` | Search semantic memory with natural language |
+| `memory_save` | Save information to memory |
+| `memory_update` | Update existing memory entries |
+| `memory_delete` | Delete memory entries |
+| `memory_insights` | Get insights from your knowledge base |
+| `rag_query` | Perform a RAG-augmented query |
+
+> **Note**: The MCP server requires a compatible client to connect. It communicates via JSON-RPC 2.0 over stdio.
 
 ---
 
-## API Documentation
+## 📚 RAG — Retrieval-Augmented Generation
 
-mnemosyne exposes a comprehensive REST API for programmatic access. Key endpoints:
+RAG is the pipeline that connects your semantic memory to LLM conversations. Instead of relying solely on the model's training data, RAG injects relevant information from your knowledge base directly into the prompt.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/llm/chat` | Universal chat (auto-routes to Puter.js or BYOK) |
-| POST | `/api/llm/agent` | AI agent execution with tools |
-| POST | `/api/llm/compare` | Multi-model comparison |
-| GET | `/api/llm/models` | Model registry (all available models) |
-| POST | `/api/llm/web-search` | Web search via z-ai-web-dev-sdk |
-| GET | `/api/notes` | List notes (paginated, searchable) |
-| POST | `/api/notes` | Create note + memory storage |
-| GET | `/api/search` | Semantic search |
-| POST | `/api/chat` | Chat with memory context |
-
-> See [API.md](API.md) for the complete API reference.
-
----
-
-## Tech Stack
-
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Framework | Next.js (App Router) | 16 |
-| Language | TypeScript | 5 (strict) |
-| Styling | Tailwind CSS + shadcn/ui | 4 |
-| Database | Prisma ORM (SQLite) | 6 |
-| State | Zustand + TanStack Query | 5 / 5 |
-| Auth | NextAuth.js | 4 |
-| Free LLM | Puter.js SDK | 2.5 |
-| AI SDK | z-ai-web-dev-sdk | latest |
-| Animations | Framer Motion | 12 |
-| MCP | JSON-RPC 2.0 over Stdio | — |
-| Testing | Vitest | 4 |
-| Container | Docker + Docker Compose | — |
-
----
-
-## Project Structure
+### How RAG Works in Mnemosyne
 
 ```
-mnemosyne/
-├── src/
-│   ├── ai/                          # AI Memory Engine
-│   │   ├── chunker.ts               # Text chunking (paragraph → sentence → word)
-│   │   ├── embedder.ts              # Vector embedding with API + pseudo-embedding fallback
-│   │   ├── memory.ts                # Core Memory Engine (store, search, relate, patterns)
-│   │   └── llm.ts                   # RAG chat with memory injection
-│   ├── app/                         # Next.js App Router
-│   │   ├── api/                     # REST API endpoints
-│   │   │   ├── auth/                # Authentication (NextAuth + register)
-│   │   │   ├── llm/                 # Multi-LLM API (chat, agent, compare, models, web-search)
-│   │   │   ├── notes/               # Notes CRUD + memory storage
-│   │   │   ├── chat/                # AI chat with memory context
-│   │   │   ├── search/              # Semantic search
-│   │   │   ├── memory/              # Memory context, related, patterns
-│   │   │   ├── decisions/           # Decision tracking
-│   │   │   ├── settings/            # User settings
-│   │   │   ├── api-keys/            # API key management
-│   │   │   ├── storage/             # Multi-cloud storage (accounts, files, sync, ingest)
-│   │   │   ├── agents/              # Agent configuration
-│   │   │   ├── entities/            # Entity management
-│   │   │   ├── graph/               # Knowledge graph + temporal
-│   │   │   ├── canvas/              # Canvas views
-│   │   │   ├── daily-notes/         # Daily note entries
-│   │   │   ├── email/               # Email integration
-│   │   │   ├── templates/           # Note templates
-│   │   │   ├── integrations/        # Third-party integrations
-│   │   │   ├── smart-tags/          # Smart tag suggestions
-│   │   │   ├── favorites/           # Favorite notes
-│   │   │   ├── wiki-links/          # Wiki-style link resolution
-│   │   │   ├── subscription/        # Subscription management
-│   │   │   ├── ai-memory/           # AI memory CRUD
-│   │   │   └── health/              # Health check
-│   │   ├── layout.tsx               # Root layout
-│   │   ├── page.tsx                 # Main dashboard
-│   │   └── globals.css              # Custom theme (oklch color system)
-│   ├── components/                  # React components
-│   │   ├── ui/                      # shadcn/ui components (40+)
-│   │   ├── layout/                  # Sidebar, Header, AppLayout
-│   │   ├── llm/                     # LLM Marketplace, Agent Chat
-│   │   ├── notes/                   # NoteEditor, NoteCard, NotesList, SmartTags
-│   │   ├── chat/                    # ChatPanel, MessageBubble
-│   │   ├── memory/                  # MemoryInsights, RelatedNotesPanel
-│   │   ├── search/                  # SemanticSearch
-│   │   ├── editor/                  # RichEditor (TipTap)
-│   │   ├── graph/                   # KnowledgeGraph (D3)
-│   │   ├── canvas/                  # CanvasView
-│   │   ├── daily/                   # DailyNotes
-│   │   ├── templates/               # TemplatesView
-│   │   ├── providers.tsx            # QueryClient + Theme + Tooltip providers
-│   │   ├── pwa-register.tsx         # PWA service worker registration
-│   │   ├── keyboard-shortcuts.tsx   # Global keyboard shortcuts
-│   │   └── quick-switcher.tsx       # Cmd+K quick switcher
-│   ├── lib/                         # Shared utilities
-│   │   ├── llm/                     # Multi-LLM Layer
-│   │   │   ├── index.ts             # LLM Router (auto-routing)
-│   │   │   ├── providers.ts         # Model registry (20+ curated models)
-│   │   │   ├── puter-provider.ts    # Puter.js integration (FREE)
-│   │   │   └── byok-provider.ts     # BYOK integration (7 providers)
-│   │   ├── agent/                   # AI Agent System
-│   │   │   └── index.ts             # AgentEngine + 7 built-in tools
-│   │   ├── memory/                  # Memory Engine (inspired by mem0)
-│   │   │   └── index.ts             # V3 Additive Extraction + Hybrid Search
-│   │   ├── crypto/                  # Crypto Utilities (inspired by 9Drive)
-│   │   │   └── index.ts             # AES-256-GCM, token hashing, password utils
-│   │   ├── auth/                    # Auth Token System (inspired by 9Drive)
-│   │   │   └── tokens.ts            # Auth handoff, preview tokens, share tokens
-│   │   ├── storage/                 # Multi-Cloud Storage
-│   │   │   ├── index.ts             # StorageManager (orchestrator)
-│   │   │   ├── chunking.ts          # File chunking engine (inspired by Pentaract)
-│   │   │   ├── google-drive.ts      # Google Drive provider
-│   │   │   ├── terabox.ts           # TeraBox provider
-│   │   │   ├── s3-compatible.ts     # S3-compatible provider
-│   │   │   ├── local.ts             # Local filesystem provider
-│   │   │   └── types.ts             # Storage type definitions
-│   │   ├── email/                   # Email Integration
-│   │   │   ├── index.ts             # EmailManager
-│   │   │   ├── gmail.ts             # Gmail provider
-│   │   │   ├── imap.ts              # IMAP provider
-│   │   │   └── types.ts             # Email types
-│   │   ├── auth.ts                  # NextAuth configuration
-│   │   ├── db.ts                    # Prisma client singleton
-│   │   ├── env.ts                   # Zod environment validation
-│   │   ├── store.ts                 # Zustand stores
-│   │   ├── api-utils.ts             # Shared API response helpers
-│   │   ├── rate-limit.ts            # In-memory rate limiter
-│   │   ├── rate-limiter.ts          # Sliding window rate limiter (inspired by Pentaract)
-│   │   ├── error-reporter.ts        # Structured error reporting
-│   │   ├── query-client.ts          # TanStack Query client
-│   │   ├── ai-memory.ts             # AI memory service
-│   │   ├── wiki-links.ts            # Wiki link resolution
-│   │   ├── api.ts                   # API client utilities
-│   │   ├── types.ts                 # Shared type definitions
-│   │   └── utils.ts                 # cn() utility
-│   └── middleware.ts                # Security headers, rate limiting, CORS
-├── mcp-server/                      # Standalone MCP server
-│   ├── index.ts                     # JSON-RPC 2.0 server (8 tools)
-│   ├── cli.js                       # CLI entry point for npx mnemosyne-mcp
-│   ├── package.json                 # Independent npm package
-│   └── tsconfig.json                # TypeScript config
-├── prisma/
-│   ├── schema.prisma                # Main database schema (15+ models)
-│   └── seed.ts                      # Demo data seeder
-├── public/
-│   ├── logo.svg                     # mnemosyne logo
-│   ├── sw.js                        # Service worker
-│   └── fonts/                       # Inter font
-├── Dockerfile                       # Multi-stage Docker build
-├── docker-compose.yml               # App + MCP services
-├── .env.example                     # Environment template
-├── LICENSE                          # MIT License
-├── README.md                        # This file
-├── ARCHITECTURE.md                  # Architecture documentation
-├── AGENTS.md                        # AI Agent documentation
-├── API.md                           # API reference
-├── next.config.ts                   # Next.js config (standalone output)
-├── package.json                     # Project manifest
-├── tsconfig.json                    # TypeScript config
-├── vitest.config.ts                 # Vitest test config
-└── tailwind.config.ts               # Tailwind CSS config
+┌──────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│  User    │────▶│   Memory     │────▶│   Context    │────▶│     LLM      │
+│  Query   │     │   Search     │     │  Assembly    │     │   Response   │
+└──────────┘     └──────────────┘     └──────────────┘     └──────────────┘
+                        │                     │
+                        ▼                     ▼
+                 ┌────────────┐        ┌──────────────┐
+                 │  Semantic  │        │  System +    │
+                 │  Retrieval │        │  Memory +    │
+                 │  (Top-K)   │        │  User Query  │
+                 └────────────┘        └──────────────┘
+```
+
+1. **User Query** — You send a message in the chat
+2. **Memory Search** — The query is embedded and used to search semantic memory for relevant chunks
+3. **Context Assembly** — Retrieved memory chunks are injected into the LLM prompt as context
+4. **LLM Response** — The model generates a response grounded in your actual knowledge
+
+### Configuration
+
+```typescript
+// Enable/disable RAG per conversation
+const ragConfig = {
+  enabled: true,
+  topK: 5,              // Number of memory chunks to retrieve
+  minSimilarity: 0.7,   // Minimum cosine similarity threshold
+  maxContextTokens: 2000 // Maximum tokens from memory to inject
+};
+```
+
+### When RAG Helps
+
+- **Research conversations** — Ground LLM responses in your saved papers and notes
+- **Code documentation** — Query your codebase documentation stored in memory
+- **Personal knowledge** — Reference past decisions, meeting notes, and insights
+- **Multi-session continuity** — Carry knowledge across conversation sessions
+
+---
+
+## ☁️ Multi-Cloud Storage
+
+Mnemosyne supports 5 storage backends, enabling you to ingest files from multiple cloud providers directly into your semantic memory.
+
+### Supported Providers
+
+| Provider | Type | Features |
+|----------|------|----------|
+| **Google Drive** | Cloud | OAuth integration, folder browsing, file ingestion |
+| **TeraBox** | Cloud | File browsing, download and ingest into memory |
+| **S3 / R2** | Cloud | Bucket listing, object download, compatible with any S3 endpoint |
+| **Puter.js FS** | Cloud | Native Puter.js filesystem, no configuration needed |
+| **Local Storage** | Browser | File upload via drag-and-drop, paste, or file picker |
+
+### File Ingestion Pipeline
+
+```
+┌──────────────┐     ┌───────────────┐     ┌──────────────┐     ┌──────────────┐
+│  Cloud/File  │────▶│    Parser     │────▶│   Chunking   │────▶│    Embed     │
+│   Source     │     │  (txt/md/pdf) │     │  & Splitting │     │   & Store    │
+└──────────────┘     └───────────────┘     └──────────────┘     └──────────────┘
+```
+
+1. **Connect** — Authenticate with your cloud provider (OAuth for Google Drive, credentials for S3)
+2. **Select** — Browse and select files or folders to ingest
+3. **Parse** — Supported formats: `.txt`, `.md`, `.pdf`, `.json`, `.csv`
+4. **Ingest** — Files are chunked, embedded, and stored in semantic memory
+
+---
+
+## 📡 API Reference
+
+### LLM Chat
+
+```typescript
+import { chat } from '@/lib/puter';
+
+// Send a message using Puter.js (no API key needed)
+const response = await chat({
+  model: 'gpt-4o',
+  messages: [
+    { role: 'system', content: 'You are a helpful assistant.' },
+    { role: 'user', content: 'Explain quantum computing in simple terms.' }
+  ]
+});
+```
+
+### Using BYOK
+
+```typescript
+import { chat } from '@/lib/llm';
+
+// Use your own API key
+const response = await chat({
+  provider: 'openai',        // 'openai' | 'anthropic' | 'google' | 'deepseek' | 'ollama' | 'openrouter'
+  apiKey: process.env.OPENAI_API_KEY,
+  model: 'gpt-4-turbo',
+  messages: [
+    { role: 'user', content: 'Hello!' }
+  ]
+});
+```
+
+### Memory Operations
+
+```typescript
+import { memory } from '@/lib/memory';
+
+// Search
+const results = await memory.search("query", { topK: 5 });
+
+// Save
+const id = await memory.save({
+  content: "Important information to remember",
+  metadata: { source: "user", tags: ["important"] }
+});
+
+// Update
+await memory.update(id, { content: "Updated information" });
+
+// Delete
+await memory.delete(id);
+
+// Insights
+const insights = await memory.insights({ topic: "machine learning" });
+```
+
+### AI Agent
+
+```typescript
+import { agent } from '@/lib/agent';
+
+// Run the agent with a task
+const result = await agent.run({
+  task: "Search my notes about React patterns and summarize the key findings",
+  tools: ['memory_search', 'memory_insights'],  // optional: limit tools
+  model: 'gpt-4o'                               // optional: specify model
+});
+```
+
+### RAG Query
+
+```typescript
+import { rag } from '@/lib/rag';
+
+// RAG-augmented query
+const response = await rag.query({
+  question: "What did I learn about microservices?",
+  topK: 5,
+  minSimilarity: 0.7,
+  model: 'gpt-4o'
+});
 ```
 
 ---
 
-## Deployment
+## 🤝 Contributing
 
-### Docker (Recommended)
-
-```bash
-# Clone the repository
-git clone https://github.com/mulkymalikuldhrs/mnemosyne.git
-cd mnemosyne
-
-# Set environment variables
-cp .env.example .env
-# Edit .env with production values (especially NEXTAUTH_SECRET)
-
-# Build and start services
-docker compose up -d
-
-# View logs
-docker compose logs -f
-```
-
-This starts two services:
-- **app** — Next.js web application on port 3000
-- **mcp** — MCP server on port 4000
-
-Data is persisted in a Docker volume (`mnemosyne-data`).
-
-### Vercel
-
-mnemosyne can be deployed to Vercel with some adjustments:
-
-1. Fork the repository
-2. Connect to Vercel
-3. Set environment variables in Vercel dashboard
-4. Switch from SQLite to PostgreSQL (update `prisma/schema.prisma` datasource)
-5. Deploy
-
-> **Note:** SQLite is not supported on Vercel. Migrate to PostgreSQL or use Turso.
-
-### Manual Deployment
-
-```bash
-# Build the application
-bun install
-bun run db:generate
-bun run db:push
-bun run build
-
-# Start production server
-DATABASE_URL=file:./data/mnemosyne.db \
-NEXTAUTH_SECRET=your-secret \
-NEXTAUTH_URL=https://your-domain.com \
-NODE_ENV=production \
-bun run start
-```
-
----
-
-## Environment Variables
-
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DATABASE_URL` | Yes | `file:./dev.db` | SQLite path or PostgreSQL connection string |
-| `NEXTAUTH_SECRET` | Yes | `change-me-in-production` | JWT session secret (`openssl rand -base64 32`) |
-| `NEXTAUTH_URL` | Yes | `http://localhost:3000` | Public URL for auth callbacks |
-| `OPENROUTER_API_KEY` | No | — | OpenRouter API key for additional LLM access |
-| `mnemosyne_API_KEY` | No | — | API key for MCP server authentication |
-| `MCP_SERVER_PORT` | No | `4000` | MCP server port |
-| `UPSTASH_REDIS_URL` | No | — | Redis URL for production rate limiting |
-| `UPSTASH_REDIS_TOKEN` | No | — | Redis token for production rate limiting |
-| `EMBEDDING_MODEL` | No | `nomic-embed-text` | Embedding model name |
-| `EMBEDDING_DIMENSION` | No | `768` | Embedding vector dimension |
-| `EMBEDDING_API_URL` | No | — | External embedding API URL |
-| `EMBEDDING_API_KEY` | No | — | External embedding API key |
-
----
-
-## Contributing
-
-We welcome contributions! Here's how to get started:
-
-### Quick Steps
+Contributions are welcome! Please follow these steps:
 
 1. **Fork** the repository
-2. **Create** a feature branch: `git checkout -b feature/your-feature`
-3. **Make** your changes
-4. **Run** `bun run lint` and fix any issues
-5. **Run** `bun run typecheck` to verify types
-6. **Commit** with conventional commits: `feat(scope): description`
-7. **Push** and open a Pull Request
-
-### Commit Convention
-
-| Type | Description |
-|------|-------------|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation only |
-| `style` | Formatting (no code change) |
-| `refactor` | Code refactoring |
-| `perf` | Performance improvement |
-| `test` | Adding tests |
-| `chore` | Build/tooling changes |
+2. Create a **feature branch** (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. Open a **Pull Request**
 
 ### Development Guidelines
 
-- Use TypeScript strict mode throughout
-- Follow the existing code style (ESLint + Prettier)
-- Add proper error handling for all API routes
+- Follow the existing code style (TypeScript + Next.js conventions)
 - Write descriptive commit messages
-- Test your changes before pushing
-- Keep PRs focused on a single concern
+- Test your changes locally before submitting
+- Update documentation for any new features
+
+### Reporting Issues
+
+Found a bug? Have a feature request? Please [open an issue](https://github.com/mulkymalikuldhrs/mnemosyne/issues) with:
+
+- A clear description of the problem or feature
+- Steps to reproduce (for bugs)
+- Your environment (browser, Node.js version, etc.)
 
 ---
 
-## Acknowledgements & Inspirations
+## ⚠️ Disclaimer
 
-Mnemosyne stands on the shoulders of giants. The following open-source projects directly inspired key architectural decisions and implementations:
+**For Education and Research Purpose Only**
 
-| Project | What We Adapted | Link |
-|---------|----------------|------|
-| **9Drive** | Auth handoff token pattern (3-step OAuth without URL token leakage), AES-256-GCM crypto utilities, Zod-validated env config, streaming upload proxy, smart storage routing, preview/share token system, virtual folder organization | [github.com/mulkymalikuldhrs/9drive](https://github.com/mulkymalikuldhrs/9drive) |
-| **Pentaract** | File chunking engine (20MB parallel upload/download with positional reassembly), storage worker abstraction pattern, DB-based rate limiting with least-loaded selection, virtual filesystem with path-based organization, RBAC access control (R/W/A) | [github.com/mulkymalikuldhrs/Pentaract](https://github.com/mulkymalikuldhrs/Pentaract) |
-| **Mem0** | V3 Additive Extraction Pipeline (single LLM call → batch embed → hash dedup → batch persist), multi-signal hybrid search (semantic + BM25 + entity boost), entity store with linked memories, memory history/event sourcing, UUID→integer anti-hallucination pattern, session scope for message context | [github.com/mem0ai/mem0](https://github.com/mem0ai/mem0) |
+This project is provided strictly for educational and research purposes. The authors and contributors assume **no responsibility or liability** for any damages, losses, or risks arising from the use of this software. **We do not bear any responsibility or risk** for how this software is used.
 
-### Specific Implementations Derived From These Projects
-
-| Mnemosyne Module | Source | Pattern |
-|-----------------|--------|---------|
-| `src/lib/crypto/` | 9Drive | AES-256-GCM encrypt/decrypt, randomToken, hashToken, verifyToken |
-| `src/lib/auth/tokens.ts` | 9Drive | Auth handoff (one-time token exchange), preview tokens, share tokens |
-| `src/lib/env.ts` | 9Drive | Zod-validated env config with production safety checks |
-| `src/lib/storage/chunking.ts` | Pentaract | 20MB chunk splitting, parallel upload/download, positional reassembly |
-| `src/lib/rate-limiter.ts` | Pentaract | Sliding window rate limiter with least-loaded key selection |
-| `src/lib/memory/index.ts` | Mem0 | V3 Memory Engine: additive extraction, hybrid search, entity linking, history |
+- Model availability and pricing are determined by Puter.js and respective providers
+- BYOK usage is subject to each provider's terms of service and rate limits
+- Semantic memory data is stored locally — backup your data regularly
+- The MCP server exposes your memory to connected clients — use with appropriate access controls
 
 ---
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 ```
 MIT License
 
-Copyright (c) 2026 Mulky Malikul Dhaher
+Copyright © 2024-2026 Mulky Malikul Dhaher. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -606,19 +566,15 @@ SOFTWARE.
 
 ---
 
-## Author
+## 👤 Author
 
 **Mulky Malikul Dhaher**
 
-- Email: mulkymalikudhr@mail.com
-- GitHub: [@mulkymalikuldhrs](https://github.com/mulkymalikuldhrs)
+[![GitHub](https://img.shields.io/badge/GitHub-mulkymalikuldhrs-181717?style=for-the-badge&logo=github)](https://github.com/mulkymalikuldhrs)
+[![Email](https://img.shields.io/badge/Email-mulkymalikudhr%40mail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:mulkymalikudhr@mail.com)
 
 ---
 
-<div align="center">
-
-**The Biggest Free Multi-LLM Hub** 🧠
-
-*Built with ❤️ in Aceh, Indonesia*
-
-</div>
+<a href="https://github.com/mulkymalikuldhrs/mnemosyne">
+  <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=100:4c1d95,50:2e1065,0:1a0533&height=100&section=footer" />
+</a>
