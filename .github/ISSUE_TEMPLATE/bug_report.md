@@ -1,54 +1,34 @@
 ---
 name: Bug Report
-about: Report a bug in Nanggroe OS AI
-title: '[BUG] '
+about: Report a bug to help us improve
+title: 'bug: '
 labels: bug
 assignees: ''
 ---
 
 ## Bug Description
-
-A clear and concise description of what the bug is.
+A clear description of what the bug is.
 
 ## Steps to Reproduce
-
 1. Go to '...'
 2. Click on '...'
 3. Scroll down to '...'
 4. See error
 
 ## Expected Behavior
-
-A clear and concise description of what you expected to happen.
+What you expected to happen.
 
 ## Actual Behavior
-
-A clear and concise description of what actually happened.
-
-## Screenshots
-
-If applicable, add screenshots to help explain your problem.
+What actually happened.
 
 ## Environment
+- OS: [e.g., macOS 14, Ubuntu 22.04, Windows 11]
+- Node.js/Python version: [e.g., 20.11.0 / 3.12]
+- Browser: [e.g., Chrome 121]
+- Project version: [e.g., v3.0.0]
 
-- **OS**: [e.g. Ubuntu 22.04, Windows 11, Android 14]
-- **Nanggroe OS AI Version**: [e.g. 1.0.0]
-- **Platform**: [Web / Desktop (Tauri) / Mobile (Capacitor)]
-- **Runtime**: [Bun version, Node.js version]
-- **Browser**: [if web, e.g. Chrome 120]
-
-## Hardware Context (if applicable)
-
-- **Board**: [e.g. Arduino Mega, Pixhawk 4, Raspberry Pi 4]
-- **Connection**: [USB Serial, I2C, SPI, GPIO]
-- **Sensors/Motors**: [List connected hardware]
-
-## Logs
-
-```
-Paste relevant log output here
-```
+## Screenshots / Logs
+If applicable, add screenshots or error logs.
 
 ## Additional Context
-
-Add any other context about the problem here.
+Any other context about the problem.
