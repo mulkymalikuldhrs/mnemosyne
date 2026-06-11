@@ -585,3 +585,41 @@ SOFTWARE.
 <a href="https://github.com/mulkymalikuldhrs/mnemosyne">
   <img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=100:4c1d95,50:2e1065,0:1a0533&height=100&section=footer" />
 </a>
+
+
+## 🔗 Related Projects
+
+We're building a family of open source tools! Check out our other projects:
+
+| Project | Description | Stars |
+|---------|-------------|-------|
+| [📈 Quant-Nanggroe-AI](https://github.com/mulkymalikuldhrs/Quant-Nanggroe-AI) | AI-powered quantitative analysis for Nanggroe market | ⭐ |
+| [🧠 AI-MultiColony-Ecosystem](https://github.com/mulkymalikuldhrs/AI-MultiColony-Ecosystem) | Multi-agent AI colony simulation | ⭐ 3 |
+| [📋 Kalen](https://github.com/mulkymalikuldhrs/kalen) | Smart scheduling & AI task management | ⭐ |
+| [🤖 ProxyGateLLM](https://github.com/mulkymalikuldhrs/ProxyGateLLM) | Multi-LLM gateway with priority fallback | ⭐ 36 |
+| [🧩 Mnemosyne](https://github.com/mulkymalikuldhrs/mnemosyne) | Knowledge management & note-taking | ⭐ |
+
+🚀 **[Visit our Contributor Hub](https://mulkymalikuldhrs.github.io/contribute-to-our-projects/)** — 28 open source projects seeking contributors!
+
+
+<!-- Schema.org Structured Data for Search Engines -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "mnemosyne",
+  "author": {
+    "@type": "Person",
+    "name": "Mulky Malikul Adhr",
+    "url": "https://github.com/mulkymalikuldhrs"
+  },
+  "programmingLanguage": "TypeScript",
+  "license": "https://spdx.org/licenses/MIT",
+  "codeRepository": "https://github.com/mulkymalikuldhrs/mnemosyne",
+  "contributor": {
+    "@type": "Organization",
+    "name": "Open Source Contributors",
+    "url": "https://mulkymalikuldhrs.github.io/contribute-to-our-projects/"
+  }
+}
+</script>
