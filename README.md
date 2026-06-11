@@ -102,6 +102,216 @@ No backend server is needed. Puter.js handles authentication and billing on the 
 
 ---
 
+## 🗺️ Visual Architecture
+
+> Interactive Mermaid diagrams — viewable on GitHub. These illustrate the system design, data flow, and integrations at a glance.
+
+### Multi-LLM Hub Architecture
+
+```mermaid
+flowchart TB
+    subgraph Client["🖥️ Next.js 16 Client"]
+        ChatUI[Chat Interface]
+        AgentUI[Agent UI]
+        MemUI[Memory Dashboard]
+    end
+
+    subgraph Router["🔀 LLM Router Layer"]
+        RouterCore[Smart Router<br/>Cost & latency optimization]
+        Fallback[Fallback Chain<br/>Primary → Secondary → Tertiary]
+    end
+
+    subgraph Free["🆓 Puter.js — 500+ Models"]
+        GPT4[GPT-4 / GPT-4o]
+        Claude[Claude 3.5 / Opus]
+        Gemini[Gemini Pro / Ultra]
+        DeepSeek[DeepSeek V3 / R1]
+        Meta[LLaMA / Meta AI]
+        Mistral[Mistral / Mixtral]
+        XAI[xAI Grok]
+        More500[...490+ more models]
+    end
+
+    subgraph BYOK["🔑 Bring Your Own Key"]
+        OAI[OpenAI API]
+        Anthr[Anthropic API]
+        Google[Google AI API]
+        DS[DeepSeek API]
+        OR[OpenRouter]
+        Ollama[Ollama Local]
+        Custom[Custom OpenAI-compat]
+    end
+
+    Client --> Router
+    Router --> Free
+    Router --> BYOK
+    Free --> Fallback
+    BYOK --> Fallback
+```
+
+### RAG Memory Pipeline
+
+```mermaid
+flowchart LR
+    subgraph Input["📥 Input Sources"]
+        Notes[User Notes]
+        Files[File Uploads]
+        Chat[Chat History]
+        Cloud[Cloud Storage]
+    end
+
+    subgraph Processing["⚙️ Processing Pipeline"]
+        Chunker[Text Chunker<br/>Semantic splitting]
+        Embedder[Embedder<br/>Vector generation]
+        Store[(Vector Store<br/>Local embeddings)]
+    end
+
+    subgraph Retrieval["🔍 Retrieval"]
+        Query[User Query]
+        QueryEmb[Query Embedding]
+        Similarity[Cosine Similarity<br/>+ KNN Search]
+        TopK[Top-K Results]
+    end
+
+    subgraph Generation["🧠 Generation"]
+        Context[Context Assembly<br/>System + Memory + Query]
+        LLM[LLM Response<br/>Grounded in your data]
+    end
+
+    Input --> Processing
+    Chunker --> Embedder --> Store
+    Query --> QueryEmb --> Similarity
+    Store --> Similarity
+    Similarity --> TopK --> Context --> LLM
+```
+
+### Skills Plugin System
+
+```mermaid
+flowchart TB
+    subgraph Core["🧠 Mnemosyne Core"]
+        Agent[AI Agent]
+        Router2[Skill Router]
+    end
+
+    subgraph Media["🎵 Media Skills"]
+        ASR[ASR<br/>Speech-to-Text]
+        TTS[TTS<br/>Text-to-Speech]
+    end
+
+    subgraph Vision["👁️ Vision Skills"]
+        VLM[VLM<br/>Vision Language Model]
+        ImgSearch[Image Search]
+    end
+
+    subgraph Productivity["📊 Productivity Skills"]
+        Charts[Charts<br/>Data Visualization]
+        XLSX[XLSX<br/>Spreadsheets]
+        DOCX[DOCX<br/>Documents]
+        PDF[PDF<br/>Generation & Parsing]
+        PPTX[PPTX<br/>Presentations]
+    end
+
+    subgraph Dev["🛠️ Developer Skills"]
+        WebSearch[Web Search]
+        WebReader[Web Reader]
+        CodeGen[Code Generation]
+        ImgEdit[Image Edit]
+        ImgGen[Image Generation]
+    end
+
+    subgraph Knowledge["📚 Knowledge Skills"]
+        MemorySearch[Memory Search]
+        MemorySave[Memory Save]
+        MemoryUpdate[Memory Update]
+        MemoryDelete[Memory Delete]
+        MemoryInsights[Memory Insights]
+        DecisionTrack[Decision Tracking]
+    end
+
+    Agent --> Router2
+    Router2 --> Media
+    Router2 --> Vision
+    Router2 --> Productivity
+    Router2 --> Dev
+    Router2 --> Knowledge
+```
+
+### MCP Server Architecture
+
+```mermaid
+flowchart TB
+    subgraph Clients["🔌 MCP Clients"]
+        Claude[Claude Desktop]
+        Cursor[Cursor IDE]
+        Custom[Custom MCP Client]
+    end
+
+    subgraph Server["📡 MCP Server — JSON-RPC 2.0"]
+        Transport[Transport Layer<br/>stdio / HTTP]
+        Handler[Request Handler]
+        Registry[Tool Registry]
+    end
+
+    subgraph Tools["🛠️ Exposed Tools"]
+        MemSearch[memory_search]
+        MemSave[memory_save]
+        MemUpdate[memory_update]
+        MemDelete[memory_delete]
+        MemInsights[memory_insights]
+        RagQuery[rag_query]
+    end
+
+    subgraph Backend["💾 Backend"]
+        VecStore[(Vector Store)]
+        LLMRouter[LLM Router]
+        RAGPipe[RAG Pipeline]
+    end
+
+    Clients -->|JSON-RPC 2.0| Transport
+    Transport --> Handler
+    Handler --> Registry
+    Registry --> Tools
+    Tools --> Backend
+```
+
+### Knowledge Graph Flow
+
+```mermaid
+flowchart LR
+    subgraph Sources["📥 Knowledge Sources"]
+        Docs[Documents]
+        Conv[Conversations]
+        Web2[Web Content]
+        Decisions[Decisions]
+    end
+
+    subgraph Processing2["⚙️ Knowledge Processing"]
+        Extract[Entity Extraction]
+        Relate[Relationship Mapping]
+        Embed2[Embedding Generation]
+    end
+
+    subgraph Graph["🧬 Knowledge Graph"]
+        Entities[Entity Nodes<br/>People, Concepts, Topics]
+        Relations[Relation Edges<br/>Connected, Related, Depends-on]
+        Clusters[Topic Clusters<br/>Auto-grouped themes]
+    end
+
+    subgraph Access["🔎 Access Patterns"]
+        Search2[Semantic Search]
+        Browse[Graph Browse]
+        Insights2[Auto Insights]
+        Timeline[Decision Timeline]
+    end
+
+    Sources --> Processing2
+    Extract --> Relate --> Embed2
+    Embed2 --> Graph
+    Entities --> Relations --> Clusters
+    Graph --> Access
+```
+
 ## ⚠️ Honest Notes
 
 > We believe in transparency. Here are important limitations and clarifications.
