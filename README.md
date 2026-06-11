@@ -363,6 +363,13 @@ flowchart LR
 
 ```bash
 # Clone the repository
+
+<!-- AUTO-PACKAGE-BADGES:START -->
+<!-- Auto-generated package badges -->
+
+![npm version](https://img.shields.io/npm/v/%40mnemosyne%2Fmemory?style=flat-square&logo=npm&color=blue) ![npm downloads](https://img.shields.io/npm/dw/%40mnemosyne%2Fmemory?style=flat-square&color=brightgreen) ![npm license](https://img.shields.io/npm/l/%40mnemosyne%2Fmemory?style=flat-square) [![Deployed](https://img.shields.io/badge/deployed-2.0.0-blue?style=flat-square)](https://www.npmjs.com/package/@mnemosyne/memory)
+
+<!-- AUTO-PACKAGE-BADGES:END -->
 git clone https://github.com/mulkymalikuldhrs/mnemosyne.git
 cd mnemosyne
 
