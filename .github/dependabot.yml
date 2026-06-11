@@ -5,29 +5,14 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
-    reviewers:
-      - "mulkymalikuldhaher"
-    labels:
-      - "dependencies"
-
-  - package-ecosystem: "cargo"
-    directory: "/src-tauri/"
+    
+  - package-ecosystem: "pip"
+    directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
-    reviewers:
-      - "mulkymalikuldhaher"
-    labels:
-      - "dependencies"
-      - "rust"
-
+    open-pull-requests-limit: 10
+    
   - package-ecosystem: "github-actions"
-    directory: "/.github/workflows/"
+    directory: "/"
     schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 5
-    reviewers:
-      - "mulkymalikuldhaher"
-    labels:
-      - "dependencies"
-      - "ci"
+      interval: "weekly"
